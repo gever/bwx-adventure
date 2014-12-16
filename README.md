@@ -39,7 +39,7 @@ loc_vestibule.put( Thing( "key", "small brass key") )
 # make the player
 hero = Person( world )
 
-# start on the somewhere (hey, there's a pebble here!)
+# start somewhere (hey, there's a pebble here!)
 hero.set_location( loc_sidewalk )
 
 ```
