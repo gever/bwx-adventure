@@ -66,19 +66,25 @@ define_direction( NORTH_EAST, "ne" )
 define_direction( SOUTH_WEST, "sw" )
 define_direction( SOUTH_EAST, "se" )
 
+# changes "lock" to "a lock", "apple" to "an apple", etc.
+# note that no article should be added to proper names; store
+# a global list of these somewhere?!!!
+def add_article ( name ):
+   vowels = "aeiou"
+   article = "an" if name and (name[0] in vowels) else "a"
+   return "%s %s" % (article, name)
+    
 def proper_list_from_dict( d ):
-	desc = ""
-	stuff = []
 	names = d.keys()
-	if len(names) == 1:
-		desc += "a "
-		desc += names[0]
-	else:
-		for name in names[:-1]:
-			stuff.append( name )
-		desc += ", ".join( stuff )
-		desc += " and a %s." % (names[-1])
-	return desc
+	buf = []
+	name_count = len(names)
+	for (i,name) in enumerate(names):
+		if i != 0:
+			buf.append(", " if name_count > 2 else " ")
+		if i == name_count-1 and name_count > 1:
+			buf.append("and ")
+		buf.append(add_article(name))
+	return "".join(buf)
 
 class Thing:
 	# name: short name of this thing
@@ -124,14 +130,13 @@ class Location:
 			# add a newline so that the list starts on it's own line
 			desc += "\n"
 
+			# try to make a readable list of the things
+			contents_description = proper_list_from_dict(self.contents)
 			# is it just one thing?
 			if len(self.contents) == 1:
-				key = self.contents.keys()[0]
-				desc += "There is a %s here." % self.contents[key].describe()
-			else:
-				# try to make a readable list of the things
-				desc += "There are a few things here: "
-				desc += proper_list_from_dict( self.contents )
+			   desc += "There is %s here." % contents_description
+			else: 
+				desc += "There are a few things here: %s" % contents_description
 		return desc
 
 	def add_exit( self, con, way ):
@@ -163,7 +168,7 @@ class Connection:
 
 # a World is how all the locations, things, and connections are organized
 class World:
-	#locations = {}
+	# locations
 
 	def __init__ ( self ):
 		self.locations = {}
