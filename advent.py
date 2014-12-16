@@ -81,9 +81,9 @@ def proper_list_from_dict( d ):
 	return desc
 
 class Thing:
-	name = ""			# short name of this thing
-	description = ""
-	fixed = False	# is it stuck or can it be taken
+	# name: short name of this thing
+	# description: full description
+	# fixed: is it stuck or can it be taken
 
 	def __init__( self, name, desc, fixed=False ):
 		self.name = name
@@ -95,17 +95,18 @@ class Thing:
 
 # A "location" is a place in the game.
 class Location:
-	name = ""			# short name of this location
-	description = ""
-	contents = None # things that are in a location
-	exits = None		# ways to get out of a location
-	first_time = True
+	# name: short name of this location
+	# description: full description
+	# contents: things that are in a location
+	# exits: ways to get out of a location
+	# first_time: is it the first time here?
 
 	def __init__( self, name, desc ):
 		self.name = name
 		self.description = desc.strip()
 		self.contents = {}
 		self.exits = {}
+		self.first_time = True
 		
 	def put( self, thing ):
 		self.contents[thing.name] = thing
@@ -116,7 +117,7 @@ class Location:
 		# add the description
 		if self.first_time or force:
 			desc += self.description
-			self.first_time = True
+			self.first_time = False
 
 		# any things here?
 		if len(self.contents) > 0:
@@ -150,10 +151,10 @@ class Location:
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
 class Connection:
-	name = ""
-	description = ""
-	point_a = None
-	point_b = None
+	# name
+	# description
+	# point_a
+	# point_b
 
 	def __init__( self, pa, name, pb ):
 		self.name = name
@@ -162,8 +163,11 @@ class Connection:
 
 # a World is how all the locations, things, and connections are organized
 class World:
-	locations = {}
+	#locations = {}
 
+	def __init__ ( self ):
+		self.locations = {}
+   
 	# make a connection between point A and point B
 	def connect( self, point_a, name, point_b, way ):
 		c = Connection( point_a, name, point_b )
@@ -186,11 +190,11 @@ class World:
 	
 # A "person" is the actor in a world
 class Person:
-	world = None
-	location = None
-	inventory = None
-	moved = False
-	verbs = None
+	# world
+	# location
+	# inventory
+	# moved
+	# verbs
 
 	def __init__( self, w ):
 		self.world = w
