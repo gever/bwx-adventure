@@ -9,3 +9,37 @@ by a Person object that has a current location. The command parser is simple but
 is easily extened with new commands.
 
 This was initially written in support of the Orange Band at <a href="http://sfbrightworks.org">SF Brightworks</a>.
+
+```python
+from advent.py import *
+
+# make your world
+world = World()
+
+# add locations (basically a name and a narrative description)
+loc_sidewalk = world.add_location(
+"Sidewalk", """
+You are standing in front of a large glass door.
+The sign says 'Come In!'
+""" )
+loc_vestibule = world.add_location(
+"Vestibule", """
+A small area at the bottom of a flight of stairs.
+There is an elevator here (currently locked).
+Up the stars you see the reception desk.
+""" )
+
+# make connections between the various locations
+world.biconnect( loc_sidewalk, loc_vestibule, "Big Door", IN, OUT )
+
+# put some things in the locations
+loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
+loc_vestibule.put( Thing( "key", "small brass key") )
+
+# make the player
+hero = Person( world )
+
+# start on the somewhere (hey, there's a pebble here!)
+hero.set_location( loc_sidewalk )
+
+```
