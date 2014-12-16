@@ -252,7 +252,7 @@ class Person:
 
 	# define action verbs
 	def define_action( self, verb, func ):
-		self.verbs['verb'] = func
+		self.verbs[verb] = func
 	
 	def perform_action( self, verb, noun=None ):
 		if verb in self.verbs:
