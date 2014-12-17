@@ -45,6 +45,13 @@ loc_sidewalk.put( elev_key )
 loc_sidewalk.put( elev_lock )
 loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
 
+loc_sidewalk.add_easter_egg( 'open door', 'The door is already open.' )
+
+def fart(self, noun):
+    print 'Who cut the cheese?'
+
+add_verb(fart)
+
 # make the player
 hero = Person( world )
 
@@ -52,33 +59,4 @@ hero = Person( world )
 hero.set_location( loc_sidewalk )
 
 # start playing
-while True:
-	# if the hero moved, describe the room
-	if hero.check_if_moved():
-		print
-		print "        --=( %s )=--" % hero.location.name
-		where = hero.describe()
-		if len(where) > 0:
-			print where
-
-	# get input from the user
-	command = raw_input("> ")
-	if command == 'q' or command == 'quit':
-		break
-	words = command.split(" ")
-
-	# reject any command that is more than two words
-	if len( words ) > 2:
-		print "Sorry, what?"
-		continue
-
-	# try to do what the user says
-	if len( words ) == 2:
-		# action object
-		# e.g. take key
-		verb, noun = words
-		hero.act( verb, noun )
-	else:
-		# action (implied object/subject)
-		# e.g. north
-		hero.simple_act( words[0] )
+run_game(hero)
