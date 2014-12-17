@@ -47,12 +47,18 @@ loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
 loc_sidewalk.put( Thing( "Gary the garden gnome",
                           "a small figure liberated from a nearby garden." ) )
 
-loc_sidewalk.add_easter_egg( 'open door', 'The door is already open.' )
+loc_sidewalk.add_easter_egg( 'knock', 'The door makes a hollow sound.' )
 
-def fart(self, noun):
-    print 'Who cut the cheese?'
+# add another verb
+def throw(self, noun):
+  if self.act('drop', noun):
+     print 'The %s bounces and falls to the floor' % noun
+     return True
+  else:
+     print 'You hurt your arm.'
+     return False
 
-add_verb(fart)
+add_verb(throw)
 
 # make the player
 hero = Person( world )

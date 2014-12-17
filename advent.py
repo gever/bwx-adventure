@@ -3,6 +3,11 @@
 #
 
 # A "direction" is all the ways you can describe going some way
+#
+# adventure module
+#
+
+# A "direction" is all the ways you can describe going some way
 directions = {}
 NORTH = 1
 SOUTH = 2
@@ -24,17 +29,17 @@ NOT_DIRECTION = -1
 
 # map direction names to direction numbers
 def define_direction( number, name ):
-	# check to see if we are trying to redefine an existing direction
-	if name in directions:
-		print name, "is already defined as,", directions[name] 
-	directions[name] = number
+  # check to see if we are trying to redefine an existing direction
+  if name in directions:
+    print name, "is already defined as,", directions[name]
+  directions[name] = number
 
 # see if a word is a defined direction
 def lookup_dir( d ):
-	if d in directions:
-		return directions[d]
-	else:
-		return NOT_DIRECTION
+  if d in directions:
+    return directions[d]
+  else:
+    return NOT_DIRECTION
 
 define_direction( NORTH, "north" )
 define_direction( NORTH, "n" )
@@ -66,6 +71,8 @@ define_direction( NORTH_EAST, "ne" )
 define_direction( SOUTH_WEST, "sw" )
 define_direction( SOUTH_EAST, "se" )
 
+articles = ['a', 'an', 'the']
+
 # changes "lock" to "a lock", "apple" to "an apple", etc.
 # note that no article should be added to proper names; store
 # a global list of these somewhere?  For now we'll just assume
@@ -80,290 +87,311 @@ def add_article ( name ):
    else:
       article = ""
    return "%s%s" % (article, name)
-    
+
 def proper_list_from_dict( d ):
-	names = d.keys()
-	buf = []
-	name_count = len(names)
-	for (i,name) in enumerate(names):
-		if i != 0:
-			buf.append(", " if name_count > 2 else " ")
-		if i == name_count-1 and name_count > 1:
-			buf.append("and ")
-		buf.append(add_article(name))
-	return "".join(buf)
+  names = d.keys()
+  buf = []
+  name_count = len(names)
+  for (i,name) in enumerate(names):
+    if i != 0:
+      buf.append(", " if name_count > 2 else " ")
+    if i == name_count-1 and name_count > 1:
+      buf.append("and ")
+    buf.append(add_article(name))
+  return "".join(buf)
 
 class Thing:
-	# name: short name of this thing
-	# description: full description
-	# fixed: is it stuck or can it be taken
+  # name: short name of this thing
+  # description: full description
+  # fixed: is it stuck or can it be taken
 
-	def __init__( self, name, desc, fixed=False ):
-		self.name = name
-		self.description = desc
-		self.fixed = fixed
-	
-	def describe( self ):
-		return self.name
+  def __init__( self, name, desc, fixed=False ):
+    self.name = name
+    self.description = desc
+    self.fixed = fixed
+
+  def describe( self ):
+    return self.name
 
 # A "location" is a place in the game.
 class Location:
-	# name: short name of this location
-	# description: full description
-	# contents: things that are in a location
-	# exits: ways to get out of a location
-	# first_time: is it the first time here?
+  # name: short name of this location
+  # description: full description
+  # contents: things that are in a location
+  # exits: ways to get out of a location
+  # first_time: is it the first time here?
 
-	def __init__( self, name, desc ):
-		self.name = name
-		self.description = desc.strip()
-		self.contents = {}
-		self.exits = {}
-		self.first_time = True
-                self.easter_eggs = {}
-		
-	def put( self, thing ):
-		self.contents[thing.name] = thing
+  def __init__( self, name, desc ):
+    self.name = name
+    self.description = desc.strip()
+    self.contents = {}
+    self.exits = {}
+    self.first_time = True
+    self.easter_eggs = {}
 
-	def describe( self, force=False ):
-		desc = ""		# start with a blank string
+  def put( self, thing ):
+    self.contents[thing.name] = thing
 
-		# add the description
-		if self.first_time or force:
-			desc += self.description
-			self.first_time = False
+  def describe( self, force=False ):
+    desc = ""   # start with a blank string
 
-		# any things here?
-		if len(self.contents) > 0:
-			# add a newline so that the list starts on it's own line
-			desc += "\n"
+    # add the description
+    if self.first_time or force:
+      desc += self.description
+      self.first_time = False
 
-			# try to make a readable list of the things
-			contents_description = proper_list_from_dict(self.contents)
-			# is it just one thing?
-			if len(self.contents) == 1:
-                            desc += "There is %s here." % contents_description
-			else: 
-                            desc += "There are a few things here: %s" % contents_description
-		return desc
+    # any things here?
+    if len(self.contents) > 0:
+      # add a newline so that the list starts on it's own line
+      desc += "\n"
 
-	def add_exit( self, con, way ):
-		self.exits[ way ] = con
-	
-	def go( self, way ):
-		if way in self.exits:
-			c = self.exits[ way ]
-			return c.point_b
-		else:
-			return None
+      # try to make a readable list of the things
+      contents_description = proper_list_from_dict(self.contents)
+      # is it just one thing?
+      if len(self.contents) == 1:
+        desc += "There is %s here." % contents_description
+      else:
+        desc += "There are a few things here: %s" % contents_description
+    return desc
 
-	def debug( self ):
-		for key in exits:
-			print "exit:", directions[key], 
+  def add_exit( self, con, way ):
+    self.exits[ way ] = con
 
-        def add_easter_egg( self, command, response ):
-                self.easter_eggs[' '.join(command.split())] = response
+  def go( self, way ):
+    if way in self.exits:
+      c = self.exits[ way ]
+      return c.point_b
+    else:
+      return None
 
-        def get_easter_egg( self, command ):
-                c = ' '.join(command.split())
-                if c in self.easter_eggs:
-                    return self.easter_eggs[c]
-                else:
-                    return ''
+  def debug( self ):
+    for key in exits:
+      print "exit:", directions[key],
+
+  def add_easter_egg( self, command, response ):
+    self.easter_eggs[' '.join(command.split())] = response
+
+  def get_easter_egg( self, command ):
+    c = ' '.join(command.split())
+    if c in self.easter_eggs:
+       return self.easter_eggs[c]
+    else:
+      return ''
 
 
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
 class Connection:
-	# name
-	# point_a
-	# point_b
+  # name
+  # point_a
+  # point_b
 
-	def __init__( self, pa, name, pb ):
-		self.name = name
-		self.point_a = pa
-		self.point_b = pb
+  def __init__( self, pa, name, pb ):
+    self.name = name
+    self.point_a = pa
+    self.point_b = pb
 
 # a World is how all the locations, things, and connections are organized
 class World:
-	# locations
+  # locations
 
-	def __init__ ( self ):
-		self.locations = {}
-   
-	# make a connection between point A and point B
-	def connect( self, point_a, name, point_b, way ):
-		c = Connection( point_a, name, point_b )
-		point_a.add_exit( c, way )
-		return c
+  def __init__ ( self ):
+    self.locations = {}
 
-	# make a bidirectional between point A and point B
-	def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
-		c1 = Connection( point_a, name, point_b )
-		point_a.add_exit( c1, ab_way )
-		c2 = Connection( point_b, name, point_a )
-		point_b.add_exit( c2, ba_way )
-		return c1, c2
-	
-	# add another location to the world
-	def add_location( self, name, description ):
-		l = Location( name, description )
-		self.locations[name] = l
-		return l
+  # make a connection between point A and point B
+  def connect( self, point_a, name, point_b, way ):
+    c = Connection( point_a, name, point_b )
+    point_a.add_exit( c, way )
+    return c
+
+  # make a bidirectional between point A and point B
+  def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
+    c1 = Connection( point_a, name, point_b )
+    point_a.add_exit( c1, ab_way )
+    c2 = Connection( point_b, name, point_a )
+    point_b.add_exit( c2, ba_way )
+    return c1, c2
+
+  # add another location to the world
+  def add_location( self, name, description ):
+    l = Location( name, description )
+    self.locations[name] = l
+    return l
 
 # A "person" is the actor in a world
 class Person:
-	# world
-	# location
-	# inventory
-	# moved
-	# verbs
+  # world
+  # location
+  # inventory
+  # moved
+  # verbs
 
-	def __init__( self, w ):
-		self.world = w
-		self.inventory = {}
-		self.verbs = {}
+  def __init__( self, w ):
+    self.world = w
+    self.inventory = {}
+    self.verbs = {}
 
-		# associate each of the known actions with functions
-                for e in dir(self):
-                    if e.startswith('act_'):
-                        v = e[4:]
-                        self.verbs[v] = getattr(self, e)
+    # associate each of the known actions with functions
+    for e in dir(self):
+      if e.startswith('act_'):
+        v = e[4:]
+        self.verbs[v] = getattr(self, e)
 
-	# describe where we are
-	def describe( self ):
-		return self.location.describe()
-	
-	# establish where we are "now"
-	def set_location( self, loc ):
-		self.location = loc
-		self.moved = True
+  # describe where we are
+  def describe( self ):
+    return self.location.describe()
 
-	# move a thing from the current location to our inventory
-	def act_take( self, noun=None ):
-		if noun in self.location.contents:
-			t = self.location.contents[noun]
-			del self.location.contents[noun]
-			self.inventory[noun] = t
-			return True
-		else:
-			return False
-	
-	def act_look( self, noun=None ):
-		print self.location.describe( True )
-	
-	# list the things we're carrying
-	def act_inventory( self, noun=None ):
-		msg = ""
-                if self.inventory.keys():
-			msg += "You are carrying "
-			msg += proper_list_from_dict( self.inventory )
-			print msg
+  # establish where we are "now"
+  def set_location( self, loc ):
+    self.location = loc
+    self.moved = True
 
-	# check/clear moved status
-	def check_if_moved( self ):
-		status = self.moved
-		self.moved = False
-		return status
+  # move a thing from the current location to our inventory
+  def act_take( self, noun=None ):
+    t = self.location.contents.pop(noun, None)
+    if t:
+      self.inventory[noun] = t
+      return True
+    else:
+      return False
 
-	# try to go in a given direction
-	def go( self, d ):
-		loc = self.location.go( d )
-		if loc == None:
-			print "Bonk! Sorry, you can't seem to go that way."
-		else:
-			# update where we are
-			self.location = loc
-			self.moved = True
-		return self.location
+  # move a thing from our inventory to the current location
+  def act_drop( self, noun=None ):
+    t = self.inventory.pop(noun, None)
+    if t:
+      self.location.contents[noun] = t
+      return True
+    else:
+      return False
 
-	# define action verbs
-	def define_action( self, verb, func ):
-		self.verbs[verb] = func
+  def act_look( self, noun=None ):
+    print self.location.describe( True )
+    return True
 
-	def perform_action( self, verb, noun=None ):
-                verbs = []
-                for v in self.verbs:
-                    if v.startswith(verb):
-                        verbs.append(v)
-                if len(verbs) == 1:
-			self.verbs[verbs[0]]( noun )
-			return True
-		else:
-			return False
+  # list the things we're carrying
+  def act_inventory( self, noun=None ):
+    msg = 'You are carrying '
+    if self.inventory.keys():
+      msg += proper_list_from_dict( self.inventory )
+    else:
+      msg += 'nothing'
+    msg += '.'
+    print msg
+    return True
 
-	# do something
-	def simple_act( self, verb ):
-		d = lookup_dir( verb )
-		if d == NOT_DIRECTION:
-			# see if it's a known action
-			if self.perform_action( verb ):
-				return
-			else:
-				print "Sorry, I don't understand '%s'." % verb
-		else:
-			# try to move in the given direction
-			self.location = self.go( d )
+  # check/clear moved status
+  def check_if_moved( self ):
+    status = self.moved
+    self.moved = False
+    return status
 
-	# do something to something
-	def act( self, verb, noun ):
-		# "go" is a special case
-		if verb == 'go':
-			self.simple_act( noun )
-		else:
-			if self.perform_action( verb, noun ):
-				return
-			else:
-				print "Oops. Don't know how to '%s'." % verb
+  # try to go in a given direction
+  def go( self, d ):
+    loc = self.location.go( d )
+    if loc == None:
+      print "Bonk! Sorry, you can't seem to go that way."
+      return False
+    else:
+      # update where we are
+      self.location = loc
+      self.moved = True
+      return True
+
+  # define action verbs
+  def define_action( self, verb, func ):
+    self.verbs[verb] = func
+
+  def perform_action( self, verb, noun=None ):
+    verbs = []
+    for v in self.verbs:
+      if v.startswith(verb):
+        verbs.append(v)
+    if len(verbs) == 1:
+      self.verbs[verbs[0]]( noun )
+      return True
+    else:
+      return False
+
+  # do something
+  def simple_act( self, verb ):
+    verbs = []
+    for v in self.verbs:
+      if v.startswith(verb):
+        verbs.append(v)
+    d = lookup_dir( verb )
+    if d == NOT_DIRECTION:
+      # see if it's a known action
+      if self.perform_action( verb ):
+        return True
+      else:
+        print "Sorry, I don't understand '%s'." % verb
+        return False
+    else:
+      if verbs:
+        print "Sorry, I don't understand '%s'." % verb
+        return False
+      # try to move in the given direction
+      return self.go( d )
+
+  # do something to something
+  def act( self, verb, noun ):
+    # "go" is a special case
+    if verb == 'go':
+      self.simple_act( noun )
+    else:
+      if self.perform_action( verb, noun ):
+        return True
+      else:
+        print "Oops. Don't know how to '%s'." % verb
+        return False
 
 
 def add_verb( f ):
-        setattr(Person, 'act_' + f.__name__, f)
+  setattr(Person, 'act_' + f.__name__, f)
 
 def run_game( hero ):
-        while True:
-                # if the hero moved, describe the room
-                if hero.check_if_moved():
-                        print
-                        print "        --=( %s )=--" % hero.location.name
-                        where = hero.describe()
-                        if where:
-                                print where
+  while True:
+    # if the hero moved, describe the room
+    if hero.check_if_moved():
+      print
+      print "        --=( %s )=--" % hero.location.name
+      where = hero.describe()
+      if where:
+        print where
 
-                # get input from the user
-                try:
-                    command = raw_input("> ")
-                except EOFError:
-                    exit()
-                if command == 'q' or command == 'quit':
-                        break
-                words = command.split()
+    # get input from the user
+    try:
+      command = raw_input("> ")
+    except EOFError:
+      break
+    if command == 'q' or command == 'quit':
+       break
+    words = command.split()
 
-                easter_egg = hero.location.get_easter_egg( command )
-                if easter_egg:
-                    print easter_egg
-                    continue
+    easter_egg = hero.location.get_easter_egg( command )
+    if easter_egg:
+      print easter_egg
+      continue
 
-                # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
-                # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
-                if len( words ) > 2:
-                        verb = words[0]
-                        i = 1
-                        for noun in words[1:]:
-                                noun = noun.strip(',')
-                                if noun == 'and':
-                                        continue
-                                hero.act( verb, noun )
-                        continue
+    # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
+    # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
+    if len( words ) > 2:
+      verb = words[0]
+      for noun in words[1:]:
+        noun = noun.strip(',')
+        if noun in articles: continue
+        if noun == 'and': continue
+        hero.act( verb, noun )
+      continue
 
-                # try to do what the user says
-                if len( words ) == 2:
-                        # action object
-                        # e.g. take key
-                        verb, noun = words
-                        hero.act( verb, noun )
+    # try to do what the user says
+    if len( words ) == 2:
+      # action object
+      # e.g. take key
+      verb, noun = words
+      hero.act( verb, noun )
 
-                if len( words ) == 1:
-                        # action (implied object/subject)
-                        # e.g. north
-                        hero.simple_act( words[0] )
+    if len( words ) == 1:
+      # action (implied object/subject)
+      # e.g. north
+      hero.simple_act( words[0] )
