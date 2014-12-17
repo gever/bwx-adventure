@@ -30,6 +30,7 @@ south is the reception desk. There is nothing to do here.
 loc_elevator = world.add_location( "Elevator",
 """The elevator is turned off, but the door is open.
 The controls on the elevator do not seem to work.
+To the west is an intersection.
 """ )
 
 # the connections between the places
