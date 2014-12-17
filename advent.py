@@ -68,11 +68,18 @@ define_direction( SOUTH_EAST, "se" )
 
 # changes "lock" to "a lock", "apple" to "an apple", etc.
 # note that no article should be added to proper names; store
-# a global list of these somewhere?!!!
+# a global list of these somewhere?  For now we'll just assume
+# anything starting with upper case is proper.
 def add_article ( name ):
+   consonants = "bcdfghjklmnpqrstvwxyz"
    vowels = "aeiou"
-   article = "an" if name and (name[0] in vowels) else "a"
-   return "%s %s" % (article, name)
+   if name and (name[0] in vowels):
+      article = "an "
+   elif name and (name[0] in consonants):
+      article = "a "
+   else:
+      article = ""
+   return "%s%s" % (article, name)
     
 def proper_list_from_dict( d ):
 	names = d.keys()

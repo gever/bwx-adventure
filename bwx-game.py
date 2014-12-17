@@ -44,6 +44,8 @@ elev_lock = Thing( "lock", "ordinary lock" )
 loc_sidewalk.put( elev_key )
 loc_sidewalk.put( elev_lock )
 loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
+loc_sidewalk.put( Thing( "Gary the garden gnome",
+                          "a small figure liberated from a nearby garden." ) )
 
 loc_sidewalk.add_easter_egg( 'open door', 'The door is already open.' )
 
