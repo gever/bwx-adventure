@@ -49,8 +49,11 @@ loc_sidewalk.put( Thing( "Gary the garden gnome",
 
 loc_sidewalk.add_easter_egg( 'knock', 'The door makes a hollow sound.' )
 
+# make the player
+hero = Person( world )
+
 # add another verb
-def throw(self, noun):
+def throw( self, noun ):
   if self.act('drop', noun):
      print 'The %s bounces and falls to the floor' % noun
      return True
@@ -58,10 +61,7 @@ def throw(self, noun):
      print 'You hurt your arm.'
      return False
 
-add_verb(throw)
-
-# make the player
-hero = Person( world )
+hero.add_verb( "throw", throw )
 
 # start on the sidewalk
 hero.set_location( loc_sidewalk )

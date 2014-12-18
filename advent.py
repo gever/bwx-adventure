@@ -232,10 +232,10 @@ class Person:
     self.verbs = {}
 
     # associate each of the known actions with functions
-    for e in dir(self):
-      if e.startswith('act_'):
-        v = e[4:]
-        self.verbs[v] = getattr(self, e)
+    self.verbs['take'] = self.act_take
+    self.verbs['drop'] = self.act_drop
+    self.verbs['inventory'] = self.act_inventory
+    self.verbs['look'] = self.act_look
 
   # describe where we are
   def describe( self ):
@@ -257,11 +257,14 @@ class Person:
 
   # move a thing from our inventory to the current location
   def act_drop( self, noun=None ):
+    if not noun:
+      return False
     t = self.inventory.pop(noun, None)
     if t:
       self.location.contents[noun] = t
       return True
     else:
+      print "You are not carrying %s." % add_article(noun)
       return False
 
   def act_look( self, noun=None ):
@@ -314,24 +317,19 @@ class Person:
 
   # do something
   def simple_act( self, verb ):
+    # try direction
+    d = lookup_dir( verb )
+    if d != NOT_DIRECTION:
+      return self.go( d )
     verbs = []
     for v in self.verbs:
       if v.startswith(verb):
         verbs.append(v)
-    d = lookup_dir( verb )
-    if d == NOT_DIRECTION:
-      # see if it's a known action
-      if self.perform_action( verb ):
-        return True
-      else:
-        print "Sorry, I don't understand '%s'." % verb
-        return False
-    else:
-      if verbs:
-        print "Sorry, I don't understand '%s'." % verb
-        return False
-      # try to move in the given direction
-      return self.go( d )
+    # try prefix match
+    if self.perform_action( verb ):
+      return True
+    print "Sorry, I don't understand '%s'." % verb
+    return False
 
   # do something to something
   def act( self, verb, noun ):
@@ -345,9 +343,9 @@ class Person:
         print "Oops. Don't know how to '%s'." % verb
         return False
 
+  def add_verb( self, name, f ):
+      self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
 
-def add_verb( f ):
-  setattr(Person, 'act_' + f.__name__, f)
 
 def run_game( hero ):
   while True:
