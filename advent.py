@@ -253,6 +253,7 @@ class Person:
       self.inventory[noun] = t
       return True
     else:
+      print "You can't take the %s." % noun
       return False
 
   # move a thing from our inventory to the current location
