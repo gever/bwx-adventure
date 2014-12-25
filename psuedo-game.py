@@ -58,7 +58,19 @@ my_room.put(dresser)
 
 # make relationships [required_thing, failure_string] required checks to see if the hero has the object or if the object is a switch
 door_to_my_room.requires = [door_key, "The door is locked, maybe you need a key or something"]
-my_room.requires = [light_switch, "You are standing in our room, but it's too dark to see anything"] 
+my_room.requires = [light_switch, "You are standing in our room, but it's too dark to see anything"]
+# or, what if we allowed things to be "activated" by verbs:
+def use_key( key, person ):
+    for c in person.location.connections:
+        # check to see if the key is required on this door
+        if c.needs( key ):
+            door_to_my_room.unlock()
+            return True
+    return False
+# player types "use key" while in the Intersection, the command parser could
+# then check each of the inventory items to see if they override the default verb actions
+door_key.add_verb( "use", use_key )
+door_key.add_verb( "try", use_key ) # synonym for "use"
 
 # make the player and add them to the world
 hero = Character(PLAYER)
@@ -96,5 +108,5 @@ def update():
     
 
 # start the game
-my_world.run()
+my_world.run( update )
 
