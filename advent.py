@@ -168,11 +168,11 @@ class Location:
     for key in exits:
       print "exit:", directions[key],
 
-  def add_easter_egg( self, command, response ):
-    self.easter_eggs[' '.join(command.split())] = response
+  def add_verb( self, verb, response ):
+    self.easter_eggs[' '.join(verb.split())] = response
 
-  def get_easter_egg( self, command ):
-    c = ' '.join(command.split())
+  def get_verb( self, verb ):
+    c = ' '.join(verb.split())
     if c in self.easter_eggs:
        return self.easter_eggs[c]
     else:
@@ -191,32 +191,6 @@ class Connection:
     self.point_a = pa
     self.point_b = pb
 
-# a World is how all the locations, things, and connections are organized
-class World:
-  # locations
-
-  def __init__ ( self ):
-    self.locations = {}
-
-  # make a connection between point A and point B
-  def connect( self, point_a, name, point_b, way ):
-    c = Connection( point_a, name, point_b )
-    point_a.add_exit( c, way )
-    return c
-
-  # make a bidirectional between point A and point B
-  def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
-    c1 = Connection( point_a, name, point_b )
-    point_a.add_exit( c1, ab_way )
-    c2 = Connection( point_b, name, point_a )
-    point_b.add_exit( c2, ba_way )
-    return c1, c2
-
-  # add another location to the world
-  def add_location( self, name, description ):
-    l = Location( name, description )
-    self.locations[name] = l
-    return l
 
 # A "person" is the actor in a world
 class Person:
@@ -360,14 +334,14 @@ def run_game( hero ):
 
     # get input from the user
     try:
-      command = raw_input("> ")
+      verb = raw_input("> ")
     except EOFError:
       break
-    if command == 'q' or command == 'quit':
+    if verb == 'q' or verb == 'quit':
        break
-    words = command.split()
+    words = verb.split()
 
-    easter_egg = hero.location.get_easter_egg( command )
+    easter_egg = hero.location.get_verb( verb )
     if easter_egg:
       print easter_egg
       continue
@@ -394,3 +368,43 @@ def run_game( hero ):
       # action (implied object/subject)
       # e.g. north
       hero.simple_act( words[0] )
+
+
+# a World is how all the locations, things, and connections are organized
+class World:
+  # locations
+
+  def __init__ ( self ):
+    self.locations = {}
+
+  # make a connection between point A and point B
+  def connect( self, point_a, name, point_b, way ):
+    c = Connection( point_a, name, point_b )
+    point_a.add_exit( c, way )
+    return c
+
+  # make a bidirectional between point A and point B
+  def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
+    c1 = Connection( point_a, name, point_b )
+    if isinstance(ab_way, (list, tuple)):
+      for way in ab_way:
+        point_a.add_exit( c1, way )
+    else:
+      point_a.add_exit( c1, ab_way )
+    c2 = Connection( point_b, name, point_a )
+    if isinstance(ba_way, (list, tuple)):
+      for way in ba_way:
+        point_b.add_exit( c2, way )
+    else:
+      point_b.add_exit( c2, ba_way )
+    return c1, c2
+
+  # add another location to the world
+  def add_location( self, name, description ):
+    l = Location( name, description )
+    self.locations[name] = l
+    return l
+
+  # add another location to the world
+  def add_person( self ):
+    return Person( self )

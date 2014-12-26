@@ -1,10 +1,11 @@
+#! /usr/bin/python
 from advent import *
 
 world = World()
 # Sample Game - Brightworks Adventure!
 loc_sidewalk = world.add_location(
 "Sidewalk", """
-You are standing in front of a large glass door.
+There is a large glass door to the east.
 The sign says 'Come In!'
 """ )
 
@@ -34,7 +35,7 @@ To the west is an intersection.
 """ )
 
 # the connections between the places
-world.biconnect( loc_sidewalk, loc_vestibule, "Big Door", IN, OUT )
+world.biconnect( loc_sidewalk, loc_vestibule, "Big Door", [IN, EAST], [WEST, OUT] )
 world.biconnect( loc_vestibule, loc_reception, "Stairs", UP, DOWN )
 world.biconnect( loc_reception, loc_intersection, "A Few Steps", NORTH, SOUTH )
 world.biconnect( loc_intersection, loc_elevator, "A Few Steps", EAST, WEST )
@@ -47,10 +48,10 @@ loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
 loc_sidewalk.put( Thing( "Gary the garden gnome",
                           "a small figure liberated from a nearby garden." ) )
 
-loc_sidewalk.add_easter_egg( 'knock', 'The door makes a hollow sound.' )
+loc_sidewalk.add_verb( 'knock', 'The door makes a hollow sound.' )
 
 # make the player
-hero = Person( world )
+hero = world.add_person()
 
 # add another verb
 def throw( self, noun ):
