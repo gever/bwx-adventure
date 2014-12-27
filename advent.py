@@ -175,8 +175,8 @@ class Location(object):
       return None
 
   def debug( self ):
-    for key in exits:
-      print "exit:", directions[key],
+    for key in self.exits:
+      print "exit: %s" % key
 
   def add_verb( self, verb, f ):
     self.verbs[' '.join(verb.split())] = f
