@@ -112,7 +112,7 @@ class Thing(object):
     self.description = desc
     self.fixed = fixed
 
-  def describe( self ):
+  def describe( self, observer ):
     return self.name
 
 # A "location" is a place in the game.
@@ -138,7 +138,7 @@ class Location(object):
   def put( self, thing ):
     self.contents[thing.name] = thing
 
-  def describe( self, force=False ):
+  def describe( self, observer, force=False ):
     desc = ""   # start with a blank string
 
     # add the description
@@ -162,7 +162,8 @@ class Location(object):
     if self.actors:
       desc += "\n"
       for a in self.actors:
-        desc += add_article(a.describe()).capitalize() + " is here.\n"
+        if a != observer:
+          desc += add_article(a.describe(a)).capitalize() + " " + a.isare + " here.\n"
 
     return desc
 
@@ -232,7 +233,7 @@ class Actor(object):
     self.verbs['look'] = self.act_look
 
   # describe ourselves
-  def describe( self ):
+  def describe( self, observer ):
     return self.name
 
   # establish where we are "now"
@@ -273,7 +274,7 @@ class Actor(object):
       return False
 
   def act_look( self, actor, words=None ):
-    print self.location.describe( True )
+    print self.location.describe( actor, True )
     return True
 
   # list the things we're carrying
@@ -463,8 +464,10 @@ def run_game( hero ):
     # if the actor moved, describe the room
     if actor.check_if_moved():
       print
-      print "        --=( %s )=--" % actor.location.name
-      where = actor.location.describe()
+      print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
+                                                   actor.isare,
+                                                   actor.location.name)
+      where = actor.location.describe(actor)
       if where:
         print where
 
