@@ -449,11 +449,15 @@ def run_game( hero ):
       if f( hero.location, words ):
         continue
 
+    done = False  # sadly, python doesn't have break with a label
     for a in hero.location.actors:
       f = a.get_verb( words[0] )
       if f:
         if f( a, words ):
-          continue
+          done = True
+          break
+    if done:
+      continue
 
     verb = words[0]
     # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
