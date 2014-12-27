@@ -100,7 +100,7 @@ def proper_list_from_dict( d ):
     buf.append(add_article(name))
   return "".join(buf)
 
-class Thing:
+class Thing(object):
   # name: short name of this thing
   # description: full description
   # fixed: is it stuck or can it be taken
@@ -114,20 +114,24 @@ class Thing:
     return self.name
 
 # A "location" is a place in the game.
-class Location:
+class Location(object):
   # name: short name of this location
   # description: full description
   # contents: things that are in a location
   # exits: ways to get out of a location
   # first_time: is it the first time here?
+  # actors: other actors in the location
+  # world: the world
 
-  def __init__( self, name, desc ):
+  def __init__( self, name, desc, world ):
     self.name = name
     self.description = desc.strip()
     self.contents = {}
     self.exits = {}
     self.first_time = True
-    self.easter_eggs = {}
+    self.verbs = {}
+    self.actors = set()
+    self.world = world
 
   def put( self, thing ):
     self.contents[thing.name] = thing
@@ -141,7 +145,7 @@ class Location:
       self.first_time = False
 
     # any things here?
-    if len(self.contents) > 0:
+    if self.contents:
       # add a newline so that the list starts on it's own line
       desc += "\n"
 
@@ -151,7 +155,13 @@ class Location:
       if len(self.contents) == 1:
         desc += "There is %s here." % contents_description
       else:
-        desc += "There are a few things here: %s" % contents_description
+        desc += "There are a few things here: %s." % contents_description
+
+    if self.actors:
+      desc += "\n"
+      for a in self.actors:
+        desc += add_article(a.describe()).capitalize() + " is here.\n"
+
     return desc
 
   def add_exit( self, con, way ):
@@ -168,20 +178,20 @@ class Location:
     for key in exits:
       print "exit:", directions[key],
 
-  def add_verb( self, verb, response ):
-    self.easter_eggs[' '.join(verb.split())] = response
+  def add_verb( self, verb, f ):
+    self.verbs[' '.join(verb.split())] = f
 
   def get_verb( self, verb ):
     c = ' '.join(verb.split())
-    if c in self.easter_eggs:
-       return self.easter_eggs[c]
+    if c in self.verbs:
+       return self.verbs[c]
     else:
-      return ''
+      return None
 
 
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
-class Connection:
+class Connection(object):
   # name
   # point_a
   # point_b
@@ -192,33 +202,39 @@ class Connection:
     self.point_b = pb
 
 
-# A "person" is the actor in a world
-class Person:
+# An actor in the world
+class Actor(object):
   # world
   # location
   # inventory
   # moved
   # verbs
 
-  def __init__( self, w ):
+  def __init__( self, w, n, hero = False ):
     self.world = w
+    self.location = None
     self.inventory = {}
     self.verbs = {}
+    self.name = n
+    self.cap_name = n.capitalize()
+    self.hero = hero
+    if hero:
+      self.isare = "are"
+    else:
+      self.isare = "is"
 
-    # associate each of the known actions with functions
-    self.verbs['take'] = self.act_take
-    self.verbs['drop'] = self.act_drop
-    self.verbs['inventory'] = self.act_inventory
-    self.verbs['look'] = self.act_look
-
-  # describe where we are
+  # describe ourselves
   def describe( self ):
-    return self.location.describe()
+    return self.name
 
   # establish where we are "now"
   def set_location( self, loc ):
+    if not self.hero and self.location:
+      self.location.actors.remove( self )
     self.location = loc
     self.moved = True
+    if not self.hero:
+      self.location.actors.add( self )
 
   # move a thing from the current location to our inventory
   def act_take( self, noun=None ):
@@ -227,7 +243,7 @@ class Person:
       self.inventory[noun] = t
       return True
     else:
-      print "You can't take the %s." % noun
+      print "%s can't take the %s." % (self.cap_name, noun)
       return False
 
   # move a thing from our inventory to the current location
@@ -239,7 +255,7 @@ class Person:
       self.location.contents[noun] = t
       return True
     else:
-      print "You are not carrying %s." % add_article(noun)
+      print "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun))
       return False
 
   def act_look( self, noun=None ):
@@ -248,7 +264,7 @@ class Person:
 
   # list the things we're carrying
   def act_inventory( self, noun=None ):
-    msg = 'You are carrying '
+    msg = '%s %s carrying ' % (self.cap_name, self.isare)
     if self.inventory.keys():
       msg += proper_list_from_dict( self.inventory )
     else:
@@ -267,28 +283,27 @@ class Person:
   def go( self, d ):
     loc = self.location.go( d )
     if loc == None:
-      print "Bonk! Sorry, you can't seem to go that way."
+      print "Bonk! %s can't seem to go that way." % self.name
       return False
     else:
       # update where we are
-      self.location = loc
-      self.moved = True
+      self.set_location( loc )
       return True
 
   # define action verbs
   def define_action( self, verb, func ):
     self.verbs[verb] = func
 
+  # return True on success, False on failure and None if the command isn't found.
   def perform_action( self, verb, noun=None ):
     verbs = []
     for v in self.verbs:
       if v.startswith(verb):
         verbs.append(v)
     if len(verbs) == 1:
-      self.verbs[verbs[0]]( noun )
-      return True
+      return self.verbs[verbs[0]]( noun )
     else:
-      return False
+      return None
 
   # do something
   def simple_act( self, verb ):
@@ -301,81 +316,55 @@ class Person:
       if v.startswith(verb):
         verbs.append(v)
     # try prefix match
-    if self.perform_action( verb ):
-      return True
-    print "Sorry, I don't understand '%s'." % verb
-    return False
+    return self.perform_action( verb )
 
   # do something to something
   def act( self, verb, noun ):
     # "go" is a special case
     if verb == 'go':
-      self.simple_act( noun )
+      return self.simple_act( noun )
     else:
-      if self.perform_action( verb, noun ):
-        return True
-      else:
-        print "Oops. Don't know how to '%s'." % verb
-        return False
+      return self.perform_action( verb, noun )
+
+  # do something and report if the command is not found.
+  def do_act( self, verb, noun ):
+    if self.act( verb, noun ) == None:
+      print "Huh?"
+
+  def add_verb( self, verb, f ):
+    self.verbs[' '.join(verb.split())] = f
+
+  def get_verb( self, verb ):
+    c = ' '.join(verb.split())
+    if c in self.verbs:
+       return self.verbs[c]
+    else:
+      return None
+
+
+class Hero(Actor):
+
+  def __init__( self, w ):
+    super(Hero, self).__init__(w, "you", True)
+    # associate each of the known actions with functions
+    self.verbs['take'] = self.act_take
+    self.verbs['get'] = self.act_take
+    self.verbs['drop'] = self.act_drop
+    self.verbs['inventory'] = self.act_inventory
+    self.verbs['look'] = self.act_look
 
   def add_verb( self, name, f ):
       self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
 
 
-def run_game( hero ):
-  while True:
-    # if the hero moved, describe the room
-    if hero.check_if_moved():
-      print
-      print "        --=( %s )=--" % hero.location.name
-      where = hero.describe()
-      if where:
-        print where
-
-    # get input from the user
-    try:
-      verb = raw_input("> ")
-    except EOFError:
-      break
-    if verb == 'q' or verb == 'quit':
-       break
-    words = verb.split()
-
-    easter_egg = hero.location.get_verb( verb )
-    if easter_egg:
-      print easter_egg
-      continue
-
-    # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
-    # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
-    if len( words ) > 2:
-      verb = words[0]
-      for noun in words[1:]:
-        noun = noun.strip(',')
-        if noun in articles: continue
-        if noun == 'and': continue
-        hero.act( verb, noun )
-      continue
-
-    # try to do what the user says
-    if len( words ) == 2:
-      # action object
-      # e.g. take key
-      verb, noun = words
-      hero.act( verb, noun )
-
-    if len( words ) == 1:
-      # action (implied object/subject)
-      # e.g. north
-      hero.simple_act( words[0] )
-
 
 # a World is how all the locations, things, and connections are organized
-class World:
+class World(object):
   # locations
 
   def __init__ ( self ):
     self.locations = {}
+    self.turn_hooks = set()
 
   # make a connection between point A and point B
   def connect( self, point_a, name, point_b, way ):
@@ -401,10 +390,91 @@ class World:
 
   # add another location to the world
   def add_location( self, name, description ):
-    l = Location( name, description )
+    l = Location( name, description, self )
     self.locations[name] = l
     return l
 
-  # add another location to the world
-  def add_person( self ):
-    return Person( self )
+  # add an actor to the world
+  def add_actor( self, name, loc ):
+    a = Actor( self, name )
+    a.set_location( loc )
+    return a
+
+  # a hero to the world
+  def add_hero( self ):
+    return Hero( self )
+
+  def add_turn_hook( self, h ):
+    self.turn_hooks.add( h )
+
+  def call_turn_hooks( self ):
+    for h in self.turn_hooks:
+      h(self)
+
+
+def do_say(s):
+  print s
+  return True
+
+
+def say(s):
+  return (lambda s: lambda *args: do_say(s))(s)
+
+
+def run_game( hero ):
+  while True:
+    hero.world.call_turn_hooks()
+
+    # if the hero moved, describe the room
+    if hero.check_if_moved():
+      print
+      print "        --=( %s )=--" % hero.location.name
+      where = hero.location.describe()
+      if where:
+        print where
+
+    # get input from the user
+    try:
+      command = raw_input("> ")
+    except EOFError:
+      break
+    if command == 'q' or command == 'quit':
+       break
+    words = command.split()
+    if not words:
+      continue
+
+    f = hero.location.get_verb( words[0] )
+    if f:
+      if f( hero.location, words ):
+        continue
+
+    for a in hero.location.actors:
+      f = a.get_verb( words[0] )
+      if f:
+        if f( a, words ):
+          continue
+
+    verb = words[0]
+    # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
+    # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
+    if len( words ) > 2:
+      for noun in words[1:]:
+        noun = noun.strip(',')
+        if noun in articles: continue
+        if noun == 'and': continue
+        hero.do_act( verb, noun )
+      continue
+
+    # try to do what the user says
+    if len( words ) == 2:
+      # action object
+      # e.g. take key
+      verb, noun = words
+      hero.do_act( verb, noun )
+      continue
+
+    assert len( words ) == 1
+    # action (implied object/subject)
+    # e.g. north
+    hero.do_act( "go", verb )
