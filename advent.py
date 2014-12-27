@@ -223,6 +223,8 @@ class Actor(object):
     self.hero = hero
     if hero:
       self.isare = "are"
+      assert self.world.hero == None
+      self.world.hero = self
     else:
       self.isare = "is"
     # associate each of the known actions with functions
@@ -377,7 +379,7 @@ class Animal(Actor):
        world.animals[name] = self
        self.name = name
        
-    def act(self, observer_loc):
+    def act_autonomously(self, observer_loc):
        self.random_move(observer_loc)
 
     def random_move(self, observer_loc):
@@ -385,23 +387,51 @@ class Animal(Actor):
           return
        exit = random.choice(self.location.exits.items())
        if self.location == observer_loc:
-         print "The %s leaves the %s via the %s" % (self.name,
+         print "%s leaves the %s via the %s" % (add_article(self.name).capitalize(),
                                                 observer_loc.name,
                                                 exit[1].name)
        self.go(exit[0])
        if self.location == observer_loc:
-         print "The %s enters the %s via the %s" % (self.name,
+         print "%s enters the %s via the %s" % (add_article(self.name).capitalize(),
                                                 observer_loc.name,
                                                 exit[1].name)
-       
+
+# A pet is an actor with free will (Animal) that you can also command to do things (Robot)
+class Pet(Robot, Animal):
+    def __init__( self, world, name ):
+        super(Pet, self ).__init__( world, name )
+        self.leader = None
+        self.verbs['heel'] = self.act_follow
+        self.verbs['follow'] = self.act_follow
+        self.verbs['stay'] = self.act_stay
+        
+    def act_follow(self, actor, words=None):
+        self.leader = self.world.hero
+        print "%s obediently begins following %s" % (self.name, self.leader.name) 
+        return True
+
+    def act_stay(self, actor, words=None):
+        if self.leader:
+           print "%s obediently stops following %s" % (self.name, self.leader.name) 
+        self.leader = None
+        return True
+
+    def act_autonomously(self, observer_loc):
+       if self.leader:
+          self.set_location(self.leader.location)
+       else:
+          self.random_move(observer_loc)
+    
 
 # a World is how all the locations, things, and connections are organized
 class World(object):
   # locations
+  # hero, the first person actor
   # robots, list of actors which are robots (can accept comands from the hero)
   # animals, list of actors which are animals (act on their own)
   
   def __init__ ( self ):
+    self.hero = None
     self.locations = {}
     self.robots = {}
     self.animals = {}
@@ -473,7 +503,7 @@ def run_game( hero ):
 
     # See if the animals want to do anything
     for animal in actor.world.animals.items():
-      animal[1].act(actor.location)
+      animal[1].act_autonomously(actor.location)
         
     # get input from the user
     try:

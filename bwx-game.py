@@ -60,16 +60,22 @@ def scream( world, words ):
 
 loc_sidewalk.add_verb( 'scream', scream )
 
-# Add an animal to roam around
+# Add an animal to roam around.  Animals act autonomously
 cat = Animal(world, "cat")
 cat.set_location(loc_sidewalk)
 cat.add_verb("pet", say("The cat purrs.") )
 cat.add_verb("eat", say_on_noun("cat", "Don't do that, PETA will get you!"));
 cat.add_verb("kill", say_on_noun("cat", "The cat escapes and bites you. Ouch!"));
 
-# add a robot
+# Add a robot.  Robots can take commands to perform actions.
 robby = Robot( world, "Robby" )
 robby.set_location( loc_sidewalk )
+
+# Add a Pet.  Pets are like Animals because they can act autonomously,
+# but they also are like Robots in that they can take commands to
+# to perform actions.
+fido = Pet ( world, "Fido")
+fido.set_location( loc_sidewalk )
 
 # make the player
 hero = Hero(world)
