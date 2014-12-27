@@ -2,6 +2,8 @@
 # adventure module
 #
 
+import random
+
 # A "direction" is all the ways you can describe going some way
 #
 # adventure module
@@ -222,6 +224,12 @@ class Actor(object):
       self.isare = "are"
     else:
       self.isare = "is"
+    # associate each of the known actions with functions
+    self.verbs['take'] = self.act_take
+    self.verbs['get'] = self.act_take
+    self.verbs['drop'] = self.act_drop
+    self.verbs['inventory'] = self.act_inventory
+    self.verbs['look'] = self.act_look
 
   # describe ourselves
   def describe( self ):
@@ -237,7 +245,10 @@ class Actor(object):
       self.location.actors.add( self )
 
   # move a thing from the current location to our inventory
-  def act_take( self, noun=None ):
+  def act_take( self, actor, words=None ):
+    if not words:
+       return False
+    noun = words[1]
     t = self.location.contents.pop(noun, None)
     if t:
       self.inventory[noun] = t
@@ -247,7 +258,10 @@ class Actor(object):
       return False
 
   # move a thing from our inventory to the current location
-  def act_drop( self, noun=None ):
+  def act_drop( self, actor, words=None ):
+    if not words:
+      return False
+    noun = words[1]
     if not noun:
       return False
     t = self.inventory.pop(noun, None)
@@ -258,12 +272,12 @@ class Actor(object):
       print "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun))
       return False
 
-  def act_look( self, noun=None ):
+  def act_look( self, actor, words=None ):
     print self.location.describe( True )
     return True
 
   # list the things we're carrying
-  def act_inventory( self, noun=None ):
+  def act_inventory( self, actor, words=None ):
     msg = '%s %s carrying ' % (self.cap_name, self.isare)
     if self.inventory.keys():
       msg += proper_list_from_dict( self.inventory )
@@ -344,27 +358,52 @@ class Actor(object):
 
 class Hero(Actor):
 
-  def __init__( self, w ):
-    super(Hero, self).__init__(w, "you", True)
-    # associate each of the known actions with functions
-    self.verbs['take'] = self.act_take
-    self.verbs['get'] = self.act_take
-    self.verbs['drop'] = self.act_drop
-    self.verbs['inventory'] = self.act_inventory
-    self.verbs['look'] = self.act_look
+  def __init__( self, world ):
+    super(Hero, self).__init__(world, "you", True)
 
   def add_verb( self, name, f ):
       self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
 
+class Robot(Actor):
+    def __init__( self, world, name ):
+        super(Robot, self ).__init__( world, name )
+        world.robots[name] = self
+        self.name = name
 
+class Animal(Actor):
+    def __init__( self, world, name ):
+       super(Animal, self ).__init__( world, name )
+       world.animals[name] = self
+       self.name = name
+       
+    def act(self, observer_loc):
+       self.random_move(observer_loc)
+
+    def random_move(self, observer_loc):
+       if random.random() > 0.2:  # only move 1 in 5 times
+          return
+       exit = random.choice(self.location.exits.items())
+       if self.location == observer_loc:
+         print "The %s leaves the %s via the %s" % (self.name,
+                                                observer_loc.name,
+                                                exit[1].name)
+       self.go(exit[0])
+       if self.location == observer_loc:
+         print "The %s enters the %s via the %s" % (self.name,
+                                                observer_loc.name,
+                                                exit[1].name)
+       
 
 # a World is how all the locations, things, and connections are organized
 class World(object):
   # locations
-
+  # robots, list of actors which are robots (can accept comands from the hero)
+  # animals, list of actors which are animals (act on their own)
+  
   def __init__ ( self ):
     self.locations = {}
-    self.turn_hooks = set()
+    self.robots = {}
+    self.animals = {}
 
   # make a connection between point A and point B
   def connect( self, point_a, name, point_b, way ):
@@ -394,23 +433,6 @@ class World(object):
     self.locations[name] = l
     return l
 
-  # add an actor to the world
-  def add_actor( self, name, loc ):
-    a = Actor( self, name )
-    a.set_location( loc )
-    return a
-
-  # a hero to the world
-  def add_hero( self ):
-    return Hero( self )
-
-  def add_turn_hook( self, h ):
-    self.turn_hooks.add( h )
-
-  def call_turn_hooks( self ):
-    for h in self.turn_hooks:
-      h(self)
-
 
 def do_say(s):
   print s
@@ -436,35 +458,57 @@ def say_on_noun(n, s):
 
 
 def run_game( hero ):
+  actor = hero
   while True:
-    hero.world.call_turn_hooks()
-
-    # if the hero moved, describe the room
-    if hero.check_if_moved():
+    # if the actor moved, describe the room
+    if actor.check_if_moved():
       print
-      print "        --=( %s )=--" % hero.location.name
-      where = hero.location.describe()
+      print "        --=( %s )=--" % actor.location.name
+      where = actor.location.describe()
       if where:
         print where
 
+    # See if the animals want to do anything
+    for animal in actor.world.animals.items():
+      animal[1].act(actor.location)
+        
     # get input from the user
     try:
-      command = raw_input("> ")
+      user_input = raw_input("> ")
     except EOFError:
       break
-    if command == 'q' or command == 'quit':
+    if user_input == 'q' or user_input == 'quit':
        break
+
+    # see if the command is for a robot
+    if ':' in user_input:
+       robot_name, command = user_input.split(':')
+       try:
+          actor = hero.world.robots[robot_name]
+       except KeyError:
+          print "I don't know anybot named %s" % robot_name
+          continue
+    else:
+       actor = hero
+       command = user_input
+       
     words = command.split()
     if not words:
       continue
 
-    f = hero.location.get_verb( words[0] )
+    f = actor.location.get_verb( words[0] )
     if f:
-      if f( hero.location, words ):
+      if f( actor.location, words ):
         continue
 
+    # give precedence to the primary actor for the verb
+    f = actor.get_verb( words[0] )
+    if f:
+      if f( actor, words ):
+        continue
+    
     done = False  # sadly, python doesn't have break with a label
-    for a in hero.location.actors:
+    for a in actor.location.actors:
       f = a.get_verb( words[0] )
       if f:
         if f( a, words ):
@@ -481,7 +525,7 @@ def run_game( hero ):
         noun = noun.strip(',')
         if noun in articles: continue
         if noun == 'and': continue
-        hero.do_act( verb, noun )
+        actor.do_act( verb, noun )
       continue
 
     # try to do what the user says
@@ -489,10 +533,10 @@ def run_game( hero ):
       # action object
       # e.g. take key
       verb, noun = words
-      hero.do_act( verb, noun )
+      actor.do_act( verb, noun )
       continue
 
     assert len( words ) == 1
     # action (implied object/subject)
     # e.g. north
-    hero.do_act( "go", verb )
+    actor.do_act( "go", verb )

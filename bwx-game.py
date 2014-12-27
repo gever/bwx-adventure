@@ -1,5 +1,4 @@
 #! /usr/bin/python
-import random
 from advent import *
 
 world = World()
@@ -48,11 +47,6 @@ loc_sidewalk.put( elev_lock )
 loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
 loc_sidewalk.put( Thing( "Gary the garden gnome",
                           "a small figure liberated from a nearby garden." ) )
-cat = world.add_actor("cat", loc_sidewalk)
-
-cat.add_verb("pet", say("The cat purrs.") )
-cat.add_verb("eat", say_on_noun("cat", "Don't do that, PETA will get you!"));
-cat.add_verb("kill", say_on_noun("cat", "The cat escapes and bites you. Ouch!"));
 
 # simple verb applicable at this location
 loc_sidewalk.add_verb( 'knock', say('The door makes a hollow sound.') )
@@ -66,8 +60,19 @@ def scream( world, words ):
 
 loc_sidewalk.add_verb( 'scream', scream )
 
+# Add an animal to roam around
+cat = Animal(world, "cat")
+cat.set_location(loc_sidewalk)
+cat.add_verb("pet", say("The cat purrs.") )
+cat.add_verb("eat", say_on_noun("cat", "Don't do that, PETA will get you!"));
+cat.add_verb("kill", say_on_noun("cat", "The cat escapes and bites you. Ouch!"));
+
+# add a robot
+robby = Robot( world, "Robby" )
+robby.set_location( loc_sidewalk )
+
 # make the player
-hero = world.add_hero()
+hero = Hero(world)
 
 # add a hero verb
 def throw( self, noun ):
@@ -79,18 +84,6 @@ def throw( self, noun ):
      return False
 
 hero.add_verb( "throw", throw )
-
-def move_cat( world ):
-  if random.random() > 0.2:  # only move 1 in 5 times
-    return
-  e = random.choice( cat.location.exits.items() )
-  cat.set_location( e[1].point_b )
-  if e[1].point_a == hero.location:
-    print "The cat leaves."
-  if e[1].point_b == hero.location:
-    print "The cat enters."
-
-world.add_turn_hook(move_cat)
 
 # start on the sidewalk
 hero.set_location( loc_sidewalk )
