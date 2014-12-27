@@ -50,7 +50,9 @@ loc_sidewalk.put( Thing( "Gary the garden gnome",
                           "a small figure liberated from a nearby garden." ) )
 cat = world.add_actor("cat", loc_sidewalk)
 
-cat.add_verb("pet", say('The cat purrs.') )
+cat.add_verb("pet", say("The cat purrs.") )
+cat.add_verb("eat", say_on_noun("cat", "Don't do that, PETA will get you!"));
+cat.add_verb("kill", say_on_noun("cat", "The cat escapes and bites you. Ouch!"));
 
 # simple verb applicable at this location
 loc_sidewalk.add_verb( 'knock', say('The door makes a hollow sound.') )
@@ -79,6 +81,8 @@ def throw( self, noun ):
 hero.add_verb( "throw", throw )
 
 def move_cat( world ):
+  if random.random() > 0.2:  # only move 1 in 5 times
+    return
   e = random.choice( cat.location.exits.items() )
   cat.set_location( e[1].point_b )
   if e[1].point_a == hero.location:

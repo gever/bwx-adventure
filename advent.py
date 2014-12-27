@@ -421,6 +421,20 @@ def say(s):
   return (lambda s: lambda *args: do_say(s))(s)
 
 
+def do_say_on_noun(n, s, words):
+  if len(words) < 2:
+    return False
+  noun = words[1]
+  if noun != n:
+    return False
+  print s
+  return True
+
+
+def say_on_noun(n, s):
+  return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
+
+
 def run_game( hero ):
   while True:
     hero.world.call_turn_hooks()
