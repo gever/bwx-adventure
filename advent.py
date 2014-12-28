@@ -714,6 +714,8 @@ def run_game( hero ):
     
     done = False  # sadly, python doesn't have break with a label
     for a in actor.location.actors:
+      if a == actor:
+        continue
       f = a.get_verb( words[0] )
       if f:
         if f( a, words ):
