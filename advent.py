@@ -3,6 +3,7 @@
 #
 
 import random
+import time
 
 # A "direction" is all the ways you can describe going some way
 #
@@ -447,11 +448,13 @@ class Robot(Actor):
         self.name = name
         self.scripts = {}
         self.current_script = None
+        self.script_think_time = 0
         self.verbs['record'] = self.act_start_recording
         self.verbs['run'] = self.act_run_script
         self.verbs['print'] = self.act_print_script
         self.verbs['save'] = self.act_save_file
         self.verbs['load'] = self.act_load_file
+        self.verbs['think'] = self.set_think_time
 
     def parse_script_name(self, words):
         if not words or len(words) < 2:
@@ -510,6 +513,16 @@ class Robot(Actor):
             self.scripts[script_name] = Script(script_name)
         self.scripts[script_name].load_file()
         return True
+
+    def set_think_time(self, actor, words):
+        if words and len(words) == 2:
+            t = float(words[1])
+            if t >= 0 and t <= 60:
+                self.script_think_time = t
+                return True
+            
+        print "\"think\" requires a number of seconds (0-60) as an argument"
+        return True    
         
     def get_next_script_line(self):
         if not self.current_script or not self.current_script.running:
@@ -520,6 +533,8 @@ class Robot(Actor):
                                                          self.current_script.name)
             self.current_script = None
             return None
+        if self.script_think_time > 0:
+            time.sleep(self.script_think_time)
         line = self.name + ": " + line
         print "> %s" % line
         return line
