@@ -358,6 +358,13 @@ class Actor(object):
     else:
       return None
 
+  # support for scriptable actors, override these to implement
+  def get_next_script_line( self ):
+      return None
+
+  def set_next_script_line( self, line ):
+      return True
+
 
 class Hero(Actor):
 
@@ -367,12 +374,169 @@ class Hero(Actor):
   def add_verb( self, name, f ):
       self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
 
+
+# Scripts are sequences of instructions for Robots to execute
+class Script(object):
+    def __init__( self, name ):
+        self.name = name
+        self.lines = list()
+        self.current_line = -1
+        self.recording = False
+        self.running = False
+
+    def start_recording( self ):
+        assert not self.running
+        assert not self.recording
+        self.recording = True
+
+    def stop_recording( self ):
+        assert self.recording
+        assert not self.running
+        self.recording = False
+
+    def start_running( self ):
+        assert not self.running
+        assert not self.recording
+        self.running = True
+        self.current_line = 0;
+
+    def stop_running( self ):
+        assert self.running
+        assert not self.recording
+        self.running = False
+        self.current_line = -1;
+
+    def get_next_line( self ):
+        line = self.lines[self.current_line]
+        self.current_line += 1
+        if line.strip() == "end":
+            self.stop_running()
+            return None
+        return line
+
+    def set_next_line( self, line ):
+        self.lines.append(line)
+        if line.strip() == "end":
+            self.stop_recording()
+            return False
+        return True
+
+    def print_lines( self ):
+        for line in self.lines:
+            print line
+
+    def save_file(self):
+        f = open(self.name + ".script", "w")
+        for line in self.lines:
+            f.write(line + '\n')
+        f.close()
+
+    def load_file(self):
+        f = open(self.name + ".script", "r")
+        for line in f:
+            self.lines.append(line.strip())
+        f.close()
+
+    
+# Robots are actors which accept commands to perform actions.
+# They can also record and run scripts.
 class Robot(Actor):
     def __init__( self, world, name ):
         super(Robot, self ).__init__( world, name )
         world.robots[name] = self
         self.name = name
+        self.scripts = {}
+        self.current_script = None
+        self.verbs['record'] = self.act_start_recording
+        self.verbs['run'] = self.act_run_script
+        self.verbs['print'] = self.act_print_script
+        self.verbs['save'] = self.act_save_file
+        self.verbs['load'] = self.act_load_file
 
+    def parse_script_name(self, words):
+        if not words or len(words) < 2:
+            script_name = "default"
+        else:
+            script_name = words[1]
+        return script_name
+        
+    def act_start_recording(self, actor, words=None):
+        script_name = self.parse_script_name(words)
+        script = Script(script_name)
+        self.scripts[script_name] = script
+        script.start_recording()
+        self.current_script = script
+        return True
+        
+    def act_run_script(self, actor, words=None):
+        if self.current_script:
+            print "You must stop \"%s\" first." % (self.current_script.name)
+        script_name = self.parse_script_name(words)
+        if not script_name in self.scripts:
+            print "%s can't find script \"%s\" in its memory." % (self.name,
+                                                                  script_name)
+
+            return True;
+        
+        script = self.scripts[script_name]
+        self.current_script = script
+        script.start_running()
+        return True
+        
+    def act_print_script(self, actor, words=None):
+        script_name = self.parse_script_name(words)
+        if not script_name in self.scripts:
+            print "%s can't find script \"%s\" in its memory." % (self.name,
+                                                                  script_name)
+            return True
+
+        print "----------------------8<-------------------------"
+        self.scripts[script_name].print_lines()
+        print "---------------------->8-------------------------"
+        return True
+
+    def act_save_file(self, actor, words=None):
+        script_name = self.parse_script_name(words)
+        if not script_name in self.scripts:
+            print "%s can't find script \"%s\" in its memory." % (self.name,
+                                                                  script_name)
+            return True
+        self.scripts[script_name].save_file()
+        return True
+
+    def act_load_file(self, actor, words=None):
+        script_name = self.parse_script_name(words)
+        if not script_name in self.scripts:
+            self.scripts[script_name] = Script(script_name)
+        self.scripts[script_name].load_file()
+        return True
+        
+    def get_next_script_line(self):
+        if not self.current_script or not self.current_script.running:
+            return None
+        line = self.current_script.get_next_line()
+        if not line:
+            print "%s is done running script \"%s\"." % (self.name,
+                                                         self.current_script.name)
+            self.current_script = None
+            return None
+        line = self.name + ": " + line
+        print "> %s" % line
+        return line
+
+    def set_next_script_line(self, line):
+        if not self.current_script or not self.current_script.recording:
+            return True
+        if not self.current_script.set_next_line(line):
+            print "%s finished recording script \"%s\"." % (self.name,
+                                                            self.current_script.name)
+            self.current_script = None
+            return False
+        return True
+
+        
+
+# Animals are actors which may act autonomously each turn
 class Animal(Actor):
     def __init__( self, world, name ):
        super(Animal, self ).__init__( world, name )
@@ -504,14 +668,18 @@ def run_game( hero ):
     # See if the animals want to do anything
     for animal in actor.world.animals.items():
       animal[1].act_autonomously(actor.location)
-        
-    # get input from the user
-    try:
-      user_input = raw_input("> ")
-    except EOFError:
-      break
-    if user_input == 'q' or user_input == 'quit':
-       break
+
+
+    # check if we're currently running a script
+    user_input = actor.get_next_script_line();
+    if user_input == None:    
+      # get input from the user
+      try:
+        user_input = raw_input("> ")
+      except EOFError:
+        break
+      if user_input == 'q' or user_input == 'quit':
+        break
 
     # see if the command is for a robot
     if ':' in user_input:
@@ -524,6 +692,10 @@ def run_game( hero ):
     else:
        actor = hero
        command = user_input
+
+    # give the input to the actor in case it's recording a script
+    if not actor.set_next_script_line(command):
+      continue
        
     words = command.split()
     if not words:
