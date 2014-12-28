@@ -509,8 +509,7 @@ class Robot(Actor):
 
     def act_load_file(self, actor, words=None):
         script_name = self.parse_script_name(words)
-        if not script_name in self.scripts:
-            self.scripts[script_name] = Script(script_name)
+        self.scripts[script_name] = Script(script_name)
         self.scripts[script_name].load_file()
         return True
 
