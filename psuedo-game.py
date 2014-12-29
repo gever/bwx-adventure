@@ -96,5 +96,5 @@ def update():
     
 
 # start the game
-my_world.run()
+my_world.run( update )
 
