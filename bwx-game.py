@@ -73,7 +73,7 @@ robby.set_location( loc_sidewalk )
 
 # Add a Pet.  Pets are like Animals because they can act autonomously,
 # but they also are like Robots in that they can take commands to
-# to perform actions.
+# perform actions.
 fido = Pet ( world, "Fido")
 fido.set_location( loc_sidewalk )
 
