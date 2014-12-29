@@ -6,6 +6,11 @@ import random
 import time
 
 # A "direction" is all the ways you can describe going some way
+#
+# adventure module
+#
+
+# A "direction" is all the ways you can describe going some way
 directions = {}
 NORTH = 1
 SOUTH = 2
@@ -121,7 +126,7 @@ class Location(object):
   # actors: other actors in the location
   # world: the world
 
-  def __init__( self, name, desc, world ):
+  def __init__( self, name, desc):#, world ):
     self.name = name
     self.description = desc.strip()
     self.contents = {}
@@ -129,7 +134,7 @@ class Location(object):
     self.first_time = True
     self.verbs = {}
     self.actors = set()
-    self.world = world
+    #self.world = world
 
   def put( self, thing ):
     self.contents[thing.name] = thing
@@ -195,10 +200,12 @@ class Connection(object):
   # point_a
   # point_b
 
-  def __init__( self, pa, name, pb ):
+  def __init__( self, name, pa, pb, way_ab, way_ba):
     self.name = name
     self.point_a = pa
     self.point_b = pb
+    self.way_ab = way_ab
+    self.way_ba = way_ba
 
 
 # An actor in the world
@@ -609,150 +616,164 @@ class World(object):
     self.robots = {}
     self.animals = {}
 
-  # make a connection between point A and point B
-  def connect( self, point_a, name, point_b, way ):
-    c = Connection( point_a, name, point_b )
-    point_a.add_exit( c, way )
-    return c
-
   # make a bidirectional between point A and point B
   def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
-    c1 = Connection( point_a, name, point_b )
+    c1 = Connection( name, point_a, point_b, ab_way, ba_way)
     if isinstance(ab_way, (list, tuple)):
       for way in ab_way:
         point_a.add_exit( c1, way )
     else:
       point_a.add_exit( c1, ab_way )
-    c2 = Connection( point_b, name, point_a )
+      
+    c2 = Connection( name, point_b, point_a, ba_way, ab_way)
     if isinstance(ba_way, (list, tuple)):
       for way in ba_way:
         point_b.add_exit( c2, way )
     else:
       point_b.add_exit( c2, ba_way )
+      
     return c1, c2
+  
+  # add a bidirectional connection between points A and B
+  def add_connection( self, connection ):
+    if isinstance(connection.way_ab, (list, tuple)):
+      for way in connection.way_ab:
+        connection.point_a.add_exit( connection, way )
+    else:
+      connection.point_a.add_exit( connection, connection.way_ab )
+    
+    # this is messy, need a better way to do this
+    reverse_connection = Connection( connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
+    if isinstance(connection.way_ba, (list, tuple)):
+      for way in connection.way_ba:
+        connection.point_b.add_exit( reverse_connection, way )
+    else:
+      connection.point_b.add_exit( reverse_connection, connection.way_ba )
+      
+    return connection
 
   # add another location to the world
-  def add_location( self, name, description ):
-    l = Location( name, description, self )
-    self.locations[name] = l
-    return l
+  def add_location(self,  location ):
+    self.locations[location.name] = location
+    return location
 
+class Game(object):
+  @staticmethod
+  def do_say(s):
+    print s
+    return True
+  
+  @staticmethod
+  def say(s):
+    return (lambda s: lambda *args: do_say(s))(s)
+  
+  @staticmethod
+  def do_say_on_noun(n, s, words):
+    if len(words) < 2:
+      return False
+    noun = words[1]
+    if noun != n:
+      return False
+    print s
+    return True
+  
+  @staticmethod
+  def say_on_noun(n, s):
+    return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
 
-def do_say(s):
-  print s
-  return True
-
-
-def say(s):
-  return (lambda s: lambda *args: do_say(s))(s)
-
-
-def do_say_on_noun(n, s, words):
-  if len(words) < 2:
-    return False
-  noun = words[1]
-  if noun != n:
-    return False
-  print s
-  return True
-
-
-def say_on_noun(n, s):
-  return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
-
-
-def run_game( hero ):
-  actor = hero
-  while True:
-    # if the actor moved, describe the room
-    if actor.check_if_moved():
-      print
-      print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
-                                                   actor.isare,
-                                                   actor.location.name)
-      where = actor.location.describe(actor)
-      if where:
-        print where
-
-    # See if the animals want to do anything
-    for animal in actor.world.animals.items():
-      animal[1].act_autonomously(actor.location)
-
-
-    # check if we're currently running a script
-    user_input = actor.get_next_script_line();
-    if user_input == None:    
-      # get input from the user
-      try:
-        user_input = raw_input("> ")
-      except EOFError:
-        break
-      if user_input == 'q' or user_input == 'quit':
-        break
-
-    # see if the command is for a robot
-    if ':' in user_input:
-       robot_name, command = user_input.split(':')
-       try:
-          actor = hero.world.robots[robot_name]
-       except KeyError:
-          print "I don't know anybot named %s" % robot_name
-          continue
-    else:
-       actor = hero
-       command = user_input
-
-    # give the input to the actor in case it's recording a script
-    if not actor.set_next_script_line(command):
-      continue
-       
-    words = command.split()
-    if not words:
-      continue
-
-    f = actor.location.get_verb( words[0] )
-    if f:
-      if f( actor.location, words ):
-        continue
-
-    # give precedence to the primary actor for the verb
-    f = actor.get_verb( words[0] )
-    if f:
-      if f( actor, words ):
-        continue
-    
-    done = False  # sadly, python doesn't have break with a label
-    for a in actor.location.actors:
-      if a == actor:
-        continue
-      f = a.get_verb( words[0] )
-      if f:
-        if f( a, words ):
-          done = True
+  @staticmethod
+  def run_game( hero ):
+    actor = hero
+    while True:
+      # if the actor moved, describe the room
+      if actor.check_if_moved():
+        print
+        print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
+                                                     actor.isare,
+                                                     actor.location.name)
+        where = actor.location.describe(actor)
+        if where:
+          print where
+  
+      # See if the animals want to do anything
+      for animal in actor.world.animals.items():
+        animal[1].act_autonomously(actor.location)
+  
+  
+      # check if we're currently running a script
+      user_input = actor.get_next_script_line();
+      if user_input == None:    
+        # get input from the user
+        try:
+          user_input = raw_input("> ")
+        except EOFError:
           break
-    if done:
-      continue
-
-    verb = words[0]
-    # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
-    # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
-    if len( words ) > 2:
-      for noun in words[1:]:
-        noun = noun.strip(',')
-        if noun in articles: continue
-        if noun == 'and': continue
+        if user_input == 'q' or user_input == 'quit':
+          break
+  
+      # see if the command is for a robot
+      if ':' in user_input:
+         robot_name, command = user_input.split(':')
+         try:
+            actor = hero.world.robots[robot_name]
+         except KeyError:
+            print "I don't know anybot named %s" % robot_name
+            continue
+      else:
+         actor = hero
+         command = user_input
+  
+      # give the input to the actor in case it's recording a script
+      if not actor.set_next_script_line(command):
+        continue
+         
+      words = command.split()
+      if not words:
+        continue
+  
+      f = actor.location.get_verb( words[0] )
+      if f:
+        if f( actor.location, words ):
+          continue
+  
+      # give precedence to the primary actor for the verb
+      f = actor.get_verb( words[0] )
+      if f:
+        if f( actor, words ):
+          continue
+      
+      done = False  # sadly, python doesn't have break with a label
+      for a in actor.location.actors:
+        if a == actor:
+          continue
+        f = a.get_verb( words[0] )
+        if f:
+          if f( a, words ):
+            done = True
+            break
+      if done:
+        continue
+  
+      verb = words[0]
+      # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
+      # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
+      if len( words ) > 2:
+        for noun in words[1:]:
+          noun = noun.strip(',')
+          if noun in articles: continue
+          if noun == 'and': continue
+          actor.do_act( verb, noun )
+        continue
+  
+      # try to do what the user says
+      if len( words ) == 2:
+        # action object
+        # e.g. take key
+        verb, noun = words
         actor.do_act( verb, noun )
-      continue
-
-    # try to do what the user says
-    if len( words ) == 2:
-      # action object
-      # e.g. take key
-      verb, noun = words
-      actor.do_act( verb, noun )
-      continue
-
-    assert len( words ) == 1
-    # action (implied object/subject)
-    # e.g. north
-    actor.do_act( "go", verb )
+        continue
+  
+      assert len( words ) == 1
+      # action (implied object/subject)
+      # e.g. north
+      actor.do_act( "go", verb )
