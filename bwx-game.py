@@ -1,4 +1,5 @@
 #! /usr/bin/python
+# vim: et sw=2 ts=2 sts=2
 from advent import *
 
 world = World()
@@ -52,7 +53,7 @@ loc_sidewalk.put( Thing( "Gary the garden gnome",
 loc_sidewalk.add_verb( 'knock', say('The door makes a hollow sound.') )
 
 # custom single location verb
-def scream( world, words ):
+def scream( location, words ):
   print "You scream your head off!"
   for w in words[1:]:
     print "You scream '%s'." % w
@@ -81,15 +82,41 @@ fido.set_location( loc_sidewalk )
 hero = Hero(world)
 
 # add a hero verb
-def throw( self, noun ):
-  if self.act('drop', noun):
-     print 'The %s bounces and falls to the floor' % noun
+def throw( self, actor, words ):
+  if len(words) > 1 and self.act('drop', words[1] ):
+     print 'The %s bounces and falls to the floor' % words[1]
      return True
   else:
      print 'You hurt your arm.'
      return False
 
 hero.add_verb( "throw", throw )
+
+# create shared data
+# NOTE: you must either set the server with share.set_host(...) or place the host information
+# in a file 'share.info' in the local directory.  The host must be a webdis host using basic
+# authentication.
+share = Share()
+share.set_game("bwx-adventure")
+share.set_player("default")
+share.start()
+
+# custom verb to record things at locations
+def scribble( self, actor, words ):
+  if len(words) != 2:
+    print "You can only scrible a single word."
+    return False
+  share.put_game_data('crumb.' + self.location.name, words[1].strip())
+  return True
+
+hero.add_verb( "scribble", scribble )
+
+# custom verb to see things written
+def peek( self, actor, words ):
+  print 'Someone scribbled "%s" here.' % share.get_game_data('crumb.' + self.location.name)
+  return True
+
+hero.add_verb( "peek", peek )
 
 # start on the sidewalk
 hero.set_location( loc_sidewalk )

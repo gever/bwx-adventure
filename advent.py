@@ -1,6 +1,11 @@
 #
 # adventure module
 #
+# vim: et sw=2 ts=2 sts=2
+
+# for Python3, use:
+# import urllib.request as urllib2
+import urllib2
 
 import random
 import time
@@ -318,8 +323,11 @@ class Actor(object):
     for v in self.verbs:
       if v.startswith(verb):
         verbs.append(v)
+    words = [verb]
+    if noun:
+      words.append(noun)
     if len(verbs) == 1:
-      return self.verbs[verbs[0]]( noun )
+      return self.verbs[verbs[0]]( self, words )
     else:
       return None
 
@@ -643,6 +651,83 @@ class World(object):
     return l
 
 
+class Share(object):
+  def __init__(self):
+    self.hostname = None
+    self.port = None
+    self.username = None
+    self.password = None
+    self.game = ""
+    self.player = ""
+    try:
+      f = open("share.info", "r")
+      self.hostname = f.readline().strip()
+      self.port = f.readline().strip()
+      self.username = f.readline().strip()
+      self.password = f.readline().strip()
+    except IOError:
+      pass
+
+  def set_host(self, hostname, port, username, password):
+    self.hostname = hostname
+    self.port = port
+    self.username = username
+    self.password = password
+
+  def set_game(self, game):
+    self.game = game
+
+  def set_player(self, player):
+    self.player = player
+
+  def start(self):
+    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    webdis_url = "http://%s:%s/" % (self.hostname, self.port)
+    password_mgr.add_password(None, webdis_url, self.username, self.password)
+    self.opener = urllib2.build_opener(urllib2.HTTPBasicAuthHandler(password_mgr))
+
+  def global_key(self, key):
+    return 'global.' + key
+
+  def game_key(self, key):
+    return self.game + '.' + key
+
+  def player_key(self, key):
+    return self.game + '.' + self.player + '.' + key
+
+  def get(self, key):
+    f = self.opener.open('http://%s:%s/GET/%s.raw' % (self.hostname, self.port, key))
+    v = f.read().split('\n')
+    if len(v) > 1:
+       return v[1].strip()
+    return None
+
+  def get_player_data(self, key):
+    return self.get(self.player_key(key))
+
+  def get_game_data(self, key):
+    return self.get(self.game_key(key))
+
+  def get_global_data(self, key):
+    return self.get(self.global_key(key))
+
+  def put(self, key, value):
+    f = self.opener.open('http://%s:%s/SET/%s/%s' % (self.hostname, self.port, key, value))
+    v = f.read().split('\n')
+    if len(v) > 1:
+       return v[1]
+    return None
+
+  def put_player_data(self, key, value):
+    return self.put(self.player_key(ke), value)
+
+  def put_game_data(self, key, value):
+    return self.put(self.game_key(key), value)
+
+  def put_global_data(self, key, value):
+    return self.put(self.global_key(key), value)
+
+
 def do_say(s):
   print s
   return True
@@ -715,13 +800,18 @@ def run_game( hero ):
     if not words:
       continue
 
-    f = actor.location.get_verb( words[0] )
+    verb = words[0]
+    noun = None
+    if len(words) > 1:
+      noun = words[1]
+
+    f = actor.location.get_verb( verb )
     if f:
       if f( actor.location, words ):
         continue
 
     # give precedence to the primary actor for the verb
-    f = actor.get_verb( words[0] )
+    f = actor.get_verb( verb )
     if f:
       if f( actor, words ):
         continue
@@ -730,7 +820,7 @@ def run_game( hero ):
     for a in actor.location.actors:
       if a == actor:
         continue
-      f = a.get_verb( words[0] )
+      f = a.get_verb( verb )
       if f:
         if f( a, words ):
           done = True
@@ -738,7 +828,6 @@ def run_game( hero ):
     if done:
       continue
 
-    verb = words[0]
     # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
     # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
     if len( words ) > 2:
@@ -753,7 +842,6 @@ def run_game( hero ):
     if len( words ) == 2:
       # action object
       # e.g. take key
-      verb, noun = words
       actor.do_act( verb, noun )
       continue
 
