@@ -1,10 +1,11 @@
+#! /usr/bin/python
 from advent import *
 
 world = World()
 # Sample Game - Brightworks Adventure!
 loc_sidewalk = world.add_location(
 "Sidewalk", """
-You are standing in front of a large glass door.
+There is a large glass door to the east.
 The sign says 'Come In!'
 """ )
 
@@ -34,7 +35,7 @@ To the west is an intersection.
 """ )
 
 # the connections between the places
-world.biconnect( loc_sidewalk, loc_vestibule, "Big Door", IN, OUT )
+world.biconnect( loc_sidewalk, loc_vestibule, "Big Door", [IN, EAST], [WEST, OUT] )
 world.biconnect( loc_vestibule, loc_reception, "Stairs", UP, DOWN )
 world.biconnect( loc_reception, loc_intersection, "A Few Steps", NORTH, SOUTH )
 world.biconnect( loc_intersection, loc_elevator, "A Few Steps", EAST, WEST )
@@ -47,10 +48,40 @@ loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
 loc_sidewalk.put( Thing( "Gary the garden gnome",
                           "a small figure liberated from a nearby garden." ) )
 
-loc_sidewalk.add_easter_egg( 'knock', 'The door makes a hollow sound.' )
+# simple verb applicable at this location
+loc_sidewalk.add_verb( 'knock', say('The door makes a hollow sound.') )
 
-# add another verb
-def throw(self, noun):
+# custom single location verb
+def scream( world, words ):
+  print "You scream your head off!"
+  for w in words[1:]:
+    print "You scream '%s'." % w
+  return True
+
+loc_sidewalk.add_verb( 'scream', scream )
+
+# Add an animal to roam around.  Animals act autonomously
+cat = Animal(world, "cat")
+cat.set_location(loc_sidewalk)
+cat.add_verb("pet", say("The cat purrs.") )
+cat.add_verb("eat", say_on_noun("cat", "Don't do that, PETA will get you!"));
+cat.add_verb("kill", say_on_noun("cat", "The cat escapes and bites you. Ouch!"));
+
+# Add a robot.  Robots can take commands to perform actions.
+robby = Robot( world, "Robby" )
+robby.set_location( loc_sidewalk )
+
+# Add a Pet.  Pets are like Animals because they can act autonomously,
+# but they also are like Robots in that they can take commands to
+# to perform actions.
+fido = Pet ( world, "Fido")
+fido.set_location( loc_sidewalk )
+
+# make the player
+hero = Hero(world)
+
+# add a hero verb
+def throw( self, noun ):
   if self.act('drop', noun):
      print 'The %s bounces and falls to the floor' % noun
      return True
@@ -58,10 +89,7 @@ def throw(self, noun):
      print 'You hurt your arm.'
      return False
 
-add_verb(throw)
-
-# make the player
-hero = Person( world )
+hero.add_verb( "throw", throw )
 
 # start on the sidewalk
 hero.set_location( loc_sidewalk )
