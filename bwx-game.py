@@ -133,31 +133,114 @@ def throw( self, actor, words ):
 
 hero.add_verb( "throw", throw )
 
+
+# create unique player and session names for non-logged/saved sessions
+player = 'player' + str(time.clock)
+session = 'session' + str(time.clock)
+
 # create shared data
 # NOTE: you must either set the server with share.set_host(...) or place the host information
 # in a file 'share.info' in the local directory.  The host must be a webdis host using basic
 # authentication.
 share = Share()
-share.set_game("bwx-adventure")
-share.set_player("default")
+share.set_adventure("bwx-adventure")
+share.set_player(player)
+share.set_session(session)
 share.start()
 
 # custom verb to record things at locations
+# Data can be store
+#   GLOBAL: available to everyone
+#   ADVENTURE: available to everyone playing a particular adventure
+#   PlAYER: available to the specific palyer in the specific adventure
+#   SESSION: available to the specific palyer in the specific adventure in the specific session
 def scribble( self, actor, words ):
   if len(words) != 2:
     print "You can only scrible a single word."
     return False
-  share.put_game_data('crumb.' + self.location.name, words[1].strip())
+  share.put(share.ADVENTURE, 'crumb.' + self.location.name, words[1].strip())
   return True
 
 hero.add_verb( "scribble", scribble )
 
 # custom verb to see things written
 def peek( self, actor, words ):
-  print 'Someone scribbled "%s" here.' % share.get_game_data('crumb.' + self.location.name)
+  v = share.get(share.ADVENTURE, 'crumb.' + self.location.name)
+  if not v:
+    print 'Nothing here.'
+    return False
+  print 'Someone scribbled "%s" here.' % v
   return True
 
 hero.add_verb( "peek", peek )
+
+#  custom verb to count
+def more( self, actor, words ):
+  share.increment(share.ADVENTURE, 'count.' + self.location.name)
+  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + self.location.name)
+  return True
+
+def fewer( self, actor, words ):
+  share.decrement(share.ADVENTURE, 'count.' + self.location.name)
+  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + self.location.name)
+  return True
+
+def reset( self, actor, words ):
+  share.delete(share.ADVENTURE, 'count.' + self.location.name)
+  print 'The count is reset!'
+  return True
+
+hero.add_verb( "more", more )
+hero.add_verb( "fewer", fewer )
+hero.add_verb( "reset", reset )
+
+# custom verb to push and pop messages
+
+def push( self, actor, words ):
+  w = "_".join(words[1:])
+  share.push(share.ADVENTURE, 'stack.' + self.location.name, w)
+  print "You left a message on the stack of messages."
+  return True
+
+hero.add_verb( "push", push )
+
+def pop( self, actor, words ):
+  w = share.pop(share.ADVENTURE, 'stack.' + self.location.name)
+  if not w:
+    print "There are no messages on the stack."
+    return False
+  words = w.split('_')
+  print "You pull the top message from the stack and read '%s'." % " ".join(words)
+  return True
+
+hero.add_verb( "pop", pop )
+
+# high score example
+
+share.delete(share.ADVENTURE, 'highscore')
+share.zadd(share.ADVENTURE, 'highscore', 'joe', 10)
+share.zadd(share.ADVENTURE, 'highscore', 'bob', 20)
+share.zadd(share.ADVENTURE, 'highscore', 'fred', 30)
+
+def top( self, actor, words ):
+  w = share.ztop(share.ADVENTURE, 'highscore', 10)
+  if w:
+    print "Top Players"
+    for x in w:
+      print "  %s" % x
+  return True
+
+hero.add_verb( "top", top )
+
+def scores( self, actor, words ):
+  w = share.ztop_with_scores(share.ADVENTURE, 'highscore', 10)
+  if w:
+    print "High Scores"
+    for x in w:
+      print "  %s %s" % (x[0], x[1])
+  return True
+
+hero.add_verb( "scores", scores )
 
 # start on the sidewalk
 hero.set_location( sidewalk )
