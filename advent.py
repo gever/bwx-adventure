@@ -11,11 +11,6 @@ import random
 import time
 
 # A "direction" is all the ways you can describe going some way
-#
-# adventure module
-#
-
-# A "direction" is all the ways you can describe going some way
 directions = {}
 NORTH = 1
 SOUTH = 2
