@@ -181,6 +181,16 @@ share.zadd(share.ADVENTURE, 'highscore', 'joe', 10)
 share.zadd(share.ADVENTURE, 'highscore', 'bob', 20)
 share.zadd(share.ADVENTURE, 'highscore', 'fred', 30)
 
+def top( self, actor, words ):
+  w = share.ztop(share.ADVENTURE, 'highscore', 10)
+  if w:
+    print "Top Players"
+    for x in w:
+      print "  %s" % x
+  return True
+
+hero.add_verb( "top", top )
+
 def scores( self, actor, words ):
   w = share.ztop_with_scores(share.ADVENTURE, 'highscore', 10)
   if w:

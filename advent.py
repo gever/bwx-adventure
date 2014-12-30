@@ -783,7 +783,12 @@ class Share(object):
 
   def ztop(self, domain, key, rank):
     v = self._do2l(domain, "ZREVRANGE", key, "0", rank)
-    return [x.strip() for x in v[1:]]
+    v = [x.strip() for x in v[1:]]
+    result = []
+    for x in xrange(0, len(v)):
+      if x % 2 == 1:
+        result.append(v[x])
+    return result
 
   def ztop_with_scores(self, domain, key, rank):
     v = self._do3l(domain, "ZREVRANGE", key, "0", rank, "WITHSCORES")
