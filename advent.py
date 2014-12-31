@@ -94,6 +94,14 @@ def add_article ( name ):
       article = ""
    return "%s%s" % (article, name)
 
+def remove_superfluous_input(text):
+  superfluous = articles +  ['to']
+  rest = []
+  for word in text.split():
+    if word not in superfluous:
+      rest.append(word)
+  return ' '.join(rest)
+
 def proper_list_from_dict( d ):
   names = d.keys()
   buf = []
@@ -168,10 +176,12 @@ class Game(object):
           break
         if user_input == 'q' or user_input == 'quit':
           break
-  
+
+      clean_user_input = remove_superfluous_input(user_input)
+        
       # see if the command is for a robot
-      if ':' in user_input:
-         robot_name, command = user_input.split(':')
+      if ':' in clean_user_input:
+         robot_name, command = clean_user_input.split(':')
          try:
             actor = hero.world.robots[robot_name]
          except KeyError:
@@ -179,7 +189,7 @@ class Game(object):
             continue
       else:
          actor = hero
-         command = user_input
+         command = clean_user_input
   
       # give the input to the actor in case it's recording a script
       if not actor.set_next_script_line(command):
