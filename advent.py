@@ -129,7 +129,7 @@ class Location(object):
   # actors: other actors in the location
   # world: the world
 
-  def __init__( self, name, desc, world ):
+  def __init__( self, name, desc):#, world ):
     self.name = name
     self.description = desc.strip()
     self.contents = {}
@@ -137,7 +137,9 @@ class Location(object):
     self.first_time = True
     self.verbs = {}
     self.actors = set()
-    self.world = world
+    self.requirements = {}
+    #self.world = world
+    self.world = None
 
   def put( self, thing ):
     self.contents[thing.name] = thing
@@ -177,7 +179,18 @@ class Location(object):
   def go( self, way ):
     if way in self.exits:
       c = self.exits[ way ]
-      return c.point_b
+      
+      # check if there are any requirements for this room
+      if len(c.point_b.requirements) > 0:
+        # check to see if the requirements are in the inventory
+        if set(c.point_b.requirements).issubset(set(self.world.hero.inventory)):
+          print "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name)
+          return c.point_b
+        
+        print "It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements)
+        return None
+      else:
+        return c.point_b
     else:
       return None
 
@@ -194,6 +207,9 @@ class Location(object):
        return self.verbs[c]
     else:
       return None
+      
+  def add_requirement(self, thing):
+      self.requirements[thing.name] = thing
 
 
 # A "connection" connects point A to point B. Connections are
@@ -203,10 +219,12 @@ class Connection(object):
   # point_a
   # point_b
 
-  def __init__( self, pa, name, pb ):
+  def __init__( self, name, pa, pb, way_ab, way_ba):
     self.name = name
     self.point_a = pa
     self.point_b = pb
+    self.way_ab = way_ab
+    self.way_ba = way_ba
 
 
 # An actor in the world
@@ -259,6 +277,7 @@ class Actor(object):
     t = self.location.contents.pop(noun, None)
     if t:
       self.inventory[noun] = t
+      print "You take the %s" % t.name
       return True
     else:
       print "%s can't take the %s." % (self.cap_name, noun)
@@ -620,10 +639,7 @@ class World(object):
     self.robots = {}
     self.animals = {}
 
-    # phase out deprecated/renamed functions
-    self.biconnect = self.add_connection
-
-
+    
   # make a (one-way) connection between point A and point B
   def connect( self, point_a, name, point_b, way ):
     c = Connection( point_a, name, point_b )
@@ -631,7 +647,7 @@ class World(object):
     return c
 
   # make a bidirectional between point A and point B
-  def add_connection( self, point_a, point_b, name, ab_way, ba_way ):
+  def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
     c1 = Connection( point_a, name, point_b )
     if isinstance(ab_way, (list, tuple)):
       for way in ab_way:
@@ -645,12 +661,30 @@ class World(object):
     else:
       point_b.add_exit( c2, ba_way )
     return c1, c2
+    
+  # add a bidirectional connection between points A and B
+  def add_connection( self, connection ):
+    if isinstance(connection.way_ab, (list, tuple)):
+      for way in connection.way_ab:
+        connection.point_a.add_exit( connection, way )
+    else:
+      connection.point_a.add_exit( connection, connection.way_ab )
+    
+    # this is messy, need a better way to do this
+    reverse_connection = Connection( connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
+    if isinstance(connection.way_ba, (list, tuple)):
+      for way in connection.way_ba:
+        connection.point_b.add_exit( reverse_connection, way )
+    else:
+      connection.point_b.add_exit( reverse_connection, connection.way_ba )
+      
+    return connection
 
   # add another location to the world
-  def add_location( self, name, description ):
-    l = Location( name, description, self )
-    self.locations[name] = l
-    return l
+  def add_location(self,  location ):
+    location.world = self
+    self.locations[location.name] = location
+    return location
 
 
 class Share(object):
@@ -729,125 +763,125 @@ class Share(object):
   def put_global_data(self, key, value):
     return self.put(self.global_key(key), value)
 
-
-def do_say(s):
-  print s
-  return True
-
-
-def say(s):
-  return (lambda s: lambda *args: do_say(s))(s)
-
-
-def do_say_on_noun(n, s, words):
-  if len(words) < 2:
-    return False
-  noun = words[1]
-  if noun != n:
-    return False
-  print s
-  return True
-
-
-def say_on_noun(n, s):
-  return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
-
-
-def run_game( hero ):
-  actor = hero
-  while True:
-    # if the actor moved, describe the room
-    if actor.check_if_moved():
-      print
-      print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
-                                                   actor.isare,
-                                                   actor.location.name)
-      where = actor.location.describe(actor)
-      if where:
-        print where
-
-    # See if the animals want to do anything
-    for animal in actor.world.animals.items():
-      animal[1].act_autonomously(actor.location)
-
-
-    # check if we're currently running a script
-    user_input = actor.get_next_script_line();
-    if user_input == None:    
-      # get input from the user
-      try:
-        user_input = raw_input("> ")
-      except EOFError:
-        break
-      if user_input == 'q' or user_input == 'quit':
-        break
-
-    # see if the command is for a robot
-    if ':' in user_input:
-       robot_name, command = user_input.split(':')
-       try:
-          actor = hero.world.robots[robot_name]
-       except KeyError:
-          print "I don't know anybot named %s" % robot_name
-          continue
-    else:
-       actor = hero
-       command = user_input
-
-    # give the input to the actor in case it's recording a script
-    if not actor.set_next_script_line(command):
-      continue
-       
-    words = command.split()
-    if not words:
-      continue
-
-    verb = words[0]
-    noun = None
-    if len(words) > 1:
-      noun = words[1]
-
-    f = actor.location.get_verb( verb )
-    if f:
-      if f( actor.location, words ):
-        continue
-
-    # give precedence to the primary actor for the verb
-    f = actor.get_verb( verb )
-    if f:
-      if f( actor, words ):
-        continue
-    
-    done = False  # sadly, python doesn't have break with a label
-    for a in actor.location.actors:
-      if a == actor:
-        continue
-      f = a.get_verb( verb )
-      if f:
-        if f( a, words ):
-          done = True
+class Game(object):
+  def do_say(self, s):
+    print s
+    return True
+  
+  
+  def say(self, s):
+    return (lambda s: lambda *args: do_say(s))(s)
+  
+  
+  def do_say_on_noun(self, n, s, words):
+    if len(words) < 2:
+      return False
+    noun = words[1]
+    if noun != n:
+      return False
+    print s
+    return True
+  
+  
+  def say_on_noun(self, n, s):
+    return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
+  
+  
+  def run(self, hero ):
+    actor = hero
+    while True:
+      # if the actor moved, describe the room
+      if actor.check_if_moved():
+        print
+        print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
+                                                     actor.isare,
+                                                     actor.location.name)
+        where = actor.location.describe(actor)
+        if where:
+          print where
+  
+      # See if the animals want to do anything
+      for animal in actor.world.animals.items():
+        animal[1].act_autonomously(actor.location)
+  
+  
+      # check if we're currently running a script
+      user_input = actor.get_next_script_line();
+      if user_input == None:    
+        # get input from the user
+        try:
+          user_input = raw_input("> ")
+        except EOFError:
           break
-    if done:
-      continue
-
-    # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
-    # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
-    if len( words ) > 2:
-      for noun in words[1:]:
-        noun = noun.strip(',')
-        if noun in articles: continue
-        if noun == 'and': continue
+        if user_input == 'q' or user_input == 'quit':
+          break
+  
+      # see if the command is for a robot
+      if ':' in user_input:
+         robot_name, command = user_input.split(':')
+         try:
+            actor = hero.world.robots[robot_name]
+         except KeyError:
+            print "I don't know anybot named %s" % robot_name
+            continue
+      else:
+         actor = hero
+         command = user_input
+  
+      # give the input to the actor in case it's recording a script
+      if not actor.set_next_script_line(command):
+        continue
+         
+      words = command.split()
+      if not words:
+        continue
+  
+      verb = words[0]
+      noun = None
+      if len(words) > 1:
+        noun = words[1]
+  
+      f = actor.location.get_verb( verb )
+      if f:
+        if f( actor.location, words ):
+          continue
+  
+      # give precedence to the primary actor for the verb
+      f = actor.get_verb( verb )
+      if f:
+        if f( actor, words ):
+          continue
+      
+      done = False  # sadly, python doesn't have break with a label
+      for a in actor.location.actors:
+        if a == actor:
+          continue
+        f = a.get_verb( verb )
+        if f:
+          if f( a, words ):
+            done = True
+            break
+      if done:
+        continue
+  
+      # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
+      # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
+      if len( words ) > 2:
+        for noun in words[1:]:
+          noun = noun.strip(',')
+          if noun in articles: continue
+          if noun == 'and': continue
+          actor.do_act( verb, noun )
+        continue
+  
+      # try to do what the user says
+      if len( words ) == 2:
+        # action object
+        # e.g. take key
         actor.do_act( verb, noun )
-      continue
-
-    # try to do what the user says
-    if len( words ) == 2:
-      # action object
-      # e.g. take key
-      actor.do_act( verb, noun )
-      continue
-
-    assert len( words ) == 1
-    # action (implied object/subject)
-    # e.g. north
-    actor.do_act( "go", verb )
+        continue
+  
+      assert len( words ) == 1
+      # action (implied object/subject)
+      # e.g. north
+      actor.do_act( "go", verb )
