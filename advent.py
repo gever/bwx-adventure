@@ -12,6 +12,8 @@ import time
 
 # A "direction" is all the ways you can describe going some way
 directions = {}
+
+# These are code-visible canonical names for directions for adventure authors
 NORTH = 1
 SOUTH = 2
 EAST = 3
@@ -44,6 +46,7 @@ def lookup_dir( d ):
   else:
     return NOT_DIRECTION
 
+# define player words used to describe known directions
 define_direction( NORTH, "north" )
 define_direction( NORTH, "n" )
 define_direction( SOUTH, "south" )
@@ -617,14 +620,18 @@ class World(object):
     self.robots = {}
     self.animals = {}
 
-  # make a connection between point A and point B
+    # phase out deprecated/renamed functions
+    self.biconnect = self.add_connection
+
+
+  # make a (one-way) connection between point A and point B
   def connect( self, point_a, name, point_b, way ):
     c = Connection( point_a, name, point_b )
     point_a.add_exit( c, way )
     return c
 
   # make a bidirectional between point A and point B
-  def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
+  def add_connection( self, point_a, point_b, name, ab_way, ba_way ):
     c1 = Connection( point_a, name, point_b )
     if isinstance(ab_way, (list, tuple)):
       for way in ab_way:

@@ -36,10 +36,10 @@ To the west is an intersection.
 """ )
 
 # the connections between the places
-world.biconnect( loc_sidewalk, loc_vestibule, "Big Door", [IN, EAST], [WEST, OUT] )
-world.biconnect( loc_vestibule, loc_reception, "Stairs", UP, DOWN )
-world.biconnect( loc_reception, loc_intersection, "A Few Steps", NORTH, SOUTH )
-world.biconnect( loc_intersection, loc_elevator, "A Few Steps", EAST, WEST )
+world.add_connection( loc_sidewalk, loc_vestibule, "Big Door", [IN, EAST], [WEST, OUT] )
+world.add_connection( loc_vestibule, loc_reception, "Stairs", UP, DOWN )
+world.add_connection( loc_reception, loc_intersection, "A Few Steps", NORTH, SOUTH )
+world.add_connection( loc_intersection, loc_elevator, "A Few Steps", EAST, WEST )
 
 elev_key = Thing( "key", "small tarnished brass key" )
 elev_lock = Thing( "lock", "ordinary lock" )
