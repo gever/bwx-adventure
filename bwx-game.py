@@ -80,7 +80,7 @@ elev_key = Thing( "key", "small tarnished brass key" )
 
 sidewalk.put( elev_key )
 
-sidewalk.put( Thing( "pebble", "round pebble" ) )
+pebble = sidewalk.put( Thing( "pebble", "round pebble" ) )
 sidewalk.put( Thing( "Gary the garden gnome",
                           "a small figure liberated from a nearby garden." ) )
                           
@@ -88,6 +88,7 @@ sidewalk.put( Thing( "Gary the garden gnome",
 
 # you can make rooms require things, like keys, before a player can enter them
 elevator.add_requirement(elev_key)
+elevator.add_requirement(pebble)
 
 # simple verb applicable at this location
 sidewalk.add_verb( 'knock', my_game.say('The door makes a hollow sound.') )

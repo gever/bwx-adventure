@@ -143,6 +143,7 @@ class Location(object):
 
   def put( self, thing ):
     self.contents[thing.name] = thing
+    return thing
 
   def describe( self, observer, force=False ):
     desc = ""   # start with a blank string
