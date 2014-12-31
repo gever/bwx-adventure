@@ -6,7 +6,7 @@ from advent import Game, World, Location, Connection, Thing, Animal, Robot, Pet,
 from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 
 # setup the game you are going to build on...
-my_game = Game()
+my_game.set_name("Brightworks Adventure")
 
 # create your world, then we can stick stuff in it
 my_world = World()

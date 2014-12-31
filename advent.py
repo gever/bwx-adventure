@@ -106,6 +106,13 @@ def proper_list_from_dict( d ):
     buf.append(add_article(name))
   return "".join(buf)
 
+# global singleton used as a top level container for collecting game info and state
+my_game = Game("bwx-default")
+class GameObject(object):
+  def __init__(self, name):
+    my_game.add_object(self, "GameObject")
+    
+
 class Thing(object):
   # name: short name of this thing
   # description: full description
@@ -765,6 +772,16 @@ class Share(object):
     return self.put(self.global_key(key), value)
 
 class Game(object):
+  def __init__(self, name="bwx-adventure-game")
+    self.name = name
+    self.objects = {}
+
+  def set_name(self, name):
+    self.name = name
+
+  def add_object(self, obj, scope):
+    self.objects[scope + '.' + obj.name] = obj
+    
   def do_say(self, s):
     print s
     return True
