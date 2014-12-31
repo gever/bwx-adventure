@@ -106,8 +106,144 @@ def proper_list_from_dict( d ):
     buf.append(add_article(name))
   return "".join(buf)
 
+class Game(object):
+  def __init__(self, name="bwx-adventure-game"):
+    self.name = name
+    self.objects = {}
+
+  def set_name(self, name):
+    self.name = name
+
+  def add_object(self, obj, scope):
+    self.objects[scope + '.' + obj.name] = obj
+    
+  def do_say(self, s):
+    print s
+    return True
+  
+  
+  def say(self, s):
+    return (lambda s: lambda *args: do_say(s))(s)
+  
+  
+  def do_say_on_noun(self, n, s, words):
+    if len(words) < 2:
+      return False
+    noun = words[1]
+    if noun != n:
+      return False
+    print s
+    return True
+  
+  
+  def say_on_noun(self, n, s):
+    return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
+  
+  
+  def run(self, hero ):
+    actor = hero
+    while True:
+      # if the actor moved, describe the room
+      if actor.check_if_moved():
+        print
+        print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
+                                                     actor.isare,
+                                                     actor.location.name)
+        where = actor.location.describe(actor)
+        if where:
+          print where
+  
+      # See if the animals want to do anything
+      for animal in actor.world.animals.items():
+        animal[1].act_autonomously(actor.location)
+  
+  
+      # check if we're currently running a script
+      user_input = actor.get_next_script_line();
+      if user_input == None:    
+        # get input from the user
+        try:
+          user_input = raw_input("> ")
+        except EOFError:
+          break
+        if user_input == 'q' or user_input == 'quit':
+          break
+  
+      # see if the command is for a robot
+      if ':' in user_input:
+         robot_name, command = user_input.split(':')
+         try:
+            actor = hero.world.robots[robot_name]
+         except KeyError:
+            print "I don't know anybot named %s" % robot_name
+            continue
+      else:
+         actor = hero
+         command = user_input
+  
+      # give the input to the actor in case it's recording a script
+      if not actor.set_next_script_line(command):
+        continue
+         
+      words = command.split()
+      if not words:
+        continue
+  
+      verb = words[0]
+      noun = None
+      if len(words) > 1:
+        noun = words[1]
+  
+      f = actor.location.get_verb( verb )
+      if f:
+        if f( actor.location, words ):
+          continue
+  
+      # give precedence to the primary actor for the verb
+      f = actor.get_verb( verb )
+      if f:
+        if f( actor, words ):
+          continue
+      
+      done = False  # sadly, python doesn't have break with a label
+      for a in actor.location.actors:
+        if a == actor:
+          continue
+        f = a.get_verb( verb )
+        if f:
+          if f( a, words ):
+            done = True
+            break
+      if done:
+        continue
+  
+      # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
+      # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
+      if len( words ) > 2:
+        for noun in words[1:]:
+          noun = noun.strip(',')
+          if noun in articles: continue
+          if noun == 'and': continue
+          actor.do_act( verb, noun )
+        continue
+  
+      # try to do what the user says
+      if len( words ) == 2:
+        # action object
+        # e.g. take key
+        actor.do_act( verb, noun )
+        continue
+  
+      assert len( words ) == 1
+      # action (implied object/subject)
+      # e.g. north
+      actor.do_act( "go", verb )
+
 # global singleton used as a top level container for collecting game info and state
 my_game = Game("bwx-default")
+
+# GameObject is a place to put default inplementations of methods that everything
+# in the world should support (eg save/restore, how to respond to verbs etc)
 class GameObject(object):
   def __init__(self, name):
     my_game.add_object(self, "GameObject")
@@ -771,135 +907,3 @@ class Share(object):
   def put_global_data(self, key, value):
     return self.put(self.global_key(key), value)
 
-class Game(object):
-  def __init__(self, name="bwx-adventure-game")
-    self.name = name
-    self.objects = {}
-
-  def set_name(self, name):
-    self.name = name
-
-  def add_object(self, obj, scope):
-    self.objects[scope + '.' + obj.name] = obj
-    
-  def do_say(self, s):
-    print s
-    return True
-  
-  
-  def say(self, s):
-    return (lambda s: lambda *args: do_say(s))(s)
-  
-  
-  def do_say_on_noun(self, n, s, words):
-    if len(words) < 2:
-      return False
-    noun = words[1]
-    if noun != n:
-      return False
-    print s
-    return True
-  
-  
-  def say_on_noun(self, n, s):
-    return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
-  
-  
-  def run(self, hero ):
-    actor = hero
-    while True:
-      # if the actor moved, describe the room
-      if actor.check_if_moved():
-        print
-        print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
-                                                     actor.isare,
-                                                     actor.location.name)
-        where = actor.location.describe(actor)
-        if where:
-          print where
-  
-      # See if the animals want to do anything
-      for animal in actor.world.animals.items():
-        animal[1].act_autonomously(actor.location)
-  
-  
-      # check if we're currently running a script
-      user_input = actor.get_next_script_line();
-      if user_input == None:    
-        # get input from the user
-        try:
-          user_input = raw_input("> ")
-        except EOFError:
-          break
-        if user_input == 'q' or user_input == 'quit':
-          break
-  
-      # see if the command is for a robot
-      if ':' in user_input:
-         robot_name, command = user_input.split(':')
-         try:
-            actor = hero.world.robots[robot_name]
-         except KeyError:
-            print "I don't know anybot named %s" % robot_name
-            continue
-      else:
-         actor = hero
-         command = user_input
-  
-      # give the input to the actor in case it's recording a script
-      if not actor.set_next_script_line(command):
-        continue
-         
-      words = command.split()
-      if not words:
-        continue
-  
-      verb = words[0]
-      noun = None
-      if len(words) > 1:
-        noun = words[1]
-  
-      f = actor.location.get_verb( verb )
-      if f:
-        if f( actor.location, words ):
-          continue
-  
-      # give precedence to the primary actor for the verb
-      f = actor.get_verb( verb )
-      if f:
-        if f( actor, words ):
-          continue
-      
-      done = False  # sadly, python doesn't have break with a label
-      for a in actor.location.actors:
-        if a == actor:
-          continue
-        f = a.get_verb( verb )
-        if f:
-          if f( a, words ):
-            done = True
-            break
-      if done:
-        continue
-  
-      # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
-      # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
-      if len( words ) > 2:
-        for noun in words[1:]:
-          noun = noun.strip(',')
-          if noun in articles: continue
-          if noun == 'and': continue
-          actor.do_act( verb, noun )
-        continue
-  
-      # try to do what the user says
-      if len( words ) == 2:
-        # action object
-        # e.g. take key
-        actor.do_act( verb, noun )
-        continue
-  
-      assert len( words ) == 1
-      # action (implied object/subject)
-      # e.g. north
-      actor.do_act( "go", verb )
