@@ -57,9 +57,7 @@ define_direction( UP, "u" )
 define_direction( DOWN, "down" )
 define_direction( DOWN, "d" )
 define_direction( RIGHT, "right" )
-define_direction( RIGHT, "r" )
 define_direction( LEFT, "left" )
-define_direction( LEFT, "l" )
 define_direction( IN, "in" )
 define_direction( OUT, "out" )
 define_direction( FORWARD, "forward" )
@@ -233,7 +231,9 @@ class Actor(object):
     self.verbs['get'] = self.act_take
     self.verbs['drop'] = self.act_drop
     self.verbs['inventory'] = self.act_inventory
+    self.verbs['i'] = self.act_inventory
     self.verbs['look'] = self.act_look
+    self.verbs['l'] = self.act_look
 
   # describe ourselves
   def describe( self, observer ):
@@ -250,7 +250,7 @@ class Actor(object):
 
   # move a thing from the current location to our inventory
   def act_take( self, actor, words=None ):
-    if not words:
+    if len(words) < 2:
        return False
     noun = words[1]
     t = self.location.contents.pop(noun, None)
@@ -315,9 +315,12 @@ class Actor(object):
   # return True on success, False on failure and None if the command isn't found.
   def perform_action( self, verb, noun=None ):
     verbs = []
-    for v in self.verbs:
-      if v.startswith(verb):
-        verbs.append(v)
+    if verb in self.verbs:
+      verbs = [verb]
+    else:
+      for v in self.verbs:
+        if v.startswith(verb):
+          verbs.append(v)
     words = [verb]
     if noun:
       words.append(noun)
