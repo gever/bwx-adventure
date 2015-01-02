@@ -120,20 +120,36 @@ class Game(object):
     self.name = name
     self.objects = {}
     self.world = None
+    self.fresh_location = False
 
   def set_name(self, name):
     self.name = name
 
   def add_world(self, world):
     self.world = world
+    world.game = self
       
   def add_object(self, obj, scope):
     self.objects[scope + '.' + obj.name] = obj
     
+  def output(self, text, message_type = 0):
+    # we add a newline to user putput since they may not add it themselves
+    output(text + "\n", message_type)
+  
   def do_say(self, s):
     print s
     return True
-  
+    
+  # checks to see if the inventory in the items list is in the user's inventory
+  def inventory_contains(self, items):
+    if set(items).issubset(set(self.world.hero.inventory.values())):
+      return True
+    return False
+    
+  def entering_location(self, location):
+    if (self.world.hero.location == location and self.fresh_location):
+        return True
+    return False
   
   def say(self, s):
     return (lambda s: lambda *args: self.do_say(s))(s)
@@ -153,23 +169,33 @@ class Game(object):
     return (lambda n, s: lambda self, words: self.do_say_on_noun(n, s, words))(n, s)
   
   
-  def run(self , update_func):
+  def run(self , update_func = False):
+    
+    # reset this every loop so we dont trigger things more than once
+    self.fresh_location = False
+    
     actor = self.world.hero
     while True:
       # if the actor moved, describe the room
       if actor.check_if_moved():
-        print
-        print "        --=( %s %s in the %s )=--" % (actor.name.capitalize(),
+        output("        --=( %s %s in the %s )=--        " % (actor.name.capitalize(),
                                                      actor.isare,
-                                                     actor.location.name)
+                                                     actor.location.name), TITLE)
+
+        # cache this as we need to know it for the query to entering_location()
+        self.fresh_location = actor.location.first_time
+        
         where = actor.location.describe(actor)
         if where:
-          print where
+          output( where )
   
       # See if the animals want to do anything
       for animal in actor.world.animals.items():
         animal[1].act_autonomously(actor.location)
-  
+        
+      # has the developer supplied an update function?
+      if (update_func):
+        update_func() #call the update function
   
       # check if we're currently running a script
       user_input = actor.get_next_script_line();
@@ -190,7 +216,7 @@ class Game(object):
          try:
             actor = self.world.robots[robot_name]
          except KeyError:
-            print "I don't know anybot named %s" % robot_name
+            output( "I don't know anybot named %s" % robot_name, FEEDBACK)
             continue
       else:
          actor = self.world.hero
@@ -305,28 +331,28 @@ class Location(object):
 
     # add the description
     if self.first_time or force:
-      desc += self.description
+      desc += style_text(self.description + "\n", DESCRIPTION)
       self.first_time = False
 
     # any things here?
     if self.contents:
       # add a newline so that the list starts on it's own line
       desc += "\n"
-
+      
       # try to make a readable list of the things
       contents_description = proper_list_from_dict(self.contents)
       # is it just one thing?
       if len(self.contents) == 1:
-        desc += "There is %s here." % contents_description
+        desc += style_text("There is %s here." % contents_description, CONTENTS)
       else:
-        desc += "There are a few things here: %s." % contents_description
-
+        desc += style_text("There are a few things here: %s." % contents_description, CONTENTS)
+    
     if self.actors:
       desc += "\n"
       for a in self.actors:
         if a != observer:
-          desc += add_article(a.describe(a)).capitalize() + " " + a.isare + " here.\n"
-
+          desc += style_text(add_article(a.describe(a)).capitalize() + " " + a.isare + " here.\n", CONTENTS)
+    
     return desc
 
   def add_exit( self, con, way ):
@@ -340,10 +366,10 @@ class Location(object):
       if len(c.point_b.requirements) > 0:
         # check to see if the requirements are in the inventory
         if set(c.point_b.requirements).issubset(set(self.world.hero.inventory)):
-          print "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name)
+          output( "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
           return c.point_b
         
-        print "It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements)
+        output( "It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements), FEEDBACK)
         return None
       else:
         return c.point_b
@@ -414,9 +440,6 @@ class Actor(object):
     self.verbs['look'] = self.act_look
     self.verbs['l'] = self.act_look
 
-  def set_world(self, world):
-    self.world = world
-
   # describe ourselves
   def describe( self, observer ):
     return self.name
@@ -438,10 +461,10 @@ class Actor(object):
     t = self.location.contents.pop(noun, None)
     if t:
       self.inventory[noun] = t
-      print "You take the %s" % t.name
+      output("You take the %s \n" % t.name)
       return True
     else:
-      print "%s can't take the %s." % (self.cap_name, noun)
+      output("%s can't take the %s." % (self.cap_name, noun))
       return False
 
   # move a thing from our inventory to the current location
@@ -456,7 +479,7 @@ class Actor(object):
       self.location.contents[noun] = t
       return True
     else:
-      print "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun))
+      output( "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun)), FEEDBACK)
       return False
 
   def act_look( self, actor, words=None ):
@@ -471,7 +494,7 @@ class Actor(object):
     else:
       msg += 'nothing'
     msg += '.'
-    print msg
+    output( msg, FEEDBACK)
     return True
 
   # check/clear moved status
@@ -484,7 +507,7 @@ class Actor(object):
   def go( self, d ):
     loc = self.location.go( d )
     if loc == None:
-      print "Bonk! %s can't seem to go that way." % self.name
+      output( "Bonk! %s can't seem to go that way.\n" % self.name, FEEDBACK)
       return False
     else:
       # update where we are
@@ -536,7 +559,7 @@ class Actor(object):
   # do something and report if the command is not found.
   def do_act( self, verb, noun ):
     if self.act( verb, noun ) == None:
-      print "Huh?"
+      output( "Huh?", FEEDBACK)
 
   def add_verb( self, verb, f ):
     self.verbs[' '.join(verb.split())] = f
@@ -751,15 +774,18 @@ class Animal(Actor):
     if random.random() > 0.2:  # only move 1 in 5 times
       return
     exit = random.choice(self.location.exits.items())
+    desc = ""
     if self.location == observer_loc:
-      print "%s leaves the %s via the %s" % (add_article(self.name).capitalize(),
+      desc += "%s leaves the %s via the %s \n" % (add_article(self.name).capitalize(),
                                             observer_loc.name,
                                             exit[1].name)
+      output( desc, FEEDBACK)
     self.go(exit[0])
     if self.location == observer_loc:
-      print "%s enters the %s via the %s" % (add_article(self.name).capitalize(),
+      desc += "%s enters the %s via the %s \n" % (add_article(self.name).capitalize(),
                                             observer_loc.name,
                                             exit[1].name)
+      output( desc, FEEDBACK)
 
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
 class Pet(Robot, Animal):
@@ -772,12 +798,12 @@ class Pet(Robot, Animal):
       
   def act_follow(self, actor, words=None):
     self.leader = self.world.hero
-    print "%s obediently begins following %s" % (self.name, self.leader.name) 
+    output( "%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
     return True
 
   def act_stay(self, actor, words=None):
     if self.leader:
-      print "%s obediently stops following %s" % (self.name, self.leader.name) 
+      output( "%s obediently stops following %s" % (self.name, self.leader.name) , FEEDBACK)
     self.leader = None
     return True
 
@@ -800,6 +826,7 @@ class World(object):
     self.locations = {}
     self.robots = {}
     self.animals = {}
+    self.game = None
 
     
   # make a (one-way) connection between point A and point B
@@ -1021,3 +1048,78 @@ class Share(object):
 
   def zdelete(self, domain, key, value):
     return self._do(domain, "ZREM", key, value)
+
+
+
+FEEDBACK = 0
+TITLE = 1
+DESCRIPTION = 2
+CONTENTS = 3
+
+
+# this handles printing things to output, it also styles them
+def output(text, message_type = 0):
+    print style_text(text, message_type)
+    
+# this makes the text look nice in the nerinal... WITH COLORS!
+def style_text(text, message_type):
+  if (message_type == FEEDBACK):
+    text = Colors.FG.pink + text + Colors.reset
+  
+  if (message_type == TITLE):
+    text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + "\n" +  Colors.reset
+
+  if (message_type == DESCRIPTION):
+    text = Colors.reset + text
+
+  if (message_type == CONTENTS):
+    text = Colors.FG.green + text + Colors.reset
+  
+  return text
+    
+    
+class Colors:
+  '''
+  Colors class:
+  reset all colors with colors.reset
+  two subclasses fg for foreground and bg for background.
+  use as colors.subclass.colorname.
+  i.e. colors.fg.red or colors.bg.green
+  also, the generic bold, disable, underline, reverse, strikethrough,
+  and invisible work with the main class
+  i.e. colors.bold
+  '''
+  reset='\033[0m'
+  bold='\033[01m'
+  disable='\033[02m'
+  underline='\033[04m'
+  reverse='\033[07m'
+  strikethrough='\033[09m'
+  invisible='\033[08m'
+  class FG:
+    black='\033[30m'
+    red='\033[31m'
+    green='\033[32m'
+    orange='\033[33m'
+    blue='\033[34m'
+    purple='\033[35m'
+    cyan='\033[36m'
+    lightgrey='\033[37m'
+    darkgrey='\033[90m'
+    lightred='\033[91m'
+    lightgreen='\033[92m'
+    yellow='\033[93m'
+    lightblue='\033[94m'
+    pink='\033[95m'
+    lightcyan='\033[96m'
+  class BG:
+    black='\033[40m'
+    red='\033[41m'
+    green='\033[42m'
+    orange='\033[43m'
+    blue='\033[44m'
+    purple='\033[45m'
+    cyan='\033[46m'
+    lightgrey='\033[47m'
+    
+    
