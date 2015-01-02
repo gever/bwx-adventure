@@ -909,8 +909,8 @@ class Share(object):
   def _do(self, domain, cmd, key):
     assert(domain in self.key_fns)
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s.raw' % (self.hostname, self.port, cmd, k))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s.raw' % (self.hostname, self.port, cmd, k))
+    v = net_f.read().split('\n')
     if len(v) > 1:
        return v[1].strip()
     return None
@@ -918,8 +918,8 @@ class Share(object):
   def _do1(self, domain, cmd, key, arg1):
     assert(domain in self.key_fns)
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1))
+    v = net_f.read().split('\n')
     if len(v) > 1:
        return v[1]  # should be ""
     return None
@@ -927,8 +927,8 @@ class Share(object):
   def _do2(self, domain, cmd, key, arg1, arg2):
     assert(domain in self.key_fns)
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
+    v = net_f.read().split('\n')
     if len(v) > 1:
        return v[1]  # should be ""
     return None
@@ -937,16 +937,16 @@ class Share(object):
   def _do2l(self, domain, cmd, key, arg1, arg2):
     assert(domain in self.key_fns)
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
+    v = net_f.read().split('\n')
     return v
 
   # return a list
   def _do3l(self, domain, cmd, key, arg1, arg2, arg3):
     assert(domain in self.key_fns)
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2, arg3))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2, arg3))
+    v = net_f.read().split('\n')
     return v
 
   def delete(self, domain, key):
