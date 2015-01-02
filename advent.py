@@ -115,13 +115,18 @@ def proper_list_from_dict( d ):
   return "".join(buf)
 
 class Game(object):
+  
   def __init__(self, name="bwx-adventure-game"):
     self.name = name
     self.objects = {}
+    self.world = None
 
   def set_name(self, name):
     self.name = name
 
+  def add_world(self, world):
+    self.world = world
+      
   def add_object(self, obj, scope):
     self.objects[scope + '.' + obj.name] = obj
     
@@ -148,8 +153,8 @@ class Game(object):
     return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
   
   
-  def run(self, hero ):
-    actor = hero
+  def run(self , update_func):
+    actor = self.world.hero
     while True:
       # if the actor moved, describe the room
       if actor.check_if_moved():
@@ -183,12 +188,12 @@ class Game(object):
       if ':' in clean_user_input:
          robot_name, command = clean_user_input.split(':')
          try:
-            actor = hero.world.robots[robot_name]
+            actor = self.world.robots[robot_name]
          except KeyError:
             print "I don't know anybot named %s" % robot_name
             continue
       else:
-         actor = hero
+         actor = self.world.hero
          command = clean_user_input
   
       # give the input to the actor in case it's recording a script
@@ -249,15 +254,12 @@ class Game(object):
       # e.g. north
       actor.do_act( "go", verb )
 
-# global singleton used as a top level container for collecting game info and state
-my_game = Game("bwx-default")
-
 # GameObject is a place to put default inplementations of methods that everything
 # in the world should support (eg save/restore, how to respond to verbs etc)
 class GameObject(object):
   def __init__(self, name):
-    my_game.add_object(self, "GameObject")
-    
+    self.game = None
+    #self.game.add_object(self, "GameObject") #should this be handed in the Game.add_object method?
 
 class Thing(object):
   # name: short name of this thing
@@ -389,8 +391,8 @@ class Actor(object):
   # moved
   # verbs
 
-  def __init__( self, w, n, hero = False ):
-    self.world = w
+  def __init__( self, n, hero = False ):
+    self.world = None
     self.location = None
     self.inventory = {}
     self.verbs = {}
@@ -399,8 +401,8 @@ class Actor(object):
     self.hero = hero
     if hero:
       self.isare = "are"
-      assert self.world.hero == None
-      self.world.hero = self
+      #assert self.world.hero == None
+      #self.world.hero = self
     else:
       self.isare = "is"
     # associate each of the known actions with functions
@@ -409,6 +411,9 @@ class Actor(object):
     self.verbs['drop'] = self.act_drop
     self.verbs['inventory'] = self.act_inventory
     self.verbs['look'] = self.act_look
+    
+  def set_world(self, world):
+    self.world = world
 
   # describe ourselves
   def describe( self, observer ):
@@ -548,8 +553,8 @@ class Actor(object):
 
 class Hero(Actor):
 
-  def __init__( self, world ):
-    super(Hero, self).__init__(world, "you", True)
+  def __init__( self ):
+    super(Hero, self).__init__("you", True)
 
   def add_verb( self, name, f ):
       self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
@@ -557,228 +562,226 @@ class Hero(Actor):
 
 # Scripts are sequences of instructions for Robots to execute
 class Script(object):
-    def __init__( self, name ):
-        self.name = name
-        self.lines = list()
-        self.current_line = -1
-        self.recording = False
-        self.running = False
+  def __init__( self, name ):
+    self.name = name
+    self.lines = list()
+    self.current_line = -1
+    self.recording = False
+    self.running = False
 
-    def start_recording( self ):
-        assert not self.running
-        assert not self.recording
-        self.recording = True
+  def start_recording( self ):
+    assert not self.running
+    assert not self.recording
+    self.recording = True
 
-    def stop_recording( self ):
-        assert self.recording
-        assert not self.running
-        self.recording = False
+  def stop_recording( self ):
+    assert self.recording
+    assert not self.running
+    self.recording = False
 
-    def start_running( self ):
-        assert not self.running
-        assert not self.recording
-        self.running = True
-        self.current_line = 0;
+  def start_running( self ):
+    assert not self.running
+    assert not self.recording
+    self.running = True
+    self.current_line = 0;
 
-    def stop_running( self ):
-        assert self.running
-        assert not self.recording
-        self.running = False
-        self.current_line = -1;
+  def stop_running( self ):
+    assert self.running
+    assert not self.recording
+    self.running = False
+    self.current_line = -1;
 
-    def get_next_line( self ):
-        line = self.lines[self.current_line]
-        self.current_line += 1
-        if line.strip() == "end":
-            self.stop_running()
-            return None
-        return line
+  def get_next_line( self ):
+    line = self.lines[self.current_line]
+    self.current_line += 1
+    if line.strip() == "end":
+      self.stop_running()
+      return None
+    return line
 
-    def set_next_line( self, line ):
-        self.lines.append(line)
-        if line.strip() == "end":
-            self.stop_recording()
-            return False
-        return True
+  def set_next_line( self, line ):
+    self.lines.append(line)
+    if line.strip() == "end":
+      self.stop_recording()
+      return False
+    return True
 
-    def print_lines( self ):
-        for line in self.lines:
-            print line
+  def print_lines( self ):
+    for line in self.lines:
+      print line
 
-    def save_file(self):
-        f = open(self.name + ".script", "w")
-        for line in self.lines:
-            f.write(line + '\n')
-        f.close()
+  def save_file(self):
+    f = open(self.name + ".script", "w")
+    for line in self.lines:
+      f.write(line + '\n')
+    f.close()
 
-    def load_file(self):
-        f = open(self.name + ".script", "r")
-        for line in f:
-            self.lines.append(line.strip())
-        f.close()
+  def load_file(self):
+    f = open(self.name + ".script", "r")
+    for line in f:
+      self.lines.append(line.strip())
+    f.close()
 
-    
+  
 # Robots are actors which accept commands to perform actions.
 # They can also record and run scripts.
 class Robot(Actor):
-    def __init__( self, world, name ):
-        super(Robot, self ).__init__( world, name )
-        world.robots[name] = self
-        self.name = name
-        self.scripts = {}
-        self.current_script = None
-        self.script_think_time = 0
-        self.verbs['record'] = self.act_start_recording
-        self.verbs['run'] = self.act_run_script
-        self.verbs['print'] = self.act_print_script
-        self.verbs['save'] = self.act_save_file
-        self.verbs['load'] = self.act_load_file
-        self.verbs['think'] = self.set_think_time
+  def __init__( self, name ):
+    super(Robot, self ).__init__( name )
+    self.name = name
+    self.scripts = {}
+    self.current_script = None
+    self.script_think_time = 0
+    self.verbs['record'] = self.act_start_recording
+    self.verbs['run'] = self.act_run_script
+    self.verbs['print'] = self.act_print_script
+    self.verbs['save'] = self.act_save_file
+    self.verbs['load'] = self.act_load_file
+    self.verbs['think'] = self.set_think_time
+  
+  def parse_script_name(self, words):
+    if not words or len(words) < 2:
+      script_name = "default"
+    else:
+      script_name = words[1]
+    return script_name
+    
+  def act_start_recording(self, actor, words=None):
+    script_name = self.parse_script_name(words)
+    script = Script(script_name)
+    self.scripts[script_name] = script
+    script.start_recording()
+    self.current_script = script
+    return True
+    
+  def act_run_script(self, actor, words=None):
+    if self.current_script:
+      print "You must stop \"%s\" first." % (self.current_script.name)
+    script_name = self.parse_script_name(words)
+    if not script_name in self.scripts:
+      print "%s can't find script \"%s\" in its memory." % (self.name,
+                                  script_name)
 
-    def parse_script_name(self, words):
-        if not words or len(words) < 2:
-            script_name = "default"
-        else:
-            script_name = words[1]
-        return script_name
-        
-    def act_start_recording(self, actor, words=None):
-        script_name = self.parse_script_name(words)
-        script = Script(script_name)
-        self.scripts[script_name] = script
-        script.start_recording()
-        self.current_script = script
+      return True;
+    
+    script = self.scripts[script_name]
+    self.current_script = script
+    script.start_running()
+    return True
+    
+  def act_print_script(self, actor, words=None):
+    script_name = self.parse_script_name(words)
+    if not script_name in self.scripts:
+      print "%s can't find script \"%s\" in its memory." % (self.name,
+                                  script_name)
+      return True
+
+    print "----------------------8<-------------------------"
+    self.scripts[script_name].print_lines()
+    print "---------------------->8-------------------------"
+    return True
+
+  def act_save_file(self, actor, words=None):
+    script_name = self.parse_script_name(words)
+    if not script_name in self.scripts:
+      print "%s can't find script \"%s\" in its memory." % (self.name,
+                                  script_name)
+      return True
+    self.scripts[script_name].save_file()
+    return True
+
+  def act_load_file(self, actor, words=None):
+    script_name = self.parse_script_name(words)
+    self.scripts[script_name] = Script(script_name)
+    self.scripts[script_name].load_file()
+    return True
+
+  def set_think_time(self, actor, words):
+    if words and len(words) == 2:
+      t = float(words[1])
+      if t >= 0 and t <= 60:
+        self.script_think_time = t
         return True
-        
-    def act_run_script(self, actor, words=None):
-        if self.current_script:
-            print "You must stop \"%s\" first." % (self.current_script.name)
-        script_name = self.parse_script_name(words)
-        if not script_name in self.scripts:
-            print "%s can't find script \"%s\" in its memory." % (self.name,
-                                                                  script_name)
+      
+    print "\"think\" requires a number of seconds (0-60) as an argument"
+    return True  
+    
+  def get_next_script_line(self):
+    if not self.current_script or not self.current_script.running:
+      return None
+    line = self.current_script.get_next_line()
+    if not line:
+      print "%s is done running script \"%s\"." % (self.name,
+                             self.current_script.name)
+      self.current_script = None
+      return None
+    if self.script_think_time > 0:
+      time.sleep(self.script_think_time)
+    line = self.name + ": " + line
+    print "> %s" % line
+    return line
 
-            return True;
-        
-        script = self.scripts[script_name]
-        self.current_script = script
-        script.start_running()
-        return True
-        
-    def act_print_script(self, actor, words=None):
-        script_name = self.parse_script_name(words)
-        if not script_name in self.scripts:
-            print "%s can't find script \"%s\" in its memory." % (self.name,
-                                                                  script_name)
-            return True
+  def set_next_script_line(self, line):
+    if not self.current_script or not self.current_script.recording:
+      return True
+    if not self.current_script.set_next_line(line):
+      print "%s finished recording script \"%s\"." % (self.name,
+                              self.current_script.name)
+      self.current_script = None
+      return False
+    return True
 
-        print "----------------------8<-------------------------"
-        self.scripts[script_name].print_lines()
-        print "---------------------->8-------------------------"
-        return True
-
-    def act_save_file(self, actor, words=None):
-        script_name = self.parse_script_name(words)
-        if not script_name in self.scripts:
-            print "%s can't find script \"%s\" in its memory." % (self.name,
-                                                                  script_name)
-            return True
-        self.scripts[script_name].save_file()
-        return True
-
-    def act_load_file(self, actor, words=None):
-        script_name = self.parse_script_name(words)
-        self.scripts[script_name] = Script(script_name)
-        self.scripts[script_name].load_file()
-        return True
-
-    def set_think_time(self, actor, words):
-        if words and len(words) == 2:
-            t = float(words[1])
-            if t >= 0 and t <= 60:
-                self.script_think_time = t
-                return True
-            
-        print "\"think\" requires a number of seconds (0-60) as an argument"
-        return True    
-        
-    def get_next_script_line(self):
-        if not self.current_script or not self.current_script.running:
-            return None
-        line = self.current_script.get_next_line()
-        if not line:
-            print "%s is done running script \"%s\"." % (self.name,
-                                                         self.current_script.name)
-            self.current_script = None
-            return None
-        if self.script_think_time > 0:
-            time.sleep(self.script_think_time)
-        line = self.name + ": " + line
-        print "> %s" % line
-        return line
-
-    def set_next_script_line(self, line):
-        if not self.current_script or not self.current_script.recording:
-            return True
-        if not self.current_script.set_next_line(line):
-            print "%s finished recording script \"%s\"." % (self.name,
-                                                            self.current_script.name)
-            self.current_script = None
-            return False
-        return True
-
-        
+    
 
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
-    def __init__( self, world, name ):
-       super(Animal, self ).__init__( world, name )
-       world.animals[name] = self
-       self.name = name
-       
-    def act_autonomously(self, observer_loc):
-       self.random_move(observer_loc)
+  def __init__( self, name ):
+    super(Animal, self ).__init__( name )
+    self.name = name
+  
+  def act_autonomously(self, observer_loc):
+    self.random_move(observer_loc)
 
-    def random_move(self, observer_loc):
-       if random.random() > 0.2:  # only move 1 in 5 times
-          return
-       exit = random.choice(self.location.exits.items())
-       if self.location == observer_loc:
-         print "%s leaves the %s via the %s" % (add_article(self.name).capitalize(),
-                                                observer_loc.name,
-                                                exit[1].name)
-       self.go(exit[0])
-       if self.location == observer_loc:
-         print "%s enters the %s via the %s" % (add_article(self.name).capitalize(),
-                                                observer_loc.name,
-                                                exit[1].name)
+  def random_move(self, observer_loc):
+    if random.random() > 0.2:  # only move 1 in 5 times
+      return
+    exit = random.choice(self.location.exits.items())
+    if self.location == observer_loc:
+      print "%s leaves the %s via the %s" % (add_article(self.name).capitalize(),
+                        observer_loc.name,
+                        exit[1].name)
+    self.go(exit[0])
+    if self.location == observer_loc:
+      print "%s enters the %s via the %s" % (add_article(self.name).capitalize(),
+                        observer_loc.name,
+                        exit[1].name)
 
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
 class Pet(Robot, Animal):
-    def __init__( self, world, name ):
-        super(Pet, self ).__init__( world, name )
-        self.leader = None
-        self.verbs['heel'] = self.act_follow
-        self.verbs['follow'] = self.act_follow
-        self.verbs['stay'] = self.act_stay
-        
-    def act_follow(self, actor, words=None):
-        self.leader = self.world.hero
-        print "%s obediently begins following %s" % (self.name, self.leader.name) 
-        return True
-
-    def act_stay(self, actor, words=None):
-        if self.leader:
-           print "%s obediently stops following %s" % (self.name, self.leader.name) 
-        self.leader = None
-        return True
-
-    def act_autonomously(self, observer_loc):
-       if self.leader:
-          self.set_location(self.leader.location)
-       else:
-          self.random_move(observer_loc)
+  def __init__( self, name ):
+    super(Pet, self ).__init__( name )
+    self.leader = None
+    self.verbs['heel'] = self.act_follow
+    self.verbs['follow'] = self.act_follow
+    self.verbs['stay'] = self.act_stay
     
+  def act_follow(self, actor, words=None):
+    self.leader = self.world.hero
+    print "%s obediently begins following %s" % (self.name, self.leader.name) 
+    return True
+
+  def act_stay(self, actor, words=None):
+    if self.leader:
+      print "%s obediently stops following %s" % (self.name, self.leader.name) 
+    self.leader = None
+    return True
+
+  def act_autonomously(self, observer_loc):
+    if self.leader:
+      self.set_location(self.leader.location)
+    else:
+      self.random_move(observer_loc)
+  
 
 # a World is how all the locations, things, and connections are organized
 class World(object):
@@ -839,6 +842,20 @@ class World(object):
     location.world = self
     self.locations[location.name] = location
     return location
+    
+  # add an actor to the world
+  def add_actor(self, actor):
+    if isinstance(actor, Hero):
+      self.hero = actor
+      
+    if isinstance(actor, Animal):
+      self.animals[actor.name] = actor
+      
+    if isinstance(actor, Robot):
+      self.robots[actor.name] = actor
+      
+    actor.world = self
+    return actor
 
 
 class Share(object):
@@ -909,7 +926,7 @@ class Share(object):
     return None
 
   def put_player_data(self, key, value):
-    return self.put(self.player_key(ke), value)
+    return self.put(self.player_key(key), value)
 
   def put_game_data(self, key, value):
     return self.put(self.game_key(key), value)

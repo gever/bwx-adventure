@@ -6,7 +6,8 @@ from advent import Game, World, Location, Connection, Thing, Animal, Robot, Pet,
 from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 
 # setup the game you are going to build on...
-my_game.set_name("Brightworks Adventure")
+# global singleton used as a top level container for collecting game info and state
+my_game = Game("Brightworks Adventure")
 
 # create your world, then we can stick stuff in it
 my_world = World()
@@ -103,24 +104,29 @@ def scream( location, words ):
 sidewalk.add_verb( 'scream', scream )
 
 # Add an animal to roam around.  Animals act autonomously
-cat = Animal(my_world, "cat")
+cat = Animal("cat")
 cat.set_location(sidewalk)
 cat.add_verb("pet", my_game.say("The cat purrs.") )
 cat.add_verb("eat", my_game.say_on_noun("cat", "Don't do that, PETA will get you!"));
 cat.add_verb("kill", my_game.say_on_noun("cat", "The cat escapes and bites you. Ouch!"));
 
 # Add a robot.  Robots can take commands to perform actions.
-robby = Robot( my_world, "Robby" )
+robby = Robot( "Robby" )
 robby.set_location( sidewalk )
 
 # Add a Pet.  Pets are like Animals because they can act autonomously,
 # but they also are like Robots in that they can take commands to
 # perform actions.
-fido = Pet ( my_world, "Fido")
+fido = Pet ( "Fido")
 fido.set_location( sidewalk )
 
 # make the player
-hero = Hero(my_world)
+hero = Hero()
+
+my_world.add_actor(hero)
+my_world.add_actor(cat)
+my_world.add_actor(robby)
+my_world.add_actor(fido)
 
 # add a hero verb
 def throw( self, actor, words ):
@@ -162,5 +168,9 @@ hero.add_verb( "peek", peek )
 # start on the sidewalk
 hero.set_location( sidewalk )
 
+def update():
+  print "hello"
+
 # start playing
-my_game.run(hero)
+my_game.add_world(my_world)
+my_game.run(update)
