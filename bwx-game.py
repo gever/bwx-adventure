@@ -252,7 +252,11 @@ hero.add_verb( "scores", scores )
 hero.set_location( sidewalk )
 
 def update():
-  print "hello"
+    
+  if (my_game.entering_location(reception)):
+    if (my_game.inventory_contains([pebble])):
+      my_game.output( "The pebble you picked up is suddenly feeling warm to the touch!")
+    
 
 # start playing
 my_game.add_world(my_world)
