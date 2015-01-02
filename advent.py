@@ -933,8 +933,12 @@ class Share(object):
   def set_session(self, session):
     self.session = session
 
+  def is_available(self):
+    return self.hostname != None
+
   def start(self):
-    assert(self.hostname)
+    if not self.is_available():
+      return
     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
     webdis_url = "http://%s:%s/" % (self.hostname, self.port)
     password_mgr.add_password(None, webdis_url, self.username, self.password)
@@ -954,6 +958,8 @@ class Share(object):
 
   def _do(self, domain, cmd, key):
     assert(domain in self.key_fns)
+    if not self.is_available():
+      return None
     k = self.key_fns[domain](key)
     f = self.opener.open('http://%s:%s/%s/%s.raw' % (self.hostname, self.port, cmd, k))
     v = f.read().split('\n')
@@ -963,6 +969,8 @@ class Share(object):
 
   def _do1(self, domain, cmd, key, arg1):
     assert(domain in self.key_fns)
+    if not self.is_available():
+      return None
     k = self.key_fns[domain](key)
     f = self.opener.open('http://%s:%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1))
     v = f.read().split('\n')
@@ -972,6 +980,8 @@ class Share(object):
 
   def _do2(self, domain, cmd, key, arg1, arg2):
     assert(domain in self.key_fns)
+    if not self.is_available():
+      return None
     k = self.key_fns[domain](key)
     f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
     v = f.read().split('\n')
@@ -982,6 +992,8 @@ class Share(object):
   # return a list
   def _do2l(self, domain, cmd, key, arg1, arg2):
     assert(domain in self.key_fns)
+    if not self.is_available():
+      return []
     k = self.key_fns[domain](key)
     f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
     v = f.read().split('\n')
@@ -990,6 +1002,8 @@ class Share(object):
   # return a list
   def _do3l(self, domain, cmd, key, arg1, arg2, arg3):
     assert(domain in self.key_fns)
+    if not self.is_available():
+      return []
     k = self.key_fns[domain](key)
     f = self.opener.open('http://%s:%s/%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2, arg3))
     v = f.read().split('\n')
