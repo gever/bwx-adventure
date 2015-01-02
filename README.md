@@ -13,33 +13,66 @@ This was initially written in support of the Orange Band at <a href="http://sfbr
 ```python
 from advent import *
 
-# make your world
-world = World()
+# setup the game you are going to build on...
+my_game = Game()
 
-# add locations (basically a name and a narrative description)
-loc_sidewalk = world.add_location(
+# create your world, then we can stick stuff in it
+my_world = World()
+
+# create some locations
+sidewalk = Location(
 "Sidewalk", """
-You are standing in front of a large glass door.
+There is a large glass door to the east.
 The sign says 'Come In!'
 """ )
-loc_vestibule = world.add_location(
+
+vestibule = Location(
 "Vestibule", """
 A small area at the bottom of a flight of stairs.
-There is an elevator here (currently locked).
-Up the stairs you see the reception desk.
+Up the stars you see the reception desk.
 """ )
 
-# make connections between the various locations
-world.biconnect( loc_sidewalk, loc_vestibule, "Big Door", IN, OUT )
+# let's add the locations to your world
+my_world.add_location(sidewalk)
+my_world.add_location(vestibule)
 
-# put some things in the locations
-loc_sidewalk.put( Thing( "pebble", "round pebble" ) )
-loc_vestibule.put( Thing( "key", "small brass key") )
+# make connections between those locations
+big_door = Connection("Big Door", sidewalk, vestibule, [IN, EAST], [WEST, OUT])
+
+# now add the connections to the world too
+my_world.add_connection(big_door)
+
+# create some things to put in your world. You need a name and 
+elev_key = Thing( "key", "small tarnished brass key" )
+pebble = sidewalk.put( Thing( "pebble", "round pebble" ) )
+sidewalk.put( elev_key )
+sidewalk.put( pebble )
+
+# simple verb applicable at this location
+sidewalk.add_verb( 'knock', my_game.say('The door makes a hollow sound.') )
+
+# Add an animal to roam around.  Animals act autonomously
+cat = Animal(my_world, "cat")
+cat.set_location(sidewalk)
+cat.add_verb("pet", my_game.say("The cat purrs.") )
 
 # make the player
-hero = Hero( world )
+hero = Hero(my_world)
 
-# start somewhere (hey, there's a pebble here!)
-hero.set_location( loc_sidewalk )
+# add a new hero verb (allows player to say "throw pebble")
+def throw( self, actor, words ):
+  if len(words) > 1 and self.act('drop', words[1] ):
+     print 'The %s bounces and falls to the floor' % words[1]
+     return True
+  else:
+     print 'You hurt your arm.'
+     return False
 
+hero.add_verb( "throw", throw )
+
+# start on the sidewalk
+hero.set_location( sidewalk )
+
+# start playing (hey, there's a key here!)
+my_game.run(hero)
 ```
