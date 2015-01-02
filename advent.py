@@ -60,9 +60,7 @@ define_direction( UP, "u" )
 define_direction( DOWN, "down" )
 define_direction( DOWN, "d" )
 define_direction( RIGHT, "right" )
-define_direction( RIGHT, "r" )
 define_direction( LEFT, "left" )
-define_direction( LEFT, "l" )
 define_direction( IN, "in" )
 define_direction( OUT, "out" )
 define_direction( FORWARD, "forward" )
@@ -136,7 +134,7 @@ class Game(object):
   
   
   def say(self, s):
-    return (lambda s: lambda *args: do_say(s))(s)
+    return (lambda s: lambda *args: self.do_say(s))(s)
   
   
   def do_say_on_noun(self, n, s, words):
@@ -150,7 +148,7 @@ class Game(object):
   
   
   def say_on_noun(self, n, s):
-    return (lambda n, s: lambda self, words: do_say_on_noun(n, s, words))(n, s)
+    return (lambda n, s: lambda self, words: self.do_say_on_noun(n, s, words))(n, s)
   
   
   def run(self , update_func):
@@ -410,8 +408,10 @@ class Actor(object):
     self.verbs['get'] = self.act_take
     self.verbs['drop'] = self.act_drop
     self.verbs['inventory'] = self.act_inventory
+    self.verbs['i'] = self.act_inventory
     self.verbs['look'] = self.act_look
-    
+    self.verbs['l'] = self.act_look
+
   def set_world(self, world):
     self.world = world
 
@@ -430,7 +430,7 @@ class Actor(object):
 
   # move a thing from the current location to our inventory
   def act_take( self, actor, words=None ):
-    if not words:
+    if len(words) < 2:
        return False
     noun = words[1]
     t = self.location.contents.pop(noun, None)
@@ -496,9 +496,12 @@ class Actor(object):
   # return True on success, False on failure and None if the command isn't found.
   def perform_action( self, verb, noun=None ):
     verbs = []
-    for v in self.verbs:
-      if v.startswith(verb):
-        verbs.append(v)
+    if verb in self.verbs:
+      verbs = [verb]
+    else:
+      for v in self.verbs:
+        if v.startswith(verb):
+          verbs.append(v)
     words = [verb]
     if noun:
       words.append(noun)
@@ -545,10 +548,10 @@ class Actor(object):
 
   # support for scriptable actors, override these to implement
   def get_next_script_line( self ):
-      return None
+    return None
 
   def set_next_script_line( self, line ):
-      return True
+    return True
 
 
 class Hero(Actor):
@@ -557,7 +560,7 @@ class Hero(Actor):
     super(Hero, self).__init__("you", True)
 
   def add_verb( self, name, f ):
-      self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
+    self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
 
 
 # Scripts are sequences of instructions for Robots to execute
@@ -608,7 +611,7 @@ class Script(object):
 
   def print_lines( self ):
     for line in self.lines:
-      print line
+      print line  
 
   def save_file(self):
     f = open(self.name + ".script", "w")
@@ -622,7 +625,7 @@ class Script(object):
       self.lines.append(line.strip())
     f.close()
 
-  
+    
 # Robots are actors which accept commands to perform actions.
 # They can also record and run scripts.
 class Robot(Actor):
@@ -638,14 +641,14 @@ class Robot(Actor):
     self.verbs['save'] = self.act_save_file
     self.verbs['load'] = self.act_load_file
     self.verbs['think'] = self.set_think_time
-  
+
   def parse_script_name(self, words):
     if not words or len(words) < 2:
-      script_name = "default"
+        script_name = "default"
     else:
-      script_name = words[1]
+        script_name = words[1]
     return script_name
-    
+      
   def act_start_recording(self, actor, words=None):
     script_name = self.parse_script_name(words)
     script = Script(script_name)
@@ -653,14 +656,14 @@ class Robot(Actor):
     script.start_recording()
     self.current_script = script
     return True
-    
+      
   def act_run_script(self, actor, words=None):
     if self.current_script:
       print "You must stop \"%s\" first." % (self.current_script.name)
     script_name = self.parse_script_name(words)
     if not script_name in self.scripts:
       print "%s can't find script \"%s\" in its memory." % (self.name,
-                                  script_name)
+                                                              script_name)
 
       return True;
     
@@ -668,12 +671,12 @@ class Robot(Actor):
     self.current_script = script
     script.start_running()
     return True
-    
+      
   def act_print_script(self, actor, words=None):
     script_name = self.parse_script_name(words)
     if not script_name in self.scripts:
       print "%s can't find script \"%s\" in its memory." % (self.name,
-                                  script_name)
+                                                              script_name)
       return True
 
     print "----------------------8<-------------------------"
@@ -685,7 +688,7 @@ class Robot(Actor):
     script_name = self.parse_script_name(words)
     if not script_name in self.scripts:
       print "%s can't find script \"%s\" in its memory." % (self.name,
-                                  script_name)
+                                                              script_name)
       return True
     self.scripts[script_name].save_file()
     return True
@@ -700,19 +703,19 @@ class Robot(Actor):
     if words and len(words) == 2:
       t = float(words[1])
       if t >= 0 and t <= 60:
-        self.script_think_time = t
-        return True
+          self.script_think_time = t
+          return True
       
     print "\"think\" requires a number of seconds (0-60) as an argument"
-    return True  
-    
+    return True    
+      
   def get_next_script_line(self):
     if not self.current_script or not self.current_script.running:
       return None
     line = self.current_script.get_next_line()
     if not line:
       print "%s is done running script \"%s\"." % (self.name,
-                             self.current_script.name)
+                                                   self.current_script.name)
       self.current_script = None
       return None
     if self.script_think_time > 0:
@@ -726,19 +729,19 @@ class Robot(Actor):
       return True
     if not self.current_script.set_next_line(line):
       print "%s finished recording script \"%s\"." % (self.name,
-                              self.current_script.name)
+                                                      self.current_script.name)
       self.current_script = None
       return False
     return True
 
-    
+        
 
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
   def __init__( self, name ):
     super(Animal, self ).__init__( name )
     self.name = name
-  
+       
   def act_autonomously(self, observer_loc):
     self.random_move(observer_loc)
 
@@ -748,13 +751,13 @@ class Animal(Actor):
     exit = random.choice(self.location.exits.items())
     if self.location == observer_loc:
       print "%s leaves the %s via the %s" % (add_article(self.name).capitalize(),
-                        observer_loc.name,
-                        exit[1].name)
+                                            observer_loc.name,
+                                            exit[1].name)
     self.go(exit[0])
     if self.location == observer_loc:
       print "%s enters the %s via the %s" % (add_article(self.name).capitalize(),
-                        observer_loc.name,
-                        exit[1].name)
+                                            observer_loc.name,
+                                            exit[1].name)
 
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
 class Pet(Robot, Animal):
@@ -764,7 +767,7 @@ class Pet(Robot, Animal):
     self.verbs['heel'] = self.act_follow
     self.verbs['follow'] = self.act_follow
     self.verbs['stay'] = self.act_stay
-    
+      
   def act_follow(self, actor, words=None):
     self.leader = self.world.hero
     print "%s obediently begins following %s" % (self.name, self.leader.name) 
@@ -781,7 +784,7 @@ class Pet(Robot, Animal):
       self.set_location(self.leader.location)
     else:
       self.random_move(observer_loc)
-  
+    
 
 # a World is how all the locations, things, and connections are organized
 class World(object):
@@ -864,8 +867,19 @@ class Share(object):
     self.port = None
     self.username = None
     self.password = None
+    self.GLOBAL = 1
+    self.ADVENTURE = 2
+    self.PLAYER = 3
+    self.SESSION = 4
     self.game = ""
     self.player = ""
+    self.session = ""
+    self.key_fns = {
+        self.GLOBAL: self.global_key,
+        self.ADVENTURE: self.adventure_key,
+        self.PLAYER: self.player_key,
+        self.SESSION: self.session_key,
+    }
     try:
       f = open("share.info", "r")
       self.hostname = f.readline().strip()
@@ -881,56 +895,127 @@ class Share(object):
     self.username = username
     self.password = password
 
-  def set_game(self, game):
-    self.game = game
+  def set_adventure(self, adventure):
+    self.adventure = adventure
 
   def set_player(self, player):
     self.player = player
 
+  def set_session(self, session):
+    self.session = session
+
   def start(self):
+    assert(self.hostname)
     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
     webdis_url = "http://%s:%s/" % (self.hostname, self.port)
     password_mgr.add_password(None, webdis_url, self.username, self.password)
     self.opener = urllib2.build_opener(urllib2.HTTPBasicAuthHandler(password_mgr))
 
   def global_key(self, key):
-    return 'global.' + key
+    return 'g.' + key
 
-  def game_key(self, key):
-    return self.game + '.' + key
+  def adventure_key(self, key):
+    return 'a.' + self.adventure + '.' + key
 
   def player_key(self, key):
-    return self.game + '.' + self.player + '.' + key
+    return 'p.' + self.adventure + '.' + self.player + '.' + key
 
-  def get(self, key):
-    f = self.opener.open('http://%s:%s/GET/%s.raw' % (self.hostname, self.port, key))
+  def session_key(self, key):
+    return 's.' + self.adventure + '.' + self.player + '.' + self.session + key
+
+  def _do(self, domain, cmd, key):
+    assert(domain in self.key_fns)
+    k = self.key_fns[domain](key)
+    f = self.opener.open('http://%s:%s/%s/%s.raw' % (self.hostname, self.port, cmd, k))
     v = f.read().split('\n')
     if len(v) > 1:
        return v[1].strip()
     return None
 
-  def get_player_data(self, key):
-    return self.get(self.player_key(key))
-
-  def get_game_data(self, key):
-    return self.get(self.game_key(key))
-
-  def get_global_data(self, key):
-    return self.get(self.global_key(key))
-
-  def put(self, key, value):
-    f = self.opener.open('http://%s:%s/SET/%s/%s' % (self.hostname, self.port, key, value))
+  def _do1(self, domain, cmd, key, arg1):
+    assert(domain in self.key_fns)
+    k = self.key_fns[domain](key)
+    f = self.opener.open('http://%s:%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1))
     v = f.read().split('\n')
     if len(v) > 1:
-       return v[1]
+       return v[1]  # should be ""
     return None
 
-  def put_player_data(self, key, value):
-    return self.put(self.player_key(key), value)
+  def _do2(self, domain, cmd, key, arg1, arg2):
+    assert(domain in self.key_fns)
+    k = self.key_fns[domain](key)
+    f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
+    v = f.read().split('\n')
+    if len(v) > 1:
+       return v[1]  # should be ""
+    return None
 
-  def put_game_data(self, key, value):
-    return self.put(self.game_key(key), value)
+  # return a list
+  def _do2l(self, domain, cmd, key, arg1, arg2):
+    assert(domain in self.key_fns)
+    k = self.key_fns[domain](key)
+    f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
+    v = f.read().split('\n')
+    return v
 
-  def put_global_data(self, key, value):
-    return self.put(self.global_key(key), value)
+  # return a list
+  def _do3l(self, domain, cmd, key, arg1, arg2, arg3):
+    assert(domain in self.key_fns)
+    k = self.key_fns[domain](key)
+    f = self.opener.open('http://%s:%s/%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2, arg3))
+    v = f.read().split('\n')
+    return v
 
+  def delete(self, domain, key):
+    return self._do(domain, "DEL", key)
+
+  def get(self, domain, key):
+    return self._do(domain, "GET", key)
+
+  def put(self, domain, key, value):
+    return self._do1(domain, "SET", key, value)
+
+  def increment(self, domain, key):
+    return self._do(domain, "INCR", key)
+
+  def decrement(self, domain, key):
+    return self._do(domain, "DECR", key)
+
+  def push(self, domain, key, value):
+    return self._do1(domain, "LPUSH", key, value)
+
+  def pop(self, domain, key):
+    return self._do(domain, "LPOP", key)
+
+  def zadd(self, domain, key, value, score):
+    return self._do2(domain, "ZADD", key, score, value)
+
+  def zscore(self, domain, key):
+    return self._do(domain, "ZSCORE", key, value)
+
+  def zdelete_over_rank(self, domain, key, rank):
+    return self._do2(domain, "ZREMRANGEBYRANK", key, rank, "-1")
+
+  def ztop(self, domain, key, rank):
+    v = self._do2l(domain, "ZREVRANGE", key, "0", rank)
+    v = [x.strip() for x in v[1:]]
+    result = []
+    for x in xrange(0, len(v)):
+      if x % 2 == 1:
+        result.append(v[x])
+    return result
+
+  def ztop_with_scores(self, domain, key, rank):
+    v = self._do3l(domain, "ZREVRANGE", key, "0", rank, "WITHSCORES")
+    v = [x.strip() for x in v[1:]]
+    result = []
+    for x in xrange(0, len(v)):
+      if x % 4 == 1:
+        p = [v[x]]
+      elif x % 4 == 3:
+        p.append(v[x])
+        result.append(p)
+    return result
+
+  def zdelete(self, domain, key, value):
+    return self._do(domain, "ZREM", key, value)
