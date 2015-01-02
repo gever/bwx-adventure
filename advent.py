@@ -39,13 +39,6 @@ def define_direction( number, name ):
     print name, "is already defined as,", directions[name]
   directions[name] = number
 
-# see if a word is a defined direction
-def lookup_dir( d ):
-  if d in directions:
-    return directions[d]
-  else:
-    return NOT_DIRECTION
-
 # define player words used to describe known directions
 define_direction( NORTH, "north" )
 define_direction( NORTH, "n" )
@@ -60,9 +53,7 @@ define_direction( UP, "u" )
 define_direction( DOWN, "down" )
 define_direction( DOWN, "d" )
 define_direction( RIGHT, "right" )
-define_direction( RIGHT, "r" )
 define_direction( LEFT, "left" )
-define_direction( LEFT, "l" )
 define_direction( IN, "in" )
 define_direction( OUT, "out" )
 define_direction( FORWARD, "forward" )
@@ -94,6 +85,7 @@ def add_article ( name ):
       article = ""
    return "%s%s" % (article, name)
 
+
 def remove_superfluous_input(text):
   superfluous = articles +  ['to']
   rest = []
@@ -101,6 +93,7 @@ def remove_superfluous_input(text):
     if word not in superfluous:
       rest.append(word)
   return ' '.join(rest)
+
 
 def proper_list_from_dict( d ):
   names = d.keys()
@@ -114,8 +107,8 @@ def proper_list_from_dict( d ):
     buf.append(add_article(name))
   return "".join(buf)
 
+
 class Game(object):
-  
   def __init__(self, name="bwx-adventure-game"):
     self.name = name
     self.objects = {}
@@ -134,10 +127,8 @@ class Game(object):
     print s
     return True
   
-  
   def say(self, s):
     return (lambda s: lambda *args: self.do_say(s))(s)
-  
   
   def do_say_on_noun(self, n, s, words):
     if len(words) < 2:
@@ -148,10 +139,8 @@ class Game(object):
     print s
     return True
   
-  
   def say_on_noun(self, n, s):
     return (lambda n, s: lambda self, words: self.do_say_on_noun(n, s, words))(n, s)
-  
   
   def run(self , update_func):
     actor = self.world.hero
@@ -169,7 +158,6 @@ class Game(object):
       # See if the animals want to do anything
       for animal in actor.world.animals.items():
         animal[1].act_autonomously(actor.location)
-  
   
       # check if we're currently running a script
       user_input = actor.get_next_script_line();
@@ -204,55 +192,98 @@ class Game(object):
       if not words:
         continue
   
+      # following the Infocom convention commands are decomposed into
+      # VERB(verb), OBJECT(noun), INDIRECT_OBJECT(indirect).
+      # For example: "hit zombie with hammer" = HIT(verb) ZOMBIE(noun) WITH HAMMER(indirect).
+  
       verb = words[0]
+      target_name = ""
+
       noun = None
       if len(words) > 1:
         noun = words[1]
-  
-      f = actor.location.get_verb( verb )
-      if f:
-        if f( actor.location, words ):
+
+      if verb.lower() == 'tell' and len(words) > 3:
+        target_name = words[1]
+        verb = words[2]
+        words = words[2:]
+
+      if verb.lower() == 'tell' and len(words) > 3:
+        target_name = words[1]
+        verb = words[2]
+        words = words[2:]
+
+      if len(words) > 3 and words[2].lower() == 'with':
+        indirect = words[3]
+        words = words[2:]
+        done = False
+        for thing in actor.inventory:
+          if indirect == thing.name:
+            f = thing.get_verb( verb )
+            if f:
+              if f( actor, noun, words ):
+                done = True
+                break
+          if done:
+        for thing in actor.location.contents:
+          if indirect == thing.name:
+            f = thing.get_verb( verb )
+            if f:
+              if f( actor, noun, words ):
+                done = True
+                break
+          if done:
+            continue
+
+
+      if noun:
+        done = False
+        for thing in actor.inventory:
+          if noun == thing.name:
+            target_name = 
+            f = thing.get_verb( verb )
+            if f:
+              if f( actor, None, words ):
+                done = True
+                break
+          if done:
+        for thing in actor.location.contents:
+          if noun == thing.name:
+            f = thing.get_verb( verb )
+            if f:
+              if f( actor, noun, words ):
+                done = True
+                break
+          if done:
+            continue
+
+      if target_name:
+        done = False
+        for a in actor.location.actors:
+          if a.name != target_name:
+            continue
+          f = a.get_verb( verb )
+          if f:
+            if f( a, noun, words ):
+              done = True
+              break
+        if done:
           continue
   
-      # give precedence to the primary actor for the verb
+      # see if there is a location specific verb
+      if not Noun:
+        if verb in directions:
+          return self.act_go1( actor, verb, None )
+
+      # general main actor verb
       f = actor.get_verb( verb )
       if f:
-        if f( actor, words ):
+        if f( actor, noun, words ):
           continue
-      
-      done = False  # sadly, python doesn't have break with a label
-      for a in actor.location.actors:
-        if a == actor:
-          continue
-        f = a.get_verb( verb )
-        if f:
-          if f( a, words ):
-            done = True
-            break
-      if done:
-        continue
-  
-      # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
-      # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
-      if len( words ) > 2:
-        for noun in words[1:]:
-          noun = noun.strip(',')
-          if noun in articles: continue
-          if noun == 'and': continue
-          actor.do_act( verb, noun )
-        continue
-  
-      # try to do what the user says
-      if len( words ) == 2:
-        # action object
-        # e.g. take key
-        actor.do_act( verb, noun )
-        continue
-  
-      assert len( words ) == 1
-      # action (implied object/subject)
-      # e.g. north
-      actor.do_act( "go", verb )
+
+      # not understood
+      print "Huh?"
+
 
 # GameObject is a place to put default inplementations of methods that everything
 # in the world should support (eg save/restore, how to respond to verbs etc)
@@ -260,6 +291,7 @@ class GameObject(object):
   def __init__(self, name):
     self.game = None
     #self.game.add_object(self, "GameObject") #should this be handed in the Game.add_object method?
+
 
 class Thing(object):
   # name: short name of this thing
@@ -273,6 +305,7 @@ class Thing(object):
 
   def describe( self, observer ):
     return self.name
+
 
 # A "location" is a place in the game.
 class Location(object):
@@ -367,7 +400,6 @@ class Location(object):
   def add_requirement(self, thing):
       self.requirements[thing.name] = thing
 
-
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
 class Connection(object):
@@ -381,6 +413,23 @@ class Connection(object):
     self.point_b = pb
     self.way_ab = way_ab
     self.way_ba = way_ba
+
+
+def act_many( f, actor, noun, words ):
+  f( actor, noun )
+  # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
+  # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
+  if words:
+    for noun in words[1:]:
+      noun = noun.strip(',')
+      if noun in articles: continue
+      if noun == 'and': continue
+      f( actor, noun )
+  return True
+
+
+def act_multi( f ):
+  return ((lambda f : (lambda a, n, w: act_many( f, a, n, w )))(f))
 
 
 # An actor in the world
@@ -406,13 +455,14 @@ class Actor(object):
     else:
       self.isare = "is"
     # associate each of the known actions with functions
-    self.verbs['take'] = self.act_take
-    self.verbs['get'] = self.act_take
-    self.verbs['drop'] = self.act_drop
+    self.verbs['take'] = act_multi(self.act_take1)
+    self.verbs['get'] = act_multi(self.act_take1)
+    self.verbs['drop'] = act_multi(self.act_drop1)
     self.verbs['inventory'] = self.act_inventory
     self.verbs['i'] = self.act_inventory
     self.verbs['look'] = self.act_look
     self.verbs['l'] = self.act_look
+    self.verbs['go'] = act_multi(self.act_go1)
 
   def set_world(self, world):
     self.world = world
@@ -431,10 +481,9 @@ class Actor(object):
       self.location.actors.add( self )
 
   # move a thing from the current location to our inventory
-  def act_take( self, actor, words=None ):
-    if len(words) < 2:
-       return False
-    noun = words[1]
+  def act_take1( self, actor, noun):
+    if not noun:
+      return False
     t = self.location.contents.pop(noun, None)
     if t:
       self.inventory[noun] = t
@@ -445,10 +494,7 @@ class Actor(object):
       return False
 
   # move a thing from our inventory to the current location
-  def act_drop( self, actor, words=None ):
-    if not words:
-      return False
-    noun = words[1]
+  def act_drop1( self, actor, noun ):
     if not noun:
       return False
     t = self.inventory.pop(noun, None)
@@ -459,12 +505,12 @@ class Actor(object):
       print "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun))
       return False
 
-  def act_look( self, actor, words=None ):
+  def act_look( self, actor, noun, words ):
     print self.location.describe( actor, True )
     return True
 
   # list the things we're carrying
-  def act_inventory( self, actor, words=None ):
+  def act_inventory( self, actor, noun, words ):
     msg = '%s %s carrying ' % (self.cap_name, self.isare)
     if self.inventory.keys():
       msg += proper_list_from_dict( self.inventory )
@@ -481,8 +527,11 @@ class Actor(object):
     return status
 
   # try to go in a given direction
-  def go( self, d ):
-    loc = self.location.go( d )
+  def act_go1( self, actor, noun, words ):
+    if not noun in directions:
+      print "Don't know how to go '%s'." % noun
+      return False
+    loc = self.location.go( diretions[noun] )
     if loc == None:
       print "Bonk! %s can't seem to go that way." % self.name
       return False
@@ -490,53 +539,6 @@ class Actor(object):
       # update where we are
       self.set_location( loc )
       return True
-
-  # define action verbs
-  def define_action( self, verb, func ):
-    self.verbs[verb] = func
-
-  # return True on success, False on failure and None if the command isn't found.
-  def perform_action( self, verb, noun=None ):
-    verbs = []
-    if verb in self.verbs:
-      verbs = [verb]
-    else:
-      for v in self.verbs:
-        if v.startswith(verb):
-          verbs.append(v)
-    words = [verb]
-    if noun:
-      words.append(noun)
-    if len(verbs) == 1:
-      return self.verbs[verbs[0]]( self, words )
-    else:
-      return None
-
-  # do something
-  def simple_act( self, verb ):
-    # try direction
-    d = lookup_dir( verb )
-    if d != NOT_DIRECTION:
-      return self.go( d )
-    verbs = []
-    for v in self.verbs:
-      if v.startswith(verb):
-        verbs.append(v)
-    # try prefix match
-    return self.perform_action( verb )
-
-  # do something to something
-  def act( self, verb, noun ):
-    # "go" is a special case
-    if verb == 'go':
-      return self.simple_act( noun )
-    else:
-      return self.perform_action( verb, noun )
-
-  # do something and report if the command is not found.
-  def do_act( self, verb, noun ):
-    if self.act( verb, noun ) == None:
-      print "Huh?"
 
   def add_verb( self, verb, f ):
     self.verbs[' '.join(verb.split())] = f
@@ -557,7 +559,6 @@ class Actor(object):
 
 
 class Hero(Actor):
-
   def __init__( self ):
     super(Hero, self).__init__("you", True)
 
@@ -760,6 +761,7 @@ class Animal(Actor):
       print "%s enters the %s via the %s" % (add_article(self.name).capitalize(),
                                             observer_loc.name,
                                             exit[1].name)
+
 
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
 class Pet(Robot, Animal):
