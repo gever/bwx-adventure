@@ -198,6 +198,7 @@ class Game(Object):
       if user_input == None:    
         # get input from the user
         try:
+          output("")  # add a blank line
           user_input = raw_input("> ")
         except EOFError:
           break
@@ -407,10 +408,10 @@ class Location(Object):
         desc += style_text("There are a few things here: %s." % contents_description, CONTENTS)
     
     if self.actors:
-      desc += "\n"
       for a in self.actors:
         if a != observer:
-          desc += style_text(add_article(a.describe(a)).capitalize() + " " + a.isare + " here.\n", CONTENTS)
+          desc += "\n"
+          desc += style_text(add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
     
     return desc
 
@@ -585,7 +586,7 @@ class Actor(Object):
       return False
     loc = self.location.go( directions[noun] )
     if loc == None:
-      output( "Bonk! %s can't seem to go that way.\n" % self.name, FEEDBACK)
+      output( "Bonk! %s can't seem to go that way." % self.name, FEEDBACK)
       return False
     else:
       # update where we are
@@ -805,18 +806,15 @@ class Animal(Actor):
     if random.random() > 0.2:  # only move 1 in 5 times
       return
     exit = random.choice(self.location.exits.items())
-    desc = ""
     if self.location == observer_loc:
-      desc += "%s leaves the %s via the %s \n" % (add_article(self.name).capitalize(),
-                                            observer_loc.name,
-                                            exit[1].name)
-      output( desc, FEEDBACK)
+      output("%s leaves the %s via the %s." % (add_article(self.name).capitalize(),
+                                               observer_loc.name,
+                                               exit[1].name), FEEDBACK)
     self.act_go1(self, direction_name[exit[0]], None)
     if self.location == observer_loc:
-      desc += "%s enters the %s via the %s \n" % (add_article(self.name).capitalize(),
-                                            observer_loc.name,
-                                            exit[1].name)
-      output( desc, FEEDBACK)
+      output("%s enters the %s via the %s." % (add_article(self.name).capitalize(),
+                                               observer_loc.name,
+                                               exit[1].name), FEEDBACK)
 
 
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
