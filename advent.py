@@ -518,7 +518,7 @@ class Actor(Object):
     self.verbs['i'] = self.act_inventory
     self.verbs['look'] = self.act_look
     self.verbs['l'] = self.act_look
-    self.verbs['go'] = act_multi(self.act_go1)
+    self.verbs['go'] = self.act_go1
 
   # describe ourselves
   def describe( self, observer ):
