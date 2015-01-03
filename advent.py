@@ -8,6 +8,7 @@
 import urllib2
 
 import random
+import textwrap
 import time
 
 # A "direction" is all the ways you can describe going some way
@@ -132,7 +133,7 @@ class Object(object):
       return False
     output( s, FEEDBACK )
     return True
-  
+
   def say_on_noun(self, n, s):
     return (lambda n, s: lambda actor, noun, words: self.do_say_on_noun(n, s, actor, noun, words))(n, s)
 
@@ -163,26 +164,26 @@ class Game(Object):
   def add_world(self, world):
     self.world = world
     world.game = self
-      
+
   def add_object(self, obj, scope):
     self.objects[scope + '.' + obj.name] = obj
-    
+
   # checks to see if the inventory in the items list is in the user's inventory
   def inventory_contains(self, items):
     if set(items).issubset(set(self.world.hero.inventory.values())):
       return True
     return False
-    
+
   def entering_location(self, location):
     if (self.world.hero.location == location and self.fresh_location):
         return True
     return False
-  
+
   def run(self , update_func = False):
-    
+
     # reset this every loop so we don't trigger things more than once
     self.fresh_location = False
-    
+
     actor = self.world.hero
     while True:
       # if the actor moved, describe the room
@@ -192,22 +193,22 @@ class Game(Object):
 
         # cache this as we need to know it for the query to entering_location()
         self.fresh_location = actor.location.first_time
-        
+
         where = actor.location.describe(actor)
         if where:
           output( where )
-  
+
       # See if the animals want to do anything
       for animal in actor.world.animals.items():
         animal[1].act_autonomously(actor.location)
-        
+
       # has the developer supplied an update function?
       if (update_func):
         update_func() # call the update function
-  
+
       # check if we're currently running a script
       user_input = actor.get_next_script_line();
-      if user_input == None:    
+      if user_input == None:
         # get input from the user
         try:
           output("")  # add a blank line
@@ -218,7 +219,7 @@ class Game(Object):
           break
 
       clean_user_input = remove_superfluous_input(user_input)
-        
+
       # see if the command is for a robot
       if ':' in clean_user_input:
          robot_name, command = clean_user_input.split(':')
@@ -230,19 +231,19 @@ class Game(Object):
       else:
          actor = self.world.hero
          command = clean_user_input
-  
+
       # give the input to the actor in case it's recording a script
       if not actor.set_next_script_line(command):
         continue
-         
+
       words = command.split()
       if not words:
         continue
-  
+
       # following the Infocom convention commands are decomposed into
       # VERB(verb), OBJECT(noun), INDIRECT_OBJECT(indirect).
       # For example: "hit zombie with hammer" = HIT(verb) ZOMBIE(noun) WITH HAMMER(indirect).
-  
+
       target_name = ""
       if words[0].lower() == 'tell' and len(words) > 2:
         target_name = words[1]
@@ -398,7 +399,7 @@ class Location(Object):
     if self.contents:
       # add a newline so that the list starts on it's own line
       desc += "\n"
-      
+
       # try to make a readable list of the things
       contents_description = proper_list_from_dict(self.contents)
       # is it just one thing?
@@ -406,13 +407,13 @@ class Location(Object):
         desc += style_text("There is %s here." % contents_description, CONTENTS)
       else:
         desc += style_text("There are a few things here: %s." % contents_description, CONTENTS)
-    
+
     if self.actors:
       for a in self.actors:
         if a != observer:
           desc += "\n"
           desc += style_text(add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
-    
+
     return desc
 
   def add_exit( self, con, way ):
@@ -421,14 +422,14 @@ class Location(Object):
   def go( self, way ):
     if way in self.exits:
       c = self.exits[ way ]
-      
+
       # check if there are any requirements for this room
       if len(c.point_b.requirements) > 0:
         # check to see if the requirements are in the inventory
         if set(c.point_b.requirements).issubset(set(self.world.hero.inventory)):
           output( "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
           return c.point_b
-        
+
         output( "It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements), FEEDBACK)
         return None
       else:
@@ -507,7 +508,9 @@ class Actor(Object):
     self.verbs['i'] = self.act_inventory
     self.verbs['look'] = self.act_look
     self.verbs['l'] = self.act_look
-    self.verbs['go'] = act_multi(self.act_go1)
+    self.verbs['go'] = self.act_go1
+    self.verbs['verbs'] = self.act_list_verbs
+    self.verbs['commands'] = self.act_list_verbs
 
   # describe ourselves
   def describe( self, observer ):
@@ -582,6 +585,10 @@ class Actor(Object):
       self.set_location( loc )
       return True
 
+  def act_list_verbs( self, actor, noun, words ):
+    output( textwrap.fill(" ".join(sorted(self.verbs.keys()))), FEEDBACK )
+    return True
+
   # support for scriptable actors, override these to implement
   def get_next_script_line( self ):
     return None
@@ -647,7 +654,7 @@ class Script(Object):
 
   def print_lines( self ):
     for line in self.lines:
-      print line  
+      print line
 
   def save_file(self):
     f = open(self.name + ".script", "w")
@@ -661,7 +668,7 @@ class Script(Object):
       self.lines.append(line.strip())
     f.close()
 
-    
+
 # Robots are actors which accept commands to perform actions.
 # They can also record and run scripts.
 class Robot(Actor):
@@ -684,7 +691,7 @@ class Robot(Actor):
     else:
         script_name = words[1]
     return script_name
-      
+
   def act_start_recording(self, actor, words=None):
     script_name = self.parse_script_name(words)
     script = Script(script_name)
@@ -692,7 +699,7 @@ class Robot(Actor):
     script.start_recording()
     self.current_script = script
     return True
-      
+
   def act_run_script(self, actor, words=None):
     if self.current_script:
       print "You must stop \"%s\" first." % (self.current_script.name)
@@ -702,12 +709,12 @@ class Robot(Actor):
                                                               script_name)
 
       return True;
-    
+
     script = self.scripts[script_name]
     self.current_script = script
     script.start_running()
     return True
-      
+
   def act_print_script(self, actor, words=None):
     script_name = self.parse_script_name(words)
     if not script_name in self.scripts:
@@ -741,10 +748,10 @@ class Robot(Actor):
       if t >= 0 and t <= 60:
           self.script_think_time = t
           return True
-      
+
     print "\"think\" requires a number of seconds (0-60) as an argument"
-    return True    
-      
+    return True
+
   def get_next_script_line(self):
     if not self.current_script or not self.current_script.running:
       return None
@@ -770,14 +777,14 @@ class Robot(Actor):
       return False
     return True
 
-        
+
 
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
   def __init__( self, name ):
     super(Animal, self ).__init__( name )
     self.name = name
-       
+
   def act_autonomously(self, observer_loc):
     self.random_move(observer_loc)
 
@@ -804,7 +811,7 @@ class Pet(Robot, Animal):
     self.verbs['heel'] = self.act_follow
     self.verbs['follow'] = self.act_follow
     self.verbs['stay'] = self.act_stay
-      
+
   def act_follow(self, actor, words=None):
     self.leader = self.world.hero
     output( "%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
@@ -821,7 +828,7 @@ class Pet(Robot, Animal):
       self.set_location(self.leader.location)
     else:
       self.random_move(observer_loc)
-    
+
 
 # a World is how all the locations, things, and connections are organized
 class World(Object):
@@ -829,7 +836,7 @@ class World(Object):
   # hero, the first person actor
   # robots, list of actors which are robots (can accept comands from the hero)
   # animals, list of actors which are animals (act on their own)
-  
+
   def __init__ ( self ):
     self.hero = None
     self.locations = {}
@@ -837,7 +844,7 @@ class World(Object):
     self.animals = {}
     self.game = None
 
-    
+
   # make a (one-way) connection between point A and point B
   def connect( self, point_a, name, point_b, way ):
     c = Connection( point_a, name, point_b )
@@ -859,7 +866,7 @@ class World(Object):
     else:
       point_b.add_exit( c2, ba_way )
     return c1, c2
-    
+
   # add a bidirectional connection between points A and B
   def add_connection( self, connection ):
     if isinstance(connection.way_ab, (list, tuple)):
@@ -867,7 +874,7 @@ class World(Object):
         connection.point_a.add_exit( connection, way )
     else:
       connection.point_a.add_exit( connection, connection.way_ab )
-    
+
     # this is messy, need a better way to do this
     reverse_connection = Connection( connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
     if isinstance(connection.way_ba, (list, tuple)):
@@ -875,7 +882,7 @@ class World(Object):
         connection.point_b.add_exit( reverse_connection, way )
     else:
       connection.point_b.add_exit( reverse_connection, connection.way_ba )
-      
+
     return connection
 
   # add another location to the world
@@ -883,18 +890,18 @@ class World(Object):
     location.world = self
     self.locations[location.name] = location
     return location
-    
+
   # add an actor to the world
   def add_actor(self, actor):
     if isinstance(actor, Hero):
       self.hero = actor
-      
+
     if isinstance(actor, Animal):
       self.animals[actor.name] = actor
-      
+
     if isinstance(actor, Robot):
       self.robots[actor.name] = actor
-      
+
     actor.world = self
     return actor
 
@@ -1083,12 +1090,12 @@ CONTENTS = 3
 # this handles printing things to output, it also styles them
 def output(text, message_type = 0):
   print style_text(text, message_type)
-    
+
 # this makes the text look nice in the nerinal... WITH COLORS!
 def style_text(text, message_type):
   if (message_type == FEEDBACK):
     text = Colors.FG.pink + text + Colors.reset
-  
+
   if (message_type == TITLE):
     text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + "\n" +  Colors.reset
 
@@ -1097,10 +1104,10 @@ def style_text(text, message_type):
 
   if (message_type == CONTENTS):
     text = Colors.FG.green + text + Colors.reset
-  
+
   return text
-    
-    
+
+
 class Colors:
   '''
   Colors class:
@@ -1144,5 +1151,3 @@ class Colors:
     purple='\033[45m'
     cyan='\033[46m'
     lightgrey='\033[47m'
-    
-    
