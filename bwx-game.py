@@ -23,17 +23,23 @@ There is a large glass door to the east.
 The sign says 'Come In!'
 """ )
 
+# Custom messages can contain lists of strings and functions which return strings.
+# A lambda is a special single line anonymous function.  To return one of two things
+# put the condition expression in [] after a list of the False value then the True value.
 vestibule = Location(
-"Vestibule", """
-A small area at the bottom of a flight of stairs.
-Up the stars you see the reception desk.
-""" )
+"Vestibule", 
+["A small area at the bottom of a flight of stairs.",
+  lambda self: ["There is a switch next to a unlit bulb.", "There is a switch next to an lit bulb."]['switch_on' in self.vars],
+"Up the stars you see the reception desk."])
 
-reception = Location("Reception Desk",
-"""Behind an opening in the wall you see an unlit room.
+# You can also create a function to provide the description.
+def reception_description(self):
+  return """
+Behind an opening in the wall you see an unlit room.
 You see a score board and a message box with a needle for messages.
-There is a locked sliding door to the south, and an intersection to the north.
-""" )
+There is a locked sliding door to the south, and an intersection to the north."""
+
+reception = Location("Reception Desk", reception_description)
 
 intersection = Location("Intersection",
 """A boring intersection. There is a passageway to the
@@ -216,6 +222,19 @@ def reset(self, actor, noun, words):
 hero.add_verb("more", more)
 hero.add_verb("fewer", fewer)
 hero.add_verb("reset", reset)
+
+# custom verb to change state of a location
+def flip(self, actor, noun, words ):
+  if (noun and noun != "switch") or words:
+    return False
+  if self.flag('switch_on'):
+    self.unset_flag('switch_on')
+  else:
+    self.set_flag('switch_on')
+  print "You flip the switch."
+  return True
+
+vestibule.add_verb("flip", flip)
 
 # custom verb to push and pop messages
 # self is the location since that is where the verb was added

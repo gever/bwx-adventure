@@ -120,6 +120,20 @@ class Object(object):
     self.game = None
     self.name = name
     self.verbs = {}
+    self.vars = {}
+
+  def flag(self, f):
+    if f in self.vars:
+      return self.vars[f]
+    else:
+      return False
+
+  def set_flag(self, f):
+    self.vars[f] = True
+
+  def unset_flag(self, f):
+    if f in self.vars:
+      del self.vars[f]
 
   def do_say(self, s):
     output( s, FEEDBACK )
@@ -372,27 +386,38 @@ class Location(Object):
   # actors: other actors in the location
   # world: the world
 
-  def __init__( self, name, desc):#, world ):
+  def __init__( self, name, description):
     Object.__init__(self, name)
-    self.description = desc.strip()
+    self.description = description
     self.contents = {}
     self.exits = {}
     self.first_time = True
     self.actors = set()
     self.requirements = {}
-    #self.world = world
     self.world = None
 
-  def put( self, thing ):
+  def put(self, thing):
     self.contents[thing.name] = thing
     return thing
+
+  def description_str(self, d):
+    if isinstance(d, (list, tuple)):
+      desc = ""
+      for dd in d:
+        desc += self.description_str(dd)
+      return desc
+    else:
+      if isinstance(d, str):
+        return style_text(d.strip() + "\n", DESCRIPTION)
+      else:
+        return self.description_str(d(self))
 
   def describe( self, observer, force=False ):
     desc = ""   # start with a blank string
 
     # add the description
     if self.first_time or force:
-      desc += style_text(self.description + "\n", DESCRIPTION)
+      desc += self.description_str(self.description)
       self.first_time = False
 
     # any things here?
