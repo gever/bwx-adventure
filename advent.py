@@ -915,14 +915,19 @@ class World(Object):
         connection.point_b.add_exit( reverse_connection, way )
     else:
       connection.point_b.add_exit( reverse_connection, connection.way_ba )
-
     return connection
+
+  def new_connection(self, *args):
+    return self.add_connection(Connection(*args))
 
   # add another location to the world
   def add_location(self,  location ):
     location.world = self
     self.locations[location.name] = location
     return location
+
+  def new_location(self, *args):
+    return self.add_location(Location(*args))
 
   # add an actor to the world
   def add_actor(self, actor):

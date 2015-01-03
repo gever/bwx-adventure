@@ -62,8 +62,11 @@ my_world.add_location(vestibule)
 my_world.add_location(reception)
 my_world.add_location(intersection)
 my_world.add_location(elevator)
-my_world.add_location(secret_lab)
 
+# You can also add a simple location with the convience function 'new_location'.
+# "\n" makes a new line in a Python string.
+my_world.new_location(
+"Secret Laboratory", "This place is spooky. It's dark and \nthere are cobwebs everywhere. There must \nbe a light switch somewhere.")
 
 # Create connections between the different places. Each connection
 # needs a name, the two locations to connect, and the two directions
@@ -76,14 +79,14 @@ my_world.add_location(secret_lab)
 big_door = Connection("Big Door", sidewalk, vestibule, [IN, EAST], [WEST, OUT])
 stairs = Connection("Stairs", vestibule, reception, UP, DOWN)
 steps_to_reception = Connection("A Few Steps", reception, intersection, NORTH, SOUTH)
-steps_to_elevator = Connection("A Few Steps", intersection, elevator, EAST, WEST)
 
 # Now add the connections to the world too.
 my_world.add_connection(big_door)
 my_world.add_connection(stairs)
 my_world.add_connection(steps_to_reception)
-my_world.add_connection(steps_to_elevator)
 
+# You can also add a connection with a single convenience function:
+my_world.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
 
 # Create some things to put in your world. You need a name and
 # a description for the thing you are making.
