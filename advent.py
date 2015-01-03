@@ -165,6 +165,14 @@ class Object(object):
       return None
       
 
+def if_flag(flag, s_true, s_false):
+  return lambda self: (s_false, s_true)[flag in self.vars] 
+
+
+def if_var(var, value, s_true, s_false):
+  return lambda self: (s_false, s_true)[var in self.var and self.vars[var] == value] 
+
+
 class Game(Object):
   def __init__(self, name="bwx-adventure-game"):
     Object.__init__(self, name)
@@ -408,7 +416,7 @@ class Location(Object):
       return desc
     else:
       if isinstance(d, str):
-        return style_text(d.strip() + "\n", DESCRIPTION)
+        return style_text('\n' + d.strip(),  DESCRIPTION)
       else:
         return self.description_str(d(self))
 
@@ -1122,7 +1130,7 @@ def style_text(text, message_type):
     text = Colors.FG.pink + text + Colors.reset
 
   if (message_type == TITLE):
-    text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + "\n" +  Colors.reset
+    text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + Colors.reset
 
   if (message_type == DESCRIPTION):
     text = Colors.reset + text

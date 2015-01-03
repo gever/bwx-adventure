@@ -24,12 +24,11 @@ The sign says 'Come In!'
 """ )
 
 # Custom messages can contain lists of strings and functions which return strings.
-# A lambda is a special single line anonymous function.  To return one of two things
-# put the condition expression in [] after a list of the False value then the True value.
 vestibule = Location(
 "Vestibule", 
 ["A small area at the bottom of a flight of stairs.",
-  lambda self: ["There is a switch next to a unlit bulb.", "There is a switch next to an lit bulb."]['switch_on' in self.vars],
+  if_flag('switch_on', "There is a switch next to a lit bulb.",
+                       "There is a switch next to an unlit bulb."),
 "Up the stars you see the reception desk."])
 
 # You can also create a function to provide the description.
