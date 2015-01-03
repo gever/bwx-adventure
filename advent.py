@@ -117,7 +117,8 @@ def proper_list_from_dict( d ):
 class Object(object):
   def __init__(self, name):
     self.game = None
-    #self.game.add_object(self, "GameObject") #should this be handed in the Game.add_object method?
+    self.name = name
+    self.verbs = {}
 
   def do_say(self, s):
     output( s, FEEDBACK )
@@ -138,9 +139,20 @@ class Object(object):
   def say_on_self(self, s):
     return (lambda s: lambda actor, noun, words: self.do_say_on_noun(None, s, actor, noun, words))(s)
 
+  def add_verb( self, verb, f ):
+    self.verbs[' '.join(verb.split())] = f
+
+  def get_verb( self, verb ):
+    c = ' '.join(verb.split())
+    if c in self.verbs:
+       return self.verbs[c]
+    else:
+      return None
+      
+
 class Game(Object):
   def __init__(self, name="bwx-adventure-game"):
-    self.name = name
+    Object.__init__(self, name)
     self.objects = {}
     self.world = None
     self.fresh_location = False
@@ -316,7 +328,7 @@ class Game(Object):
       # location specific verb
       f = actor.location.get_verb(verb)
       if f:
-        if f( actor, noun, words ):
+        if f( actor.location, actor, noun, words ):
           continue
 
       # handle directional moves of the actor
@@ -341,23 +353,12 @@ class Thing(Object):
   # fixed: is it stuck or can it be taken
 
   def __init__( self, name, desc, fixed=False ):
-    self.name = name
+    Object.__init__(self, name)
     self.description = desc
     self.fixed = fixed
-    self.verbs = {}
 
   def describe( self, observer ):
     return self.name
-
-  def add_verb( self, verb, f ):
-    self.verbs[' '.join(verb.split())] = f
-
-  def get_verb( self, verb ):
-    c = ' '.join(verb.split())
-    if c in self.verbs:
-       return self.verbs[c]
-    else:
-      return None
 
 
 # A "location" is a place in the game.
@@ -371,12 +372,11 @@ class Location(Object):
   # world: the world
 
   def __init__( self, name, desc):#, world ):
-    self.name = name
+    Object.__init__(self, name)
     self.description = desc.strip()
     self.contents = {}
     self.exits = {}
     self.first_time = True
-    self.verbs = {}
     self.actors = set()
     self.requirements = {}
     #self.world = world
@@ -440,16 +440,6 @@ class Location(Object):
     for key in self.exits:
       print "exit: %s" % key
 
-  def add_verb( self, verb, f ):
-    self.verbs[' '.join(verb.split())] = f
-
-  def get_verb( self, verb ):
-    c = ' '.join(verb.split())
-    if c in self.verbs:
-       return self.verbs[c]
-    else:
-      return None
-      
   def add_requirement(self, thing):
       self.requirements[thing.name] = thing
 
@@ -496,13 +486,12 @@ class Actor(Object):
   # moved
   # verbs
 
-  def __init__( self, n, hero = False ):
+  def __init__( self, name, hero = False ):
+    Object.__init__(self, name)
     self.world = None
     self.location = None
     self.inventory = {}
-    self.verbs = {}
-    self.name = n
-    self.cap_name = n.capitalize()
+    self.cap_name = name.capitalize()
     self.hero = hero
     if hero:
       self.isare = "are"
@@ -592,16 +581,6 @@ class Actor(Object):
       # update where we are
       self.set_location( loc )
       return True
-
-  def add_verb( self, verb, f ):
-    self.verbs[' '.join(verb.split())] = f
-
-  def get_verb( self, verb ):
-    c = ' '.join(verb.split())
-    if c in self.verbs:
-       return self.verbs[c]
-    else:
-      return None
 
   # support for scriptable actors, override these to implement
   def get_next_script_line( self ):

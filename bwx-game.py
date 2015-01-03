@@ -29,6 +29,7 @@ Up the stars you see the reception desk.
 
 reception = Location( "Reception Desk",
 """Behind an opening in the wall you see an unlit room.
+You see a score board and a message box with a needle for messages.
 There is a locked sliding door to the south, and an intersection to the north.
 """ )
 
@@ -95,10 +96,9 @@ elevator.add_requirement(pebble)
 sidewalk.add_verb( 'knock', sidewalk.say('The door makes a hollow sound.') )
 
 # custom single location verb
-def scream( location, words ):
-  print "You scream your head off!"
-  for w in words[1:]:
-    print "You scream '%s'." % w
+def scream( self, actor, noun, words ):
+  all_words = [noun] + words
+  print "You hear a scream '%s'." % ' '.join(all_words)
   return True
 
 sidewalk.add_verb( 'scream', scream )
@@ -106,9 +106,14 @@ sidewalk.add_verb( 'scream', scream )
 # Add an animal to roam around.  Animals act autonomously
 cat = Animal("cat")
 cat.set_location(sidewalk)
+
+# custom verbs available when the cat is present.
+# say_on_self triggers when the cat is the noun: e.g. "pet cat"
 cat.add_verb("pet", cat.say_on_self("The cat purrs.") )
 cat.add_verb("eat", cat.say_on_self("Don't do that, PETA will get you!"));
 cat.add_verb("kill", cat.say_on_self("The cat escapes and bites you. Ouch!"));
+
+# say_on_noun triggers when you tell the cat to do something: e.g. "tell cat lick yourself"
 cat.add_verb("lick", cat.say_on_noun("yourself", "The cat beings to groom itself."));
 
 # Add a robot.  Robots can take commands to perform actions.
@@ -129,7 +134,7 @@ my_world.add_actor(cat)
 my_world.add_actor(robby)
 my_world.add_actor(fido)
 
-# add a hero verb
+# add a custom actor verb (in this case for the hero)
 def throw( self, actor, noun, words ):
   if noun and self.get_verb('drop')( actor, noun, words ):
      print 'The %s bounces and falls to the floor' % noun
@@ -148,14 +153,14 @@ session = 'session' + str(time.clock)
 # create shared data
 # NOTE: you must either set the server with share.set_host(...) or place the host information
 # in a file 'share.info' in the local directory.  The host must be a webdis host using basic
-# authentication.
+# authentication.  Talk to your collaborator to get this information.
 share = Share()
 share.set_adventure("bwx-adventure")
 share.set_player(player)
 share.set_session(session)
 share.start()
 
-# custom verb to record things at locations
+# custom verb to record things at all locations
 # Data can be store
 #   GLOBAL: available to everyone
 #   ADVENTURE: available to everyone playing a particular adventure
@@ -202,17 +207,26 @@ hero.add_verb( "fewer", fewer )
 hero.add_verb( "reset", reset )
 
 # custom verb to push and pop messages
-
+# self is the location since that is where the verb was added
 def push( self, actor, noun, words ):
-  w = "_".join([noun] + words)
-  share.push(share.ADVENTURE, 'stack.' + self.location.name, w)
+  if not noun:
+    return False
+  if noun != 'message':
+    w = "_".join([noun] + words)
+  else:
+    if not words:
+      return False
+    w = "_".join(words)
+  share.push(share.ADVENTURE, 'reception_messages', w)
   print "You left a message on the stack of messages."
   return True
 
-hero.add_verb( "push", push )
+reception.add_verb( "push", push )
 
 def pop( self, actor, noun, words ):
-  w = share.pop(share.ADVENTURE, 'stack.' + self.location.name)
+  if (noun and noun != "message") or words:
+    return False
+  w = share.pop(share.ADVENTURE, 'reception_messages')
   if not w:
     print "There are no messages on the stack."
     return False
@@ -220,16 +234,17 @@ def pop( self, actor, noun, words ):
   print "You pull the top message from the stack and read '%s'." % " ".join(words)
   return True
 
-hero.add_verb( "pop", pop )
+reception.add_verb( "pop", pop )
 
-# high score example
-
+# high score example.  When the adventurer's score changes use zadd to add/update the score.
 share.delete(share.ADVENTURE, 'highscore')
 share.zadd(share.ADVENTURE, 'highscore', 'joe', 10)
 share.zadd(share.ADVENTURE, 'highscore', 'bob', 20)
 share.zadd(share.ADVENTURE, 'highscore', 'fred', 30)
 
 def top( self, actor, noun, words ):
+  if (noun and noun != "scores") or words:
+    return False
   w = share.ztop(share.ADVENTURE, 'highscore', 10)
   if w:
     print "Top Players"
@@ -237,9 +252,11 @@ def top( self, actor, noun, words ):
       print "  %s" % x
   return True
 
-hero.add_verb( "top", top )
+reception.add_verb( "top", top )
 
 def scores( self, actor, noun, words ):
+  if (noun and noun != "scoreboard") or words:
+    return False
   w = share.ztop_with_scores(share.ADVENTURE, 'highscore', 10)
   if w:
     print "High Scores"
@@ -247,13 +264,13 @@ def scores( self, actor, noun, words ):
       print "  %s %s" % (x[0], x[1])
   return True
 
-hero.add_verb( "scores", scores )
+reception.add_verb( "scores", scores )
+reception.add_verb("read", scores )
 
 # start on the sidewalk
 hero.set_location( sidewalk )
 
 def update():
-    
   if (my_game.entering_location(reception)):
     if (my_game.inventory_contains([pebble])):
       my_game.output( "The pebble you picked up is suddenly feeling warm to the touch!")
