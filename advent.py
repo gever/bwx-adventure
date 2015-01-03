@@ -8,6 +8,7 @@
 import urllib2
 
 import random
+import textwrap
 import time
 
 # A "direction" is all the ways you can describe going some way
@@ -519,6 +520,8 @@ class Actor(Object):
     self.verbs['look'] = self.act_look
     self.verbs['l'] = self.act_look
     self.verbs['go'] = self.act_go1
+    self.verbs['verbs'] = self.act_list_verbs
+    self.verbs['commands'] = self.act_list_verbs
 
   # describe ourselves
   def describe( self, observer ):
@@ -592,6 +595,10 @@ class Actor(Object):
       # update where we are
       self.set_location( loc )
       return True
+
+  def act_list_verbs( self, actor, noun, words ):
+    output( textwrap.fill(" ".join(sorted(self.verbs.keys()))), FEEDBACK )
+    return True
 
   def add_verb( self, verb, f ):
     self.verbs[' '.join(verb.split())] = f
