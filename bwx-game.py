@@ -92,7 +92,7 @@ elevator.add_requirement(elev_key)
 elevator.add_requirement(pebble)
 
 # simple verb applicable at this location
-sidewalk.add_verb( 'knock', my_game.say('The door makes a hollow sound.') )
+sidewalk.add_verb( 'knock', sidewalk.say('The door makes a hollow sound.') )
 
 # custom single location verb
 def scream( location, words ):
@@ -106,9 +106,10 @@ sidewalk.add_verb( 'scream', scream )
 # Add an animal to roam around.  Animals act autonomously
 cat = Animal("cat")
 cat.set_location(sidewalk)
-cat.add_verb("pet", my_game.say("The cat purrs.") )
-cat.add_verb("eat", my_game.say_on_noun("cat", "Don't do that, PETA will get you!"));
-cat.add_verb("kill", my_game.say_on_noun("cat", "The cat escapes and bites you. Ouch!"));
+cat.add_verb("pet", cat.say_on_self("The cat purrs.") )
+cat.add_verb("eat", cat.say_on_self("Don't do that, PETA will get you!"));
+cat.add_verb("kill", cat.say_on_self("The cat escapes and bites you. Ouch!"));
+cat.add_verb("lick", cat.say_on_noun("yourself", "The cat beings to groom itself."));
 
 # Add a robot.  Robots can take commands to perform actions.
 robby = Robot( "Robby" )
@@ -129,9 +130,9 @@ my_world.add_actor(robby)
 my_world.add_actor(fido)
 
 # add a hero verb
-def throw( self, actor, words ):
-  if len(words) > 1 and self.act('drop', words[1] ):
-     print 'The %s bounces and falls to the floor' % words[1]
+def throw( self, actor, noun, words ):
+  if noun and self.get_verb('drop')( actor, noun, words ):
+     print 'The %s bounces and falls to the floor' % noun
      return True
   else:
      print 'You hurt your arm.'
@@ -160,17 +161,17 @@ share.start()
 #   ADVENTURE: available to everyone playing a particular adventure
 #   PlAYER: available to the specific palyer in the specific adventure
 #   SESSION: available to the specific palyer in the specific adventure in the specific session
-def scribble( self, actor, words ):
-  if len(words) != 2:
+def scribble( self, actor, noun, words ):
+  if not noun or words:
     print "You can only scrible a single word."
     return False
-  share.put(share.ADVENTURE, 'crumb.' + self.location.name, words[1].strip())
+  share.put(share.ADVENTURE, 'crumb.' + self.location.name, noun.strip())
   return True
 
 hero.add_verb( "scribble", scribble )
 
 # custom verb to see things written
-def peek( self, actor, words ):
+def peek( self, actor, noun, words ):
   v = share.get(share.ADVENTURE, 'crumb.' + self.location.name)
   if not v:
     print 'Nothing here.'
@@ -181,17 +182,17 @@ def peek( self, actor, words ):
 hero.add_verb( "peek", peek )
 
 #  custom verb to count
-def more( self, actor, words ):
+def more( self, actor, noun, words ):
   share.increment(share.ADVENTURE, 'count.' + self.location.name)
   print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + self.location.name)
   return True
 
-def fewer( self, actor, words ):
+def fewer( self, actor, noun, words ):
   share.decrement(share.ADVENTURE, 'count.' + self.location.name)
   print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + self.location.name)
   return True
 
-def reset( self, actor, words ):
+def reset( self, actor, noun, words ):
   share.delete(share.ADVENTURE, 'count.' + self.location.name)
   print 'The count is reset!'
   return True
@@ -202,15 +203,15 @@ hero.add_verb( "reset", reset )
 
 # custom verb to push and pop messages
 
-def push( self, actor, words ):
-  w = "_".join(words[1:])
+def push( self, actor, noun, words ):
+  w = "_".join([noun] + words)
   share.push(share.ADVENTURE, 'stack.' + self.location.name, w)
   print "You left a message on the stack of messages."
   return True
 
 hero.add_verb( "push", push )
 
-def pop( self, actor, words ):
+def pop( self, actor, noun, words ):
   w = share.pop(share.ADVENTURE, 'stack.' + self.location.name)
   if not w:
     print "There are no messages on the stack."
@@ -228,7 +229,7 @@ share.zadd(share.ADVENTURE, 'highscore', 'joe', 10)
 share.zadd(share.ADVENTURE, 'highscore', 'bob', 20)
 share.zadd(share.ADVENTURE, 'highscore', 'fred', 30)
 
-def top( self, actor, words ):
+def top( self, actor, noun, words ):
   w = share.ztop(share.ADVENTURE, 'highscore', 10)
   if w:
     print "Top Players"
@@ -238,7 +239,7 @@ def top( self, actor, words ):
 
 hero.add_verb( "top", top )
 
-def scores( self, actor, words ):
+def scores( self, actor, noun, words ):
   w = share.ztop_with_scores(share.ADVENTURE, 'highscore', 10)
   if w:
     print "High Scores"
