@@ -155,10 +155,6 @@ class Game(Object):
   def add_object(self, obj, scope):
     self.objects[scope + '.' + obj.name] = obj
     
-  def output(self, text, message_type = 0):
-    # we add a newline to user putput since they may not add it themselves
-    output(text + "\n", message_type)
-  
   # checks to see if the inventory in the items list is in the user's inventory
   def inventory_contains(self, items):
     if set(items).issubset(set(self.world.hero.inventory.values())):
@@ -338,7 +334,6 @@ class Game(Object):
       output( "Huh?", FEEDBACK )
 
 
-
 class Thing(Object):
   # name: short name of this thing
   # description: full description
@@ -473,7 +468,9 @@ class Connection(Object):
 
 
 def act_many( f, actor, noun, words ):
-  f( actor, noun )
+  result = True
+  if not f( actor, noun ):
+    result = False
   # treat 'verb noun1 and noun2..' as 'verb noun1' then 'verb noun2'
   # treat 'verb noun1, noun2...' as 'verb noun1' then 'verb noun2'
   if words:
@@ -481,8 +478,9 @@ def act_many( f, actor, noun, words ):
       noun = noun.strip(',')
       if noun in articles: continue
       if noun == 'and': continue
-      f( actor, noun )
-  return True
+      if not f( actor, noun ):
+        result = False
+  return result
 
 
 def act_multi( f ):
@@ -541,7 +539,7 @@ class Actor(Object):
     t = self.location.contents.pop(noun, None)
     if t:
       self.inventory[noun] = t
-      output("You take the %s \n" % t.name)
+      output("You take the %s." % t.name)
       return True
     else:
       output("%s can't take the %s." % (self.cap_name, noun))
@@ -583,7 +581,7 @@ class Actor(Object):
   # try to go in a given direction
   def act_go1( self, actor, noun, words ):
     if not noun in directions:
-      print "Don't know how to go '%s'." % noun
+      output( "Don't know how to go '%s'." % noun, FEEDBACK )
       return False
     loc = self.location.go( directions[noun] )
     if loc == None:
@@ -1107,7 +1105,7 @@ CONTENTS = 3
 
 # this handles printing things to output, it also styles them
 def output(text, message_type = 0):
-    print style_text(text, message_type)
+  print style_text(text, message_type)
     
 # this makes the text look nice in the nerinal... WITH COLORS!
 def style_text(text, message_type):
