@@ -169,8 +169,10 @@ class Object(object):
       
 
 def if_flag(flag, s_true, s_false):
-  return lambda self: (s_false, s_true)[flag in self.vars] 
+  return lambda self: (s_false, s_true)[flag in self.vars]
 
+def if_flag_at(location, flag, s_true, s_false):
+  return lambda self: (s_false, s_true)[flag in location.vars]
 
 def if_var(var, value, s_true, s_false):
   return lambda self: (s_false, s_true)[var in self.var and self.vars[var] == value] 
@@ -269,7 +271,9 @@ class Game(Object):
 
         where = actor.location.describe(actor)
         if where:
+          self.output( "" )
           self.output( where )
+          self.output( "" )
 
       # See if the animals want to do anything
       for animal in self.animals.items():
@@ -465,7 +469,7 @@ class Location(Object):
       return desc
     else:
       if isinstance(d, str):
-        return style_text('\n' + d.strip(),  DESCRIPTION)
+        return style_text(d,  DESCRIPTION)
       else:
         return self.description_str(d(self))
 
@@ -478,10 +482,11 @@ class Location(Object):
       self.first_time = False
 
     # any things here?
-    if self.contents:
+    if self.contents or self.actors:
       # add a newline so that the list starts on it's own line
       desc += "\n"
 
+    if self.contents:
       # try to make a readable list of the things
       contents_description = proper_list_from_dict(self.contents)
       # is it just one thing?

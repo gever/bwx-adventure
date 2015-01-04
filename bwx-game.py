@@ -15,25 +15,26 @@ my_game = Game("Brightworks Adventure")
 # variable_name = Location('The Name", "The description")
 # The triple quotes (""") below are a way to make multi-line strings in Python.
 sidewalk = Location(
-"Sidewalk", """
-There is a large glass door to the east.
+"Sidewalk",
+"""There is a large glass door to the east.
 The sign says 'Come In!'
 """ )
 
 # Custom messages can contain lists of strings and functions which return strings.
 vestibule = Location(
 "Vestibule", 
-["A small area at the bottom of a flight of stairs.",
-  if_flag('switch_on', "There is a switch next to a lit bulb.",
-                       "There is a switch next to an unlit bulb."),
+["A small area at the bottom of a flight of stairs.\n",
+  if_flag('switch_on', "There is a switch next to a lit bulb.\n",
+                       "There is a switch next to an unlit bulb.\n"),
 "Up the stars you see the reception desk."])
 
 # You can also create a function to provide the description.
 def reception_description(self):
-  return """
-Behind an opening in the wall you see an unlit room.
+  return ["Behind an opening in the wall you see ",
+      if_flag_at(vestibule, "switch_on", "a lit", "an unlit"),
+""" room.
 You see a score board and a message box with a needle for messages.
-There is a locked sliding door to the south, and an intersection to the north."""
+There is a locked sliding door to the south, and an intersection to the north."""]
 
 reception = Location("Reception Desk", reception_description)
 
