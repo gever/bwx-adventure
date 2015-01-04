@@ -113,9 +113,9 @@ def proper_list_from_dict( d ):
   return "".join(buf)
 
 
-# Object is a place to put default inplementations of methods that everything
+# Base is a place to put default inplementations of methods that everything
 # in the game should support (eg save/restore, how to respond to verbs etc)
-class Object(object):
+class Base(object):
   def __init__(self, name):
     self.game = None
     self.name = name
@@ -169,9 +169,9 @@ class Object(object):
 
 
 # The Game: container for hero, locations, robots, animals etc.
-class Game(Object):
+class Game(Base):
   def __init__(self, name="bwx-adventure"):
-    Object.__init__(self, name)
+    Base.__init__(self, name)
     self.objects = {}
     self.fresh_location = False
     self.hero = None
@@ -420,13 +420,13 @@ class Game(Object):
       self.output( "Huh?", FEEDBACK )
 
 
-class Thing(Object):
+class Object(Base):
   # name: short name of this thing
   # description: full description
   # fixed: is it stuck or can it be taken
 
   def __init__( self, name, desc, fixed=False ):
-    Object.__init__(self, name)
+    Base.__init__(self, name)
     self.description = desc
     self.fixed = fixed
 
@@ -435,7 +435,7 @@ class Thing(Object):
 
 
 # A "location" is a place in the game.
-class Location(Object):
+class Location(Base):
   # name: short name of this location
   # description: full description
   # contents: things that are in a location
@@ -444,7 +444,7 @@ class Location(Object):
   # actors: other actors in the location
 
   def __init__( self, name, description):
-    Object.__init__(self, name)
+    Base.__init__(self, name)
     self.description = description
     self.contents = {}
     self.exits = {}
@@ -452,9 +452,9 @@ class Location(Object):
     self.actors = set()
     self.requirements = {}
 
-  def add_object(self, thing):
-    self.contents[thing.name] = thing
-    return thing
+  def add_object(self, obj):
+    self.contents[obj.name] = obj
+    return obj
 
   def description_str(self, d):
     if isinstance(d, (list, tuple)):
@@ -523,13 +523,13 @@ class Location(Object):
 
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
-class Connection(Object):
+class Connection(Base):
   # name
   # point_a
   # point_b
 
   def __init__( self, name, pa, pb, way_ab, way_ba):
-    self.name = name
+    Base.__init__(self, name)
     self.point_a = pa
     self.point_b = pb
     self.way_ab = way_ab
@@ -557,14 +557,14 @@ def act_multi( f ):
 
 
 # An actor in the game
-class Actor(Object):
+class Actor(Base):
   # location
   # inventory
   # moved
   # verbs
 
   def __init__( self, name, hero = False ):
-    Object.__init__(self, name)
+    Base.__init__(self, name)
     self.location = None
     self.inventory = {}
     self.cap_name = name.capitalize()
@@ -680,9 +680,9 @@ class Hero(Actor):
 
 
 # Scripts are sequences of instructions for Robots to execute
-class Script(Object):
+class Script(Base):
   def __init__( self, name ):
-    self.name = name
+    Base.__init__(self, name)
     self.lines = list()
     self.current_line = -1
     self.recording = False

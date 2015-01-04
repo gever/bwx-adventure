@@ -3,7 +3,7 @@
 
 from advent import *
 # for cloud9
-from advent import Game, Location, Connection, Thing, Animal, Robot, Pet, Hero
+from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Hero
 from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 
 # Set up the game you are going to build on.
@@ -87,16 +87,16 @@ game.add_connection(steps_to_reception)
 # You can also add a connection with a single convenience function:
 game.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
 
-# Create some things to put in your game. You need a name and
-# a description for the thing you are making.
-# example: something = Thing("Thing Name", "A description for the thing")
+# Create some objects to put in your game. You need a name and
+# a description for the object you are making.
+# example: something = Object("Object Name", "A description for the object")
 # If you add True as the last argument, then it's an item that can't be taken.
-elev_key = Thing("key", "small tarnished brass key")
+elev_key = Object("key", "small tarnished brass key")
 
 sidewalk.add_object(elev_key)
 
-pebble = sidewalk.add_object(Thing( "pebble", "round pebble"))
-sidewalk.add_object(Thing("Gary the garden gnome",
+pebble = sidewalk.add_object(Object( "pebble", "round pebble"))
+sidewalk.add_object(Object("Gary the garden gnome",
   "a small figure liberated from a nearby garden."))
 
 
