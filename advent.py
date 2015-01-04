@@ -513,7 +513,7 @@ class Location(Object):
       # check if there are any requirements for this room
       if len(c.point_b.requirements) > 0:
         # check to see if the requirements are in the inventory
-        if set(c.point_b.requirements).issubset(set(self.hero.inventory)):
+        if set(c.point_b.requirements).issubset(set(self.game.hero.inventory)):
           self.output( "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
           return c.point_b
 
