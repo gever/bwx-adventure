@@ -184,6 +184,7 @@ class Game(Base):
     self.robots = {}
     self.animals = {}
     self.argparser = argparse.ArgumentParser(description='Process command line arguments.')
+    self.argparser.add_argument('-e', '--execute');  # script to execute
 
   def set_name(self, name):
     self.name = name
@@ -263,12 +264,17 @@ class Game(Base):
 
   def run(self , update_func = False):
     # parse the args now that all modules have had a chance to add arg handlers
-    self.args = self.argparser.parse_args()      
-    
+    self.args = self.argparser.parse_args()
+
     # reset this every loop so we don't trigger things more than once
     self.fresh_location = False
 
     actor = self.hero
+
+    if self.args.execute != None:
+      actor.act_load_file(self.args.execute)
+      actor.act_run_script(self.args.execute)
+    
     while True:
       # if the actor moved, describe the room
       if actor.check_if_moved():
