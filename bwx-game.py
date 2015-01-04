@@ -10,6 +10,14 @@ from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FOR
 # my_game is a top-level container for everything in the game.
 game = Game("Brightworks Adventure")
 
+# Add any arguments you want the user to be able to pass in on the command line when
+# running your game.  This example will set the value of my_game.args.foo to whatever
+# value is passed in with any of these versions of the command:
+#     bwx-game.py -f value
+#     bwx-game.py --foo value
+#     bwx-game.py --foo=value
+my_game.argparser.add_argument('-f', '--foo')
+
 # Create some interesting locations. Locations need a name
 # and a description of any doorways or connections to the room, like this:
 # variable_name = Location('The Name", "The description")
