@@ -91,16 +91,16 @@ my_game.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
 # If you add True as the last argument, then it's an item that can't be taken.
 elev_key = Thing("key", "small tarnished brass key")
 
-sidewalk.put(elev_key)
+sidewalk.add_object(elev_key)
 
-pebble = sidewalk.put(Thing( "pebble", "round pebble"))
-sidewalk.put(Thing("Gary the garden gnome",
-                   "a small figure liberated from a nearby garden."))
+pebble = sidewalk.add_object(Thing( "pebble", "round pebble"))
+sidewalk.add_object(Thing("Gary the garden gnome",
+  "a small figure liberated from a nearby garden."))
 
 
 # You can make rooms require things, like keys, before a player can enter them.
-elevator.add_requirement(elev_key)
-elevator.add_requirement(pebble)
+elevator.make_requirement(elev_key)
+elevator.make_requirement(pebble)
 
 # Add a verb applicable at this location.
 sidewalk.add_verb('knock', sidewalk.say('The door makes a hollow sound.'))

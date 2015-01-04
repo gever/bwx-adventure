@@ -453,7 +453,7 @@ class Location(Object):
     self.actors = set()
     self.requirements = {}
 
-  def put(self, thing):
+  def add_object(self, thing):
     self.contents[thing.name] = thing
     return thing
 
@@ -523,7 +523,7 @@ class Location(Object):
     for key in self.exits:
       print "exit: %s" % key
 
-  def add_requirement(self, thing):
+  def make_requirement(self, thing):
       self.requirements[thing.name] = thing
 
 # A "connection" connects point A to point B. Connections are
