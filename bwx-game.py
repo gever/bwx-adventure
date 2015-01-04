@@ -3,15 +3,12 @@
 
 from advent import *
 # for cloud9
-from advent import Game, World, Location, Connection, Thing, Animal, Robot, Pet, Hero
+from advent import Game, Location, Connection, Thing, Animal, Robot, Pet, Hero
 from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 
 # Set up the game you are going to build on.
 # my_game is a top-level container for everything in the game.
 my_game = Game("Brightworks Adventure")
-
-# Create your world. Then we can stick stuff in it.
-my_world = World()
 
 # Create some interesting locations. Locations need a name
 # and a description of any doorways or connections to the room, like this:
@@ -56,16 +53,16 @@ To the west is an intersection.
 # "\n" makes a new line in a Python string.
 secret_lab = Location("Secret Laboratory", "This place is spooky. It's dark and \nthere are cobwebs everywhere. There must \nbe a light switch somewhere.")
 
-# Let's add the locations to your world.
-my_world.add_location(sidewalk)
-my_world.add_location(vestibule)
-my_world.add_location(reception)
-my_world.add_location(intersection)
-my_world.add_location(elevator)
+# Let's add the locations to your game.
+my_game.add_location(sidewalk)
+my_game.add_location(vestibule)
+my_game.add_location(reception)
+my_game.add_location(intersection)
+my_game.add_location(elevator)
 
 # You can also add a simple location with the convience function 'new_location'.
 # "\n" makes a new line in a Python string.
-my_world.new_location(
+my_game.new_location(
 "Secret Laboratory", "This place is spooky. It's dark and \nthere are cobwebs everywhere. There must \nbe a light switch somewhere.")
 
 # Create connections between the different places. Each connection
@@ -80,15 +77,15 @@ big_door = Connection("Big Door", sidewalk, vestibule, [IN, EAST], [WEST, OUT])
 stairs = Connection("Stairs", vestibule, reception, UP, DOWN)
 steps_to_reception = Connection("A Few Steps", reception, intersection, NORTH, SOUTH)
 
-# Now add the connections to the world too.
-my_world.add_connection(big_door)
-my_world.add_connection(stairs)
-my_world.add_connection(steps_to_reception)
+# Now add the connections to the game too.
+my_game.add_connection(big_door)
+my_game.add_connection(stairs)
+my_game.add_connection(steps_to_reception)
 
 # You can also add a connection with a single convenience function:
-my_world.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
+my_game.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
 
-# Create some things to put in your world. You need a name and
+# Create some things to put in your game. You need a name and
 # a description for the thing you are making.
 # example: something = Thing("Thing Name", "A description for the thing")
 # If you add True as the last argument, then it's an item that can't be taken.
@@ -143,12 +140,12 @@ fido.set_location(sidewalk)
 # Make the player.
 hero = Hero()
 
-# Add the actors to the world. Heroes, animals, robots, and pets are
+# Add the actors to the game. Heroes, animals, robots, and pets are
 # all kinds of actors.
-my_world.add_actor(hero)
-my_world.add_actor(cat)
-my_world.add_actor(robby)
-my_world.add_actor(fido)
+my_game.add_actor(hero)
+my_game.add_actor(cat)
+my_game.add_actor(robby)
+my_game.add_actor(fido)
 
 # add a custom actor verb (in this case for the hero)
 def throw(self, actor, noun, words):
@@ -298,7 +295,7 @@ reception.add_verb("top", top)
 reception.add_verb("scores", scores)
 reception.add_verb("read", scores)
 
-# Now that we have created our world and everything in it, we can start the game!
+# Now that we have created our game and everything in it, we can start the game!
 
 # Start on the sidewalk.
 hero.set_location(sidewalk)
@@ -310,5 +307,4 @@ def update():
 
 
 # Start playing.
-my_game.add_world(my_world)
 my_game.run(update)

@@ -114,7 +114,7 @@ def proper_list_from_dict( d ):
 
 
 # Object is a place to put default inplementations of methods that everything
-# in the world should support (eg save/restore, how to respond to verbs etc)
+# in the game should support (eg save/restore, how to respond to verbs etc)
 class Object(object):
   def __init__(self, name):
     self.game = None
@@ -136,7 +136,7 @@ class Object(object):
       del self.vars[f]
 
   def do_say(self, s):
-    output( s, FEEDBACK )
+    self.output( s, FEEDBACK )
     return True
 
   def say(self, s):
@@ -145,7 +145,7 @@ class Object(object):
   def do_say_on_noun(self, n, s, actor, noun, words):
     if noun != n:
       return False
-    output( s, FEEDBACK )
+    self.output( s, FEEDBACK )
     return True
 
   def say_on_noun(self, n, s):
@@ -163,6 +163,9 @@ class Object(object):
        return self.verbs[c]
     else:
       return None
+
+  def output(self, text, message_type = 0):
+    self.game.output(text, message_type)
       
 
 def if_flag(flag, s_true, s_false):
@@ -173,34 +176,79 @@ def if_var(var, value, s_true, s_false):
   return lambda self: (s_false, s_true)[var in self.var and self.vars[var] == value] 
 
 
+# The Game: container for hero, locations, robots, animals etc.
 class Game(Object):
-  def __init__(self, name="bwx-adventure-game"):
+  def __init__(self, name="bwx-adventure"):
     Object.__init__(self, name)
     self.objects = {}
-    self.world = None
     self.fresh_location = False
+    self.hero = None
+    self.locations = {}
+    self.robots = {}
+    self.animals = {}
 
   def set_name(self, name):
     self.name = name
 
-  def add_world(self, world):
-    self.world = world
-    world.game = self
+  # add a bidirectional connection between points A and B
+  def add_connection( self, connection ):
+    connection.game = self
+    if isinstance(connection.way_ab, (list, tuple)):
+      for way in connection.way_ab:
+        connection.point_a.add_exit( connection, way )
+    else:
+      connection.point_a.add_exit( connection, connection.way_ab )
 
-  def add_object(self, obj, scope):
-    self.objects[scope + '.' + obj.name] = obj
+    # this is messy, need a better way to do this
+    reverse_connection = Connection( connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
+    reverse_connection.game = self
+    if isinstance(connection.way_ba, (list, tuple)):
+      for way in connection.way_ba:
+        connection.point_b.add_exit( reverse_connection, way )
+    else:
+      connection.point_b.add_exit( reverse_connection, connection.way_ba )
+    return connection
 
+  def new_connection(self, *args):
+    return self.add_connection(Connection(*args))
+
+  # add another location to the game
+  def add_location(self,  location ):
+    location.game = self
+    self.locations[location.name] = location
+    return location
+
+  def new_location(self, *args):
+    return self.add_location(Location(*args))
+
+  # add an actor to the game
+  def add_actor(self, actor):
+    actor.game = self
+
+    if isinstance(actor, Hero):
+      self.hero = actor
+
+    if isinstance(actor, Animal):
+      self.animals[actor.name] = actor
+
+    if isinstance(actor, Robot):
+      self.robots[actor.name] = actor
+
+    return actor
+
+
+  # overload this for HTTP output
   def output(self, text, message_type = 0):
-    output(text, message_type)
+    print_output(text, message_type)
 
   # checks to see if the inventory in the items list is in the user's inventory
   def inventory_contains(self, items):
-    if set(items).issubset(set(self.world.hero.inventory.values())):
+    if set(items).issubset(set(self.hero.inventory.values())):
       return True
     return False
 
   def entering_location(self, location):
-    if (self.world.hero.location == location and self.fresh_location):
+    if (self.hero.location == location and self.fresh_location):
         return True
     return False
 
@@ -209,11 +257,11 @@ class Game(Object):
     # reset this every loop so we don't trigger things more than once
     self.fresh_location = False
 
-    actor = self.world.hero
+    actor = self.hero
     while True:
       # if the actor moved, describe the room
       if actor.check_if_moved():
-        output("        --=( %s %s in the %s )=--        " % (
+        self.output("        --=( %s %s in the %s )=--        " % (
           actor.name.capitalize(), actor.isare, actor.location.name), TITLE)
 
         # cache this as we need to know it for the query to entering_location()
@@ -221,10 +269,10 @@ class Game(Object):
 
         where = actor.location.describe(actor)
         if where:
-          output( where )
+          self.output( where )
 
       # See if the animals want to do anything
-      for animal in actor.world.animals.items():
+      for animal in self.animals.items():
         animal[1].act_autonomously(actor.location)
 
       # has the developer supplied an update function?
@@ -236,7 +284,7 @@ class Game(Object):
       if user_input == None:
         # get input from the user
         try:
-          output("")  # add a blank line
+          self.output("")  # add a blank line
           user_input = raw_input("> ")
         except EOFError:
           break
@@ -249,12 +297,12 @@ class Game(Object):
       if ':' in clean_user_input:
          robot_name, command = clean_user_input.split(':')
          try:
-            actor = self.world.robots[robot_name]
+            actor = self.robots[robot_name]
          except KeyError:
-            output( "I don't know anybot named %s" % robot_name, FEEDBACK)
+            self.output( "I don't know anybot named %s" % robot_name, FEEDBACK)
             continue
       else:
-         actor = self.world.hero
+         actor = self.hero
          command = clean_user_input
 
       # give the input to the actor in case it's recording a script
@@ -301,7 +349,7 @@ class Game(Object):
               break
         if done:
           continue
-        output( "Huh? %s %s?" % (target_name, verb), FEEDBACK)
+        self.output( "Huh? %s %s?" % (target_name, verb), FEEDBACK)
         continue
 
       # if we have an indirect object, try it's handle first
@@ -370,7 +418,7 @@ class Game(Object):
           continue
 
       # not understood
-      output( "Huh?", FEEDBACK )
+      self.output( "Huh?", FEEDBACK )
 
 
 class Thing(Object):
@@ -395,7 +443,6 @@ class Location(Object):
   # exits: ways to get out of a location
   # first_time: is it the first time here?
   # actors: other actors in the location
-  # world: the world
 
   def __init__( self, name, description):
     Object.__init__(self, name)
@@ -405,7 +452,6 @@ class Location(Object):
     self.first_time = True
     self.actors = set()
     self.requirements = {}
-    self.world = None
 
   def put(self, thing):
     self.contents[thing.name] = thing
@@ -462,11 +508,11 @@ class Location(Object):
       # check if there are any requirements for this room
       if len(c.point_b.requirements) > 0:
         # check to see if the requirements are in the inventory
-        if set(c.point_b.requirements).issubset(set(self.world.hero.inventory)):
-          output( "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
+        if set(c.point_b.requirements).issubset(set(self.hero.inventory)):
+          self.output( "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
           return c.point_b
 
-        output( "It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements), FEEDBACK)
+        self.output( "It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements), FEEDBACK)
         return None
       else:
         return c.point_b
@@ -515,9 +561,8 @@ def act_multi( f ):
   return ((lambda f : (lambda a, n, w: act_many( f, a, n, w )))(f))
 
 
-# An actor in the world
+# An actor in the game
 class Actor(Object):
-  # world
   # location
   # inventory
   # moved
@@ -525,15 +570,12 @@ class Actor(Object):
 
   def __init__( self, name, hero = False ):
     Object.__init__(self, name)
-    self.world = None
     self.location = None
     self.inventory = {}
     self.cap_name = name.capitalize()
     self.hero = hero
     if hero:
       self.isare = "are"
-      #assert self.world.hero == None
-      #self.world.hero = self
     else:
       self.isare = "is"
     # associate each of the known actions with functions
@@ -568,10 +610,10 @@ class Actor(Object):
     t = self.location.contents.pop(noun, None)
     if t:
       self.inventory[noun] = t
-      output("You take the %s." % t.name)
+      self.output("You take the %s." % t.name)
       return True
     else:
-      output("%s can't take the %s." % (self.cap_name, noun))
+      self.output("%s can't take the %s." % (self.cap_name, noun))
       return False
 
   # move a thing from our inventory to the current location
@@ -583,7 +625,7 @@ class Actor(Object):
       self.location.contents[noun] = t
       return True
     else:
-      output( "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun)), FEEDBACK)
+      self.output( "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun)), FEEDBACK)
       return False
 
   def act_look( self, actor, noun, words ):
@@ -598,7 +640,7 @@ class Actor(Object):
     else:
       msg += 'nothing'
     msg += '.'
-    output( msg, FEEDBACK)
+    self.output( msg, FEEDBACK)
     return True
 
   # check/clear moved status
@@ -610,11 +652,11 @@ class Actor(Object):
   # try to go in a given direction
   def act_go1( self, actor, noun, words ):
     if not noun in directions:
-      output( "Don't know how to go '%s'." % noun, FEEDBACK )
+      self.output( "Don't know how to go '%s'." % noun, FEEDBACK )
       return False
     loc = self.location.go( directions[noun] )
     if loc == None:
-      output( "Bonk! %s can't seem to go that way." % self.name, FEEDBACK)
+      self.output( "Bonk! %s can't seem to go that way." % self.name, FEEDBACK)
       return False
     else:
       # update where we are
@@ -622,7 +664,7 @@ class Actor(Object):
       return True
 
   def act_list_verbs( self, actor, noun, words ):
-    output( textwrap.fill(" ".join(sorted(self.verbs.keys()))), FEEDBACK )
+    self.output( textwrap.fill(" ".join(sorted(self.verbs.keys()))), FEEDBACK )
     return True
 
   # support for scriptable actors, override these to implement
@@ -829,12 +871,12 @@ class Animal(Actor):
       return
     exit = random.choice(self.location.exits.items())
     if self.location == observer_loc:
-      output("%s leaves the %s via the %s." % (add_article(self.name).capitalize(),
+      self.output("%s leaves the %s via the %s." % (add_article(self.name).capitalize(),
                                                observer_loc.name,
                                                exit[1].name), FEEDBACK)
     self.act_go1(self, direction_name[exit[0]], None)
     if self.location == observer_loc:
-      output("%s enters the %s via the %s." % (add_article(self.name).capitalize(),
+      self.output("%s enters the %s via the %s." % (add_article(self.name).capitalize(),
                                                observer_loc.name,
                                                exit[1].name), FEEDBACK)
 
@@ -849,13 +891,13 @@ class Pet(Robot, Animal):
     self.verbs['stay'] = self.act_stay
 
   def act_follow(self, actor, words=None):
-    self.leader = self.world.hero
-    output( "%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
+    self.leader = self.hero
+    self.output( "%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
     return True
 
   def act_stay(self, actor, words=None):
     if self.leader:
-      output( "%s obediently stops following %s" % (self.name, self.leader.name) , FEEDBACK)
+      self.output( "%s obediently stops following %s" % (self.name, self.leader.name) , FEEDBACK)
     self.leader = None
     return True
 
@@ -864,87 +906,6 @@ class Pet(Robot, Animal):
       self.set_location(self.leader.location)
     else:
       self.random_move(observer_loc)
-
-
-# a World is how all the locations, things, and connections are organized
-class World(Object):
-  # locations
-  # hero, the first person actor
-  # robots, list of actors which are robots (can accept comands from the hero)
-  # animals, list of actors which are animals (act on their own)
-
-  def __init__ ( self ):
-    self.hero = None
-    self.locations = {}
-    self.robots = {}
-    self.animals = {}
-    self.game = None
-
-
-  # make a (one-way) connection between point A and point B
-  def connect( self, point_a, name, point_b, way ):
-    c = Connection( point_a, name, point_b )
-    point_a.add_exit( c, way )
-    return c
-
-  # make a bidirectional between point A and point B
-  def biconnect( self, point_a, point_b, name, ab_way, ba_way ):
-    c1 = Connection( point_a, name, point_b )
-    if isinstance(ab_way, (list, tuple)):
-      for way in ab_way:
-        point_a.add_exit( c1, way )
-    else:
-      point_a.add_exit( c1, ab_way )
-    c2 = Connection( point_b, name, point_a )
-    if isinstance(ba_way, (list, tuple)):
-      for way in ba_way:
-        point_b.add_exit( c2, way )
-    else:
-      point_b.add_exit( c2, ba_way )
-    return c1, c2
-
-  # add a bidirectional connection between points A and B
-  def add_connection( self, connection ):
-    if isinstance(connection.way_ab, (list, tuple)):
-      for way in connection.way_ab:
-        connection.point_a.add_exit( connection, way )
-    else:
-      connection.point_a.add_exit( connection, connection.way_ab )
-
-    # this is messy, need a better way to do this
-    reverse_connection = Connection( connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
-    if isinstance(connection.way_ba, (list, tuple)):
-      for way in connection.way_ba:
-        connection.point_b.add_exit( reverse_connection, way )
-    else:
-      connection.point_b.add_exit( reverse_connection, connection.way_ba )
-    return connection
-
-  def new_connection(self, *args):
-    return self.add_connection(Connection(*args))
-
-  # add another location to the world
-  def add_location(self,  location ):
-    location.world = self
-    self.locations[location.name] = location
-    return location
-
-  def new_location(self, *args):
-    return self.add_location(Location(*args))
-
-  # add an actor to the world
-  def add_actor(self, actor):
-    if isinstance(actor, Hero):
-      self.hero = actor
-
-    if isinstance(actor, Animal):
-      self.animals[actor.name] = actor
-
-    if isinstance(actor, Robot):
-      self.robots[actor.name] = actor
-
-    actor.world = self
-    return actor
 
 
 class Share(object):
@@ -1121,7 +1082,6 @@ class Share(object):
     return self._do(domain, "ZREM", key, value)
 
 
-
 FEEDBACK = 0
 TITLE = 1
 DESCRIPTION = 2
@@ -1129,7 +1089,7 @@ CONTENTS = 3
 
 
 # this handles printing things to output, it also styles them
-def output(text, message_type = 0):
+def print_output(text, message_type = 0):
   print style_text(text, message_type)
 
 # this makes the text look nice in the terminal... WITH COLORS!
