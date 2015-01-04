@@ -166,16 +166,6 @@ class Object(object):
 
   def output(self, text, message_type = 0):
     self.game.output(text, message_type)
-      
-
-def if_flag(flag, s_true, s_false):
-  return lambda self: (s_false, s_true)[flag in self.vars]
-
-def if_flag_at(location, flag, s_true, s_false):
-  return lambda self: (s_false, s_true)[flag in location.vars]
-
-def if_var(var, value, s_true, s_false):
-  return lambda self: (s_false, s_true)[var in self.var and self.vars[var] == value] 
 
 
 # The Game: container for hero, locations, robots, animals etc.
@@ -238,6 +228,11 @@ class Game(Object):
 
     return actor
 
+  def if_flag(self, flag, s_true, s_false, location = None):
+    return lambda loc: (s_false, s_true)[flag in (location or loc).vars]
+
+  def if_var(self, var, value, s_true, s_false, location = None):
+    return lambda loc: (s_false, s_true)[var in (location or loc).var and (location or loc).vars[var] == value] 
 
   # overload this for HTTP output
   def output(self, text, message_type = 0):
@@ -481,25 +476,19 @@ class Location(Object):
       desc += self.description_str(self.description)
       self.first_time = False
 
-    # any things here?
-    if self.contents or self.actors:
-      # add a newline so that the list starts on it's own line
-      desc += "\n"
-
     if self.contents:
       # try to make a readable list of the things
       contents_description = proper_list_from_dict(self.contents)
       # is it just one thing?
       if len(self.contents) == 1:
-        desc += style_text("There is %s here." % contents_description, CONTENTS)
+        desc += style_text("\nThere is %s here." % contents_description, CONTENTS)
       else:
-        desc += style_text("There are a few things here: %s." % contents_description, CONTENTS)
+        desc += style_text("\nThere are a few things here: %s." % contents_description, CONTENTS)
 
     if self.actors:
       for a in self.actors:
         if a != observer:
-          desc += "\n"
-          desc += style_text(add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
+          desc += style_text("\n" + add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
 
     return desc
 
@@ -530,6 +519,7 @@ class Location(Object):
 
   def make_requirement(self, thing):
       self.requirements[thing.name] = thing
+
 
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.

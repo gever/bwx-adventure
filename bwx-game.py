@@ -8,7 +8,7 @@ from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FOR
 
 # Set up the game you are going to build on.
 # my_game is a top-level container for everything in the game.
-my_game = Game("Brightworks Adventure")
+game = Game("Brightworks Adventure")
 
 # Create some interesting locations. Locations need a name
 # and a description of any doorways or connections to the room, like this:
@@ -24,14 +24,15 @@ The sign says 'Come In!'
 vestibule = Location(
 "Vestibule", 
 ["A small area at the bottom of a flight of stairs.\n",
-  if_flag('switch_on', "There is a switch next to a lit bulb.\n",
-                       "There is a switch next to an unlit bulb.\n"),
+  game.if_flag('switch_on', "There is a switch next to a lit bulb.\n",
+    "There is a switch next to an unlit bulb.\n"),
 "Up the stars you see the reception desk."])
 
 # You can also create a function to provide the description.
 def reception_description(self):
-  return ["Behind an opening in the wall you see ",
-      if_flag_at(vestibule, "switch_on", "a lit", "an unlit"),
+  return [
+      "Behind an opening in the wall you see ",
+      game.if_flag("switch_on", "a lit", "an unlit", vestibule),
 """ room.
 You see a score board and a message box with a needle for messages.
 There is a locked sliding door to the south, and an intersection to the north."""]
@@ -55,15 +56,15 @@ To the west is an intersection.
 secret_lab = Location("Secret Laboratory", "This place is spooky. It's dark and \nthere are cobwebs everywhere. There must \nbe a light switch somewhere.")
 
 # Let's add the locations to your game.
-my_game.add_location(sidewalk)
-my_game.add_location(vestibule)
-my_game.add_location(reception)
-my_game.add_location(intersection)
-my_game.add_location(elevator)
+game.add_location(sidewalk)
+game.add_location(vestibule)
+game.add_location(reception)
+game.add_location(intersection)
+game.add_location(elevator)
 
 # You can also add a simple location with the convience function 'new_location'.
 # "\n" makes a new line in a Python string.
-my_game.new_location(
+game.new_location(
 "Secret Laboratory", "This place is spooky. It's dark and \nthere are cobwebs everywhere. There must \nbe a light switch somewhere.")
 
 # Create connections between the different places. Each connection
@@ -79,12 +80,12 @@ stairs = Connection("Stairs", vestibule, reception, UP, DOWN)
 steps_to_reception = Connection("A Few Steps", reception, intersection, NORTH, SOUTH)
 
 # Now add the connections to the game too.
-my_game.add_connection(big_door)
-my_game.add_connection(stairs)
-my_game.add_connection(steps_to_reception)
+game.add_connection(big_door)
+game.add_connection(stairs)
+game.add_connection(steps_to_reception)
 
 # You can also add a connection with a single convenience function:
-my_game.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
+game.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
 
 # Create some things to put in your game. You need a name and
 # a description for the thing you are making.
@@ -143,10 +144,10 @@ hero = Hero()
 
 # Add the actors to the game. Heroes, animals, robots, and pets are
 # all kinds of actors.
-my_game.add_actor(hero)
-my_game.add_actor(cat)
-my_game.add_actor(robby)
-my_game.add_actor(fido)
+game.add_actor(hero)
+game.add_actor(cat)
+game.add_actor(robby)
+game.add_actor(fido)
 
 # add a custom actor verb (in this case for the hero)
 def throw(self, actor, noun, words):
@@ -302,10 +303,10 @@ reception.add_verb("read", scores)
 hero.set_location(sidewalk)
 
 def update():
-  if (my_game.entering_location(reception)):
-    if (my_game.inventory_contains([pebble])):
-      my_game.output( "The pebble you picked up is suddenly feeling warm to the touch!")
+  if (game.entering_location(reception)):
+    if (game.inventory_contains([pebble])):
+      game.output( "The pebble you picked up is suddenly feeling warm to the touch!")
 
 
 # Start playing.
-my_game.run(update)
+game.run(update)
