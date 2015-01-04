@@ -190,6 +190,9 @@ class Game(Object):
   def add_object(self, obj, scope):
     self.objects[scope + '.' + obj.name] = obj
 
+  def output(self, text, message_type = 0):
+    output(text, message_type)
+
   # checks to see if the inventory in the items list is in the user's inventory
   def inventory_contains(self, items):
     if set(items).issubset(set(self.world.hero.inventory.values())):
@@ -1129,7 +1132,7 @@ CONTENTS = 3
 def output(text, message_type = 0):
   print style_text(text, message_type)
 
-# this makes the text look nice in the nerinal... WITH COLORS!
+# this makes the text look nice in the terminal... WITH COLORS!
 def style_text(text, message_type):
   if (message_type == FEEDBACK):
     text = Colors.FG.pink + text + Colors.reset
