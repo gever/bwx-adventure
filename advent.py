@@ -217,7 +217,7 @@ class Game(Base):
   def add_actor(self, actor):
     actor.game = self
 
-    if isinstance(actor, Hero):
+    if isinstance(actor, Player):
       self.hero = actor
 
     if isinstance(actor, Animal):
@@ -227,6 +227,12 @@ class Game(Base):
       self.robots[actor.name] = actor
 
     return actor
+
+  def add_player(self, location):
+    player = Player()
+    self.add_actor(player)
+    player.set_location(location)
+    return player
 
   def if_flag(self, flag, s_true, s_false, location = None):
     return lambda loc: (s_false, s_true)[flag in (location or loc).vars]
@@ -671,9 +677,9 @@ class Actor(Base):
 
 
 
-class Hero(Actor):
+class Player(Actor):
   def __init__( self ):
-    super(Hero, self).__init__("you", True)
+    super(Player, self).__init__("you", True)
 
   def add_verb( self, name, f ):
     self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)

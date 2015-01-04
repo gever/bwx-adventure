@@ -3,7 +3,7 @@
 
 from advent import *
 # for cloud9
-from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Hero
+from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Player
 from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 
 # Set up the game you are going to build on.
@@ -140,9 +140,9 @@ fido = Pet("Fido")
 fido.set_location(sidewalk)
 
 # Make the player.
-hero = Hero()
+hero = Player()
 
-# Add the actors to the game. Heroes, animals, robots, and pets are
+# Add the actors to the game. Players, animals, robots, and pets are
 # all kinds of actors.
 game.add_actor(hero)
 game.add_actor(cat)
