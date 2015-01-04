@@ -580,16 +580,13 @@ class Actor(Base):
   # moved
   # verbs
 
-  def __init__( self, name, hero = False ):
+  def __init__( self, name):
     Base.__init__(self, name)
     self.location = None
     self.inventory = {}
     self.cap_name = name.capitalize()
-    self.hero = hero
-    if hero:
-      self.isare = "are"
-    else:
-      self.isare = "is"
+    self.hero = False
+    self.isare = "is"
     # associate each of the known actions with functions
     self.verbs['take'] = act_multi(self.act_take1)
     self.verbs['get'] = act_multi(self.act_take1)
@@ -685,16 +682,6 @@ class Actor(Base):
 
   def set_next_script_line( self, line ):
     return True
-
-
-
-class Player(Actor):
-  def __init__( self ):
-    Actor.__init__(self, "you", True)
-
-  def add_verb( self, name, f ):
-    self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
-
 
 # Scripts are sequences of instructions for Robots to execute
 class Script(Base):
@@ -847,7 +834,8 @@ class Robot(Actor):
       return None
     line = self.current_script.get_next_line()
     if not line:
-      print "%s is done running script \"%s\"." % (self.name,
+      print "%s %s done running script \"%s\"." % (self.name,
+                                                   self.isare,
                                                    self.current_script.name)
       self.current_script = None
       return None
@@ -868,6 +856,12 @@ class Robot(Actor):
     return True
 
 
+# Player derives from Robot so that we can record and run scripts as the player
+class Player(Robot):
+  def __init__( self ):
+    super(Hero, self).__init__("you")
+    self.hero = True
+    self.isare = "are"
 
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
