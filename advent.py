@@ -305,6 +305,9 @@ class Game(Base):
         return True
     return False
 
+  def say(self, s):
+    return lambda game: game.output(s)
+
   def run(self , update_func = False):
     # parse the args now that all modules have had a chance to add arg handlers
     self.args = self.argparser.parse_args()
@@ -628,7 +631,7 @@ class Actor(Base):
     self.location = None
     self.inventory = {}
     self.cap_name = name.capitalize()
-    self.hero = False
+    self.player = False
     self.isare = "is"
     # associate each of the known actions with functions
     self.add_verb(Verb('take', self.act_take1))
@@ -904,9 +907,9 @@ class Robot(Actor):
 # Player derives from Robot so that we can record and run scripts as the player
 class Player(Robot):
   def __init__( self ):
-    # super(Hero, self).__init__("you")
+    # super(Player, self).__init__("you")
     Robot.__init__(self, "you")
-    self.hero = True
+    self.player = True
     self.isare = "are"
 
 

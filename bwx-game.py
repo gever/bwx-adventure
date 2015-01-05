@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# vim: et sw=r2 ts=2 sts=2
+# vim: et sw=2 ts=2 sts=2
 
 from advent import *
 # for cloud9
