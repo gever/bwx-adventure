@@ -201,7 +201,15 @@ class SayOnSelf(SayOnNoun):
   def __init__(self, name, string):
     SayOnNoun.__init__(self, name, None, string)
 
+# CustomVerb is used for passing in an unbound global function to the constructor
+class CustomVerb(Verb):
+  def __init__( self, name, f ):
+    Verb.__init__(self, name, f)
 
+  # explicitly pass in self to the unbound function
+  def act(self, actor, noun, words):
+    return self.function(self, actor, noun, words)
+    
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
   def __init__(self, name="bwx-adventure"):
