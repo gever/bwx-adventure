@@ -679,7 +679,7 @@ class Actor(Base):
 
 class Player(Actor):
   def __init__( self ):
-    super(Player, self).__init__("you", True)
+    Actor.__init__(self, "you", True)
 
   def add_verb( self, name, f ):
     self.verbs[name] = (lambda self: lambda *args : f(self, *args))(self)
