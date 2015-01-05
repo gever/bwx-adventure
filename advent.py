@@ -241,8 +241,8 @@ class Game(Base):
   def if_flag(self, flag, s_true, s_false, location = None):
     return lambda loc: (s_false, s_true)[flag in (location or loc).vars]
 
-  def if_var(self, var, value, s_true, s_false, location = None):
-    return lambda loc: (s_false, s_true)[var in (location or loc).vars and (location or loc).vars[var] == value] 
+  def if_var(self, v, value, s_true, s_false, location = None):
+    return lambda loc: (s_false, s_true)[v in (location or loc).vars and (location or loc).vars[v] == value] 
 
   # overload this for HTTP output
   def output(self, text, message_type = 0):
@@ -759,7 +759,7 @@ class Script(Base):
 # They can also record and run scripts.
 class Robot(Actor):
   def __init__( self, name ):
-    super(Robot, self ).__init__( name )
+    Robot.__init__( self, ame )
     self.name = name
     self.scripts = {}
     self.current_script = None
@@ -987,8 +987,8 @@ class Share(object):
     if not self.is_available():
       return None
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s.raw' % (self.hostname, self.port, cmd, k))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s.raw' % (self.hostname, self.port, cmd, k))
+    v = net_f.read().split('\n')
     if len(v) > 1:
        return v[1].strip()
     return None
@@ -998,8 +998,8 @@ class Share(object):
     if not self.is_available():
       return None
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1))
+    v = net_f.read().split('\n')
     if len(v) > 1:
        return v[1]  # should be ""
     return None
@@ -1009,8 +1009,8 @@ class Share(object):
     if not self.is_available():
       return None
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
+    v = net_f.read().split('\n')
     if len(v) > 1:
        return v[1]  # should be ""
     return None
@@ -1021,8 +1021,8 @@ class Share(object):
     if not self.is_available():
       return []
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2))
+    v = net_f.read().split('\n')
     return v
 
   # return a list
@@ -1031,8 +1031,8 @@ class Share(object):
     if not self.is_available():
       return []
     k = self.key_fns[domain](key)
-    f = self.opener.open('http://%s:%s/%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2, arg3))
-    v = f.read().split('\n')
+    net_f = self.opener.open('http://%s:%s/%s/%s/%s/%s/%s.raw' % (self.hostname, self.port, cmd, k, arg1, arg2, arg3))
+    v = net_f.read().split('\n')
     return v
 
   def delete(self, domain, key):
@@ -1102,6 +1102,9 @@ def print_output(text, message_type = 0):
 
 # this makes the text look nice in the terminal... WITH COLORS!
 def style_text(text, message_type):
+  if False: # trinket.io
+    return text
+
   if (message_type == FEEDBACK):
     text = Colors.FG.pink + text + Colors.reset
 
