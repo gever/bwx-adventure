@@ -389,7 +389,7 @@ class Game(Base):
           if noun == thing.name:
             f = thing.get_verb( verb )
             if f:
-              if f( actor, None, words ):
+              if f( thing, actor, None, words ):
                 done = True
                 break
         if done:
@@ -461,6 +461,9 @@ class Location(Base):
   def add_object(self, obj):
     self.contents[obj.name] = obj
     return obj
+
+  def new_object(self, name, desc, fixed=False ):
+    return self.add_object(Object(name, desc, fixed))
 
   def description_str(self, d):
     if isinstance(d, (list, tuple)):

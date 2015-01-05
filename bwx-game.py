@@ -267,6 +267,16 @@ def pop(self, actor, noun, words):
 
 reception.add_verb("pop", pop)
 
+
+# custom verb on an object
+def rub_key(self, actor, noun, words):
+  if noun or words:
+    return False
+  actor.game.output("You rub the key but only succeed in making it more tarnished.")
+  return True
+
+elev_key.add_verb("rub", rub_key)
+
 # high score example.  When the adventurer's score changes use zadd to add/update the score.
 share.delete(share.ADVENTURE, 'highscore')
 share.zadd(share.ADVENTURE, 'highscore', 'joe', 10)
