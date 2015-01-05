@@ -79,16 +79,20 @@ articles = ['a', 'an', 'the']
 # note that no article should be added to proper names; store
 # a global list of these somewhere?  For now we'll just assume
 # anything starting with upper case is proper.
+# Do not add an article to plural nouns.
 def add_article ( name ):
-   consonants = "bcdfghjklmnpqrstvwxyz"
-   vowels = "aeiou"
-   if name and (name[0] in vowels):
-      article = "an "
-   elif name and (name[0] in consonants):
-      article = "a "
-   else:
-      article = ""
-   return "%s%s" % (article, name)
+  # simple plural test
+  if len(name) > 1 and name[len(name)-1] == 's' and name[len(name)-2] != 's':
+    return name
+  consonants = "bcdfghjklmnpqrstvwxyz"
+  vowels = "aeiou"
+  if name and (name[0] in vowels):
+     article = "an "
+  elif name and (name[0] in consonants):
+     article = "a "
+  else:
+     article = ""
+  return "%s%s" % (article, name)
 
 
 def remove_superfluous_input(text):
