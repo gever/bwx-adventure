@@ -9,6 +9,7 @@ import urllib2
 
 import argparse
 import random
+import string
 import textwrap
 import time
 
@@ -96,10 +97,11 @@ def add_article ( name ):
   return "%s%s" % (article, name)
 
 
-def remove_superfluous_input(text):
-  superfluous = articles +  ['to']
+def normalize_input(text):
+  superfluous = articles +  ['to', 'and']
   rest = []
   for word in text.split():
+    word = word.translate(string.maketrans("",""), string.punctuation)
     if word not in superfluous:
       rest.append(word)
   return ' '.join(rest)
@@ -337,11 +339,9 @@ class Game(Base):
         if user_input == 'q' or user_input == 'quit':
           break
 
-      clean_user_input = remove_superfluous_input(user_input)
-
       # see if the command is for a robot
-      if ':' in clean_user_input:
-         robot_name, command = clean_user_input.split(':')
+      if ':' in user_input:
+         robot_name, command = user_input.split(':')
          try:
             actor = self.robots[robot_name]
          except KeyError:
@@ -349,8 +349,11 @@ class Game(Base):
             continue
       else:
          actor = self.hero
-         command = clean_user_input
+         command = user_input
 
+      # now we're done with punctuation and other superfluous words like articles
+      command = normalize_input(command)
+      
       # give the input to the actor in case it's recording a script
       if not actor.set_next_script_line(command):
         continue
