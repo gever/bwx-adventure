@@ -336,8 +336,6 @@ class Game(Base):
           user_input = raw_input("> ")
         except EOFError:
           break
-        if user_input == 'q' or user_input == 'quit':
-          break
 
       # see if the command is for a robot
       if ':' in user_input:
@@ -350,10 +348,14 @@ class Game(Base):
       else:
          actor = self.hero
          command = user_input
-
+         
       # now we're done with punctuation and other superfluous words like articles
       command = normalize_input(command)
-      
+
+      # see if we want to quit
+      if command == 'q' or command == 'quit':
+        break
+
       # give the input to the actor in case it's recording a script
       if not actor.set_next_script_line(command):
         continue
