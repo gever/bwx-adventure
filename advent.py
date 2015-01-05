@@ -238,7 +238,7 @@ class Game(Base):
     return lambda loc: (s_false, s_true)[flag in (location or loc).vars]
 
   def if_var(self, var, value, s_true, s_false, location = None):
-    return lambda loc: (s_false, s_true)[var in (location or loc).var and (location or loc).vars[var] == value] 
+    return lambda loc: (s_false, s_true)[var in (location or loc).vars and (location or loc).vars[var] == value] 
 
   # overload this for HTTP output
   def output(self, text, message_type = 0):
