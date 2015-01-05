@@ -203,9 +203,6 @@ class SayOnSelf(SayOnNoun):
 
 # CustomVerb is used for passing in an unbound global function to the constructor
 class CustomVerb(Verb):
-  def __init__( self, name, f ):
-    Verb.__init__(self, name, f)
-
   # explicitly pass in self to the unbound function
   def act(self, actor, noun, words):
     return self.function(self, actor, noun, words)
