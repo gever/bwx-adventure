@@ -621,6 +621,7 @@ class Actor(Base):
 
   # establish where we are "now"
   def set_location( self, loc ):
+    self.game = loc.game # XXX this is a hack do this better
     if not self.hero and self.location:
       self.location.actors.remove( self )
     self.location = loc
