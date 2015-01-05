@@ -775,26 +775,28 @@ class Robot(Actor):
     self.add_verb(Verb('load', self.act_load_file))
     self.add_verb(Verb('think', self.set_think_time))
 
+  def parse_script_name(self, noun):
+    if not noun:
         script_name = "default"
     else:
-        script_name = words[1]
+        script_name = noun
     return script_name
 
-  def act_start_recording(self, actor, words=None):
-    script_name = self.parse_script_name(words)
+  def act_start_recording(self, actor, noun, words):
+    script_name = self.parse_script_name(noun)
     script = Script(script_name)
     self.scripts[script_name] = script
     script.start_recording()
     self.current_script = script
     return True
 
-  def act_run_script(self, actor, words=None):
+  def act_run_script(self, actor, noun, words):
     if self.current_script:
       print "You must stop \"%s\" first." % (self.current_script.name)
-    script_name = self.parse_script_name(words)
+    script_name = self.parse_script_name(noun)
     if not script_name in self.scripts:
       print "%s can't find script \"%s\" in its memory." % (self.name,
-                                                              script_name)
+                                                            script_name)
 
       return True;
 
@@ -803,8 +805,8 @@ class Robot(Actor):
     script.start_running()
     return True
 
-  def act_print_script(self, actor, words=None):
-    script_name = self.parse_script_name(words)
+  def act_print_script(self, actor, noun, words):
+    script_name = self.parse_script_name(noun)
     if not script_name in self.scripts:
       print "%s can't find script \"%s\" in its memory." % (self.name,
                                                               script_name)
@@ -815,8 +817,8 @@ class Robot(Actor):
     print "---------------------->8-------------------------"
     return True
 
-  def act_save_file(self, actor, words=None):
-    script_name = self.parse_script_name(words)
+  def act_save_file(self, actor, noun, words):
+    script_name = self.parse_script_name(noun)
     if not script_name in self.scripts:
       print "%s can't find script \"%s\" in its memory." % (self.name,
                                                               script_name)
@@ -824,20 +826,20 @@ class Robot(Actor):
     self.scripts[script_name].save_file()
     return True
 
-  def act_load_file(self, actor, words=None):
-    script_name = self.parse_script_name(words)
+  def act_load_file(self, actor, noun, words):
+    script_name = self.parse_script_name(noun)
     self.scripts[script_name] = Script(script_name)
     self.scripts[script_name].load_file()
     return True
 
-  def set_think_time(self, actor, words):
-    if words and len(words) == 2:
-      t = float(words[1])
+  def set_think_time(self, actor, noun, words):
+    if noun:
+      t = float(noun)
       if t >= 0 and t <= 60:
           self.script_think_time = t
           return True
 
-    print "\"think\" requires a number of seconds (0-60) as an argument"
+    print "\"think\" requires a number of seconds (0.0000-60.0000) as an argument"
     return True
 
   def get_next_script_line(self):
