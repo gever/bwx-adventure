@@ -767,7 +767,8 @@ class Script(Base):
 # They can also record and run scripts.
 class Robot(Actor):
   def __init__( self, name ):
-    Robot.__init__( self, ame )
+    #super(Robot, self ).__init__( name )
+    Actor.__init__(self, name)
     self.name = name
     self.scripts = {}
     self.current_script = None
@@ -876,7 +877,8 @@ class Robot(Actor):
 # Player derives from Robot so that we can record and run scripts as the player
 class Player(Robot):
   def __init__( self ):
-    super(Hero, self).__init__("you")
+    # super(Hero, self).__init__("you")
+    Robot.__init__(self, "you")
     self.hero = True
     self.isare = "are"
 
@@ -884,9 +886,9 @@ class Player(Robot):
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
   def __init__( self, name ):
-    super(Animal, self ).__init__( name )
-    self.name = name
-
+    #super(Animal, self ).__init__( name )
+    Actor.__init__(self, name)
+    
   def act_autonomously(self, observer_loc):
     self.random_move(observer_loc)
 
@@ -908,7 +910,8 @@ class Animal(Actor):
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
 class Pet(Robot, Animal):
   def __init__( self, name ):
-    super(Pet, self ).__init__( name )
+    #super(Pet, self ).__init__( name )
+    Robot.__init__(self, name)
     self.leader = None
     self.add_verb(Verb('heel', self.act_follow))
     self.add_verb(Verb('follow', self.act_follow))
