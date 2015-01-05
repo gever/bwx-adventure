@@ -124,6 +124,7 @@ class Base(object):
     self.game = None
     self.name = name
     self.verbs = {}
+    self.phrases = {}
     self.vars = {}
 
   def flag(self, f):
@@ -168,17 +169,30 @@ class Base(object):
     else:
       return None
 
+  def add_phrase(self, phrase, f, requirements = []):
+    self.phrases[' '.join(phrase.split())] = (f, set(requirements))
+
+  def get_phrase(self, phrase, things_present):
+    phrase = phrase.strip()
+    things_present = set(things_present)
+    if not phrase in self.phrases:
+      return None
+    p = self.phrases[phrase]
+    if things_present.issuperset(p[1]):
+      return p[0]
+    return None
+
   def output(self, text, message_type = 0):
     self.game.output(text, message_type)
 
 
-# The Game: container for hero, locations, robots, animals etc.
+# The Game: container for player, locations, robots, animals etc.
 class Game(Base):
   def __init__(self, name="bwx-adventure"):
     Base.__init__(self, name)
     self.objects = {}
     self.fresh_location = False
-    self.hero = None
+    self.player = None
     self.locations = {}
     self.robots = {}
     self.animals = {}
@@ -222,7 +236,7 @@ class Game(Base):
     actor.game = self
 
     if isinstance(actor, Player):
-      self.hero = actor
+      self.player = actor
 
     if isinstance(actor, Animal):
       self.animals[actor.name] = actor
@@ -232,11 +246,11 @@ class Game(Base):
 
     return actor
 
-  def add_player(self, location):
-    player = Player()
-    self.add_actor(player)
-    player.set_location(location)
-    return player
+  def new_player(self, location):
+    self.player = Player()
+    self.add_actor(self.player)
+    self.player.set_location(location)
+    return self.player
 
   def if_flag(self, flag, s_true, s_false, location = None):
     return lambda loc: (s_false, s_true)[flag in (location or loc).vars]
@@ -250,12 +264,12 @@ class Game(Base):
 
   # checks to see if the inventory in the items list is in the user's inventory
   def inventory_contains(self, items):
-    if set(items).issubset(set(self.hero.inventory.values())):
+    if set(items).issubset(set(self.player.inventory.values())):
       return True
     return False
 
   def entering_location(self, location):
-    if (self.hero.location == location and self.fresh_location):
+    if (self.player.location == location and self.fresh_location):
         return True
     return False
 
@@ -264,7 +278,7 @@ class Game(Base):
     # reset this every loop so we don't trigger things more than once
     self.fresh_location = False
 
-    actor = self.hero
+    actor = self.player
     while True:
       # if the actor moved, describe the room
       if actor.check_if_moved():
@@ -311,7 +325,7 @@ class Game(Base):
             self.output( "I don't know anybot named %s" % robot_name, FEEDBACK)
             continue
       else:
-         actor = self.hero
+         actor = self.player
          command = clean_user_input
 
       # give the input to the actor in case it's recording a script
@@ -321,6 +335,19 @@ class Game(Base):
       words = command.split()
       if not words:
         continue
+
+
+      # first check phrases
+      things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
+      done = False
+      for thing in things:
+        f = thing.get_phrase(command, things)
+        if f:
+          f(self)
+          done = True
+      if done:
+        continue
+
 
       # following the Infocom convention commands are decomposed into
       # VERB(verb), OBJECT(noun), INDIRECT_OBJECT(indirect).
@@ -363,10 +390,10 @@ class Game(Base):
 
       # if we have an indirect object, try it's handle first
       # e.g. "hit cat with hammer" -> hammer.hit( actor, 'cat', [] )
-      things = actor.inventory.values() + actor.location.contents.values()
       if indirect:
         # try inventory and room contents
         done = False
+        things = actor.inventory.values() + actor.location.contents.values()
         for thing in things:
           if indirect == thing.name:
             f = thing.get_verb( verb )
@@ -515,7 +542,7 @@ class Location(Base):
       # check if there are any requirements for this room
       if len(c.point_b.requirements) > 0:
         # check to see if the requirements are in the inventory
-        if set(c.point_b.requirements).issubset(set(self.game.hero.inventory)):
+        if set(c.point_b.requirements).issubset(set(self.game.player.inventory)):
           self.output( "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
           return c.point_b
 
@@ -576,13 +603,13 @@ class Actor(Base):
   # moved
   # verbs
 
-  def __init__( self, name, hero = False ):
+  def __init__( self, name, player = False ):
     Base.__init__(self, name)
     self.location = None
     self.inventory = {}
     self.cap_name = name.capitalize()
-    self.hero = hero
-    if hero:
+    self.player = player
+    if player:
       self.isare = "are"
     else:
       self.isare = "is"
@@ -604,11 +631,11 @@ class Actor(Base):
 
   # establish where we are "now"
   def set_location( self, loc ):
-    if not self.hero and self.location:
+    if not self.player and self.location:
       self.location.actors.remove( self )
     self.location = loc
     self.moved = True
-    if not self.hero:
+    if not self.player:
       self.location.actors.add( self )
 
   # move a thing from the current location to our inventory
@@ -899,7 +926,7 @@ class Pet(Robot, Animal):
     self.verbs['stay'] = self.act_stay
 
   def act_follow(self, actor, words=None):
-    self.leader = self.hero
+    self.leader = self.player
     self.output( "%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
     return True
 

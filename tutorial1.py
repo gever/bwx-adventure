@@ -1,7 +1,7 @@
 #!/user/bin/python
 # vim: et sw=2 ts=2 sts=2
 #
-# This is a tutorial writing Interactive Fiction with the BWX Adventure Game Engine.
+# This is a tutorial for writing Interactive Fiction with the BWX Adventure Game Engine.
 # Ignore the magic before this point (feel free to ask if you are curious).
 #
 # First we need to import everything we need from the Game engine (a module called 'advent'):
@@ -81,7 +81,7 @@ game.new_connection("Glass Door", sidewalk, vestibule, [IN, EAST], [OUT, WEST])
 
 # Now we are going to add our player at the starting location:
 
-player = game.add_player(sidewalk)
+player = game.new_player(sidewalk)
 
 # We assign our player to the variable 'player' even though we are not going to do anything
 # with the player in this tutorial.
