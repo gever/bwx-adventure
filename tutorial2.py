@@ -83,8 +83,15 @@ def flip_coin(game):
 
 # Now let's add the phrase:
 
-key.add_phrase("flip coin", flip_coin)
+player.add_phrase("flip coin", flip_coin, [coin])
 
-# Let's run the game.
+# We are adding the phrase to the player, so we call the function player.add_phrase.
+# The first argument is the phrase that the user will type, the second argument is our
+# flip_coin function.  The last argument is a list (in []) of requirements (other than the
+# player) needed for this phrase to trigger.  In this case that is the coin itself. If you
+# had, for example, a cauldron and a potion you might have the phrase "add potion to cauldron"
+# which would require both the cauldron and the potion to trigger.
+
+# Let's run the game.  See if you can get heads!
 
 game.run()
