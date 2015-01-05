@@ -215,8 +215,13 @@ class SayOnSelf(SayOnNoun):
   def __init__(self, name, string):
     SayOnNoun.__init__(self, name, None, string)
 
-
-# The Game: container for player, locations, robots, animals etc.
+# CustomVerb is used for passing in an unbound global function to the constructor
+class CustomVerb(Verb):
+  # explicitly pass in self to the unbound function
+  def act(self, actor, noun, words):
+    return self.function(self, actor, noun, words)
+    
+# The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
   def __init__(self, name="bwx-adventure"):
     Base.__init__(self, name)
@@ -353,8 +358,6 @@ class Game(Base):
           user_input = raw_input("> ")
         except EOFError:
           break
-        if user_input == 'q' or user_input == 'quit':
-          break
 
       # see if the command is for a robot
       if ':' in user_input:
@@ -367,10 +370,14 @@ class Game(Base):
       else:
          actor = self.player
          command = user_input
-
+         
       # now we're done with punctuation and other superfluous words like articles
       command = normalize_input(command)
-      
+
+      # see if we want to quit
+      if command == 'q' or command == 'quit':
+        break
+
       # give the input to the actor in case it's recording a script
       if not actor.set_next_script_line(command):
         continue
