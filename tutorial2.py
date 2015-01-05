@@ -22,7 +22,7 @@ sidewalk = game.new_location(
 vestibule = game.new_location(
   "Vestibule",
 """A small area at the bottom of a flight of stairs.
-There is a glass door to the west.""")
+There is a glass door to the west and door to the south.""")
 
 office = game.new_location(
   "Office",
@@ -30,6 +30,8 @@ office = game.new_location(
 There is a door to the south.""")
 
 game.new_connection("Glass Door", sidewalk, vestibule, [IN, EAST], [OUT, WEST])
+
+game.new_connection("Office Door", vestibule, office, [IN, SOUTH], [OUT, NORTH])
 
 player = game.new_player(sidewalk)
 
