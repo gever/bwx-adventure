@@ -27,7 +27,7 @@ There is a glass door to the west and door to the south.""")
 office = game.new_location(
   "Office",
 """A nicely organized office.
-There is a door to the south.""")
+There is a door to the north.""")
 
 game.new_connection("Glass Door", sidewalk, vestibule, [IN, EAST], [OUT, WEST])
 
