@@ -1,7 +1,7 @@
 bwx-adventure
 =============
 
-A simple module for writing text adventure games in python.
+A simple module for writing text adventure games in Python.
 
 This module posits a text adventure World made up of Locations. Locations are
 linked by Connections and sometimes contain Things. The player is represented
@@ -9,6 +9,8 @@ by a Hero object that has a current location. The command parser is simple but
 is easily extended with new commands.
 
 This was initially written in support of the Orange Band at <a href="http://sfbrightworks.org">SF Brightworks</a>.
+
+Contributions are welcome! Open an issue or a pull request.
 
 ```python
 from advent import *
@@ -42,7 +44,7 @@ big_door = Connection("Big Door", sidewalk, vestibule, [IN, EAST], [WEST, OUT])
 # now add the connections to the world too
 my_world.add_connection(big_door)
 
-# create some things to put in your world. You need a name and 
+# create some things to put in your world. You need a name and
 elev_key = Thing( "key", "small tarnished brass key" )
 pebble = sidewalk.put( Thing( "pebble", "round pebble" ) )
 sidewalk.put( elev_key )
