@@ -3,7 +3,7 @@
 
 from advent import *
 # for cloud9
-from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Player
+from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Player, Verb, Say, SayOnNoun, SayOnSelf
 from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 
 # Set up the game you are going to build on.
@@ -122,7 +122,7 @@ def scream( self, actor, noun, words ):
   print "You hear a scream '%s'." % ' '.join(all_words)
   return True
 
-sidewalk.add_verb(CustomVerb('scream', scream))
+sidewalk.add_verb(Verb('scream', scream))
 
 # Add an animal to roam around.  Animals act autonomously (on their own).
 cat = Animal("cat")
@@ -159,14 +159,14 @@ game.add_actor(fido)
 
 # add a custom actor verb (in this case for the hero)
 def throw(self, actor, noun, words):
-  if noun and self.get_verb('drop')( actor, noun, words ):
+  if noun and actor.get_verb('drop').act(actor, noun, words ):
      print 'The %s bounces and falls to the floor' % noun
      return True
   else:
      print 'You hurt your arm.'
      return False
 
-hero.add_verb(CustomVerb("throw", throw))
+hero.add_verb(Verb("throw", throw))
 
 
 # The code starting here is for saving games and data that can be shared.
@@ -199,7 +199,7 @@ def scribble(self, actor, noun, words):
   share.put(share.ADVENTURE, 'crumb.' + self.location.name, noun.strip())
   return True
 
-hero.add_verb(CustomVerb("scribble", scribble))
+hero.add_verb(Verb("scribble", scribble))
 
 # custom verb to see things that have been scribbled
 def peek(self, actor, noun, words):
@@ -210,27 +210,30 @@ def peek(self, actor, noun, words):
   print 'Someone scribbled "%s" here.' % v
   return True
 
-hero.add_verb(CustomVerb("peek", peek))
+hero.add_verb(Verb("peek", peek))
 
 # custom verb to count
 def more(self, actor, noun, words):
-  share.increment(share.ADVENTURE, 'count.' + self.location.name)
-  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + self.location.name)
+  loc_name = "_".join(self.location.name.split(' '))
+  share.increment(share.ADVENTURE, 'count.' + loc_name)
+  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name)
   return True
 
 def fewer(self, actor, noun, words):
-  share.decrement(share.ADVENTURE, 'count.' + self.location.name)
-  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + self.location.name)
+  loc_name = "_".join(self.location.name.split(' '))
+  share.decrement(share.ADVENTURE, 'count.' + loc_name)
+  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name)
   return True
 
 def reset(self, actor, noun, words):
-  share.delete(share.ADVENTURE, 'count.' + self.location.name)
+  loc_name = "_".join(self.location.name.split(' '))
+  share.delete(share.ADVENTURE, 'count.' + loc_name)
   print 'The count is reset!'
   return True
 
-hero.add_verb(CustomVerb("more", more))
-hero.add_verb(CustomVerb("fewer", fewer))
-hero.add_verb(CustomVerb("reset", reset))
+hero.add_verb(Verb("more", more))
+hero.add_verb(Verb("fewer", fewer))
+hero.add_verb(Verb("reset", reset))
 
 # custom verb to change state of a location
 def flip( self, actor, noun, words ):
@@ -243,7 +246,7 @@ def flip( self, actor, noun, words ):
   print "You flip the switch."
   return True
 
-vestibule.add_verb(CustomVerb("flip", flip))
+vestibule.add_verb(Verb("flip", flip))
 
 # custom verb to push and pop messages
 # self is the location since that is where the verb was added
@@ -260,7 +263,7 @@ def push(self, actor, noun, words ):
   print "You left a message on the stack of messages."
   return True
 
-reception.add_verb(CustomVerb("push", push))
+reception.add_verb(Verb("push", push))
 
 def pop(self, actor, noun, words):
   if (noun and noun != "message") or words:
@@ -273,7 +276,7 @@ def pop(self, actor, noun, words):
   print "You pull the top message from the stack and read '%s'." % " ".join(words)
   return True
 
-reception.add_verb(CustomVerb("pop", pop))
+reception.add_verb(Verb("pop", pop))
 
 
 # custom verb on an object
@@ -283,7 +286,7 @@ def rub_key(self, actor, noun, words):
   actor.game.output("You rub the key but only succeed in making it more tarnished.")
   return True
 
-elev_key.add_verb(CustomVerb("rub", rub_key))
+elev_key.add_verb(Verb("rub", rub_key))
 
 # high score example.  When the adventurer's score changes use zadd to add/update the score.
 share.delete(share.ADVENTURE, 'highscore')
@@ -311,9 +314,9 @@ def scores(self, actor, noun, words):
       print "  %s %s" % (x[0], x[1])
   return True
 
-reception.add_verb(CustomVerb("top", top))
-reception.add_verb(CustomVerb("scores", scores))
-reception.add_verb(CustomVerb("read", scores))
+reception.add_verb(Verb("top", top))
+reception.add_verb(Verb("scores", scores))
+reception.add_verb(Verb("read", scores))
 
 # Now that we have created our game and everything in it, we can start the game!
 
