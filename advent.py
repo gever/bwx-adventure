@@ -544,6 +544,7 @@ class Location(Base):
 
   def add_object(self, obj):
     self.contents[obj.name] = obj
+    obj.game = self.game
     return obj
 
   def new_object(self, name, desc, fixed=False ):

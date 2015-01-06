@@ -283,7 +283,7 @@ reception.add_verb(Verb("pop", pop))
 def rub_key(self, actor, noun, words):
   if noun or words:
     return False
-  actor.game.output("You rub the key but only succeed in making it more tarnished.")
+  self.game.output("You rub the key but only succeed in making it more tarnished.")
   return True
 
 elev_key.add_verb(Verb("rub", rub_key))
