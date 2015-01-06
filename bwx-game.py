@@ -169,6 +169,7 @@ def throw(self, actor, noun, words):
 hero.add_verb(Verb(throw, 'throw'))
 
 # add a custom object verb
+# this works for 'hit pebble' as well as 'hit XXX with pebble'
 def useless_hit_with_object(self, actor, noun, words):
   if not noun or noun == self.name:
     self.game.output("Hitting the " + self.name + " was ineffective.")
@@ -178,6 +179,9 @@ def useless_hit_with_object(self, actor, noun, words):
 
 pebble.add_verb(Verb(useless_hit_with_object, "hit"))
 
+# Commands are looked up first by the full phrase, then by Verb first on indirect object,
+# then object then actor.  This catchall for 'hit' is used if no other handler is found.
+hero.add_verb(Say("Such violence is appalling.", "hit"))
 
 # The code starting here is for saving games and data that can be shared.
 # Don't worry if this doesn't make sense yet.
