@@ -144,9 +144,7 @@ class Base(object):
 
   def add_verb(self, v):
     self.verbs[' '.join(v.name.split())] = v
-    v.set_game(self.game)
-    if isinstance(v, Verb):
-      v.set_target(self)
+    v.bind_to(self)
     return v
 
   def get_verb( self, verb ):
@@ -178,10 +176,11 @@ class BaseVerb(Base):
   def __init__(self, function, name):
     Base.__init__(self, name)
     self.function = function 
-    self.game = None
+    self.bound_to = None
     
-  def set_game(self, game):
-    self.game = game
+  def bind_to(self, obj):
+    self.bound_to = obj
+    self.game = self.bound_to.game
     
   def act(self, actor, noun, words):
     result = True
@@ -230,7 +229,7 @@ class Verb(BaseVerb):
 
   # explicitly pass in self to the unbound function
   def act(self, actor, noun, words):
-    return self.function(self.target, actor, noun, words)
+    return self.function(self, actor, noun, words)
     
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
@@ -555,6 +554,7 @@ class Location(Base):
   def add_object(self, obj):
     obj.game = self.game
     self.contents[obj.name] = obj
+    obj.game = self.game
     return obj
 
   def new_object(self, name, desc, fixed=False ):

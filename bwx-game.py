@@ -196,14 +196,14 @@ def scribble(self, actor, noun, words):
   if not noun or words:
     print "You can only scrible a single word."
     return False
-  share.put(share.ADVENTURE, 'crumb.' + self.location.name, noun.strip())
+  share.put(share.ADVENTURE, 'crumb.' + actor.location.name, noun.strip())
   return True
 
 hero.add_verb(Verb(scribble, 'scribble'))
 
 # custom verb to see things that have been scribbled
 def peek(self, actor, noun, words):
-  v = share.get(share.ADVENTURE, 'crumb.' + self.location.name)
+  v = share.get(share.ADVENTURE, 'crumb.' + actor.location.name)
   if not v:
     print 'Nothing here.'
     return False
@@ -214,19 +214,19 @@ hero.add_verb(Verb(peek, 'peek'))
 
 # custom verb to count
 def more(self, actor, noun, words):
-  loc_name = "_".join(self.location.name.split(' '))
+  loc_name = "_".join(actor.location.name.split(' '))
   share.increment(share.ADVENTURE, 'count.' + loc_name)
   print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name)
   return True
 
 def fewer(self, actor, noun, words):
-  loc_name = "_".join(self.location.name.split(' '))
+  loc_name = "_".join(actor.location.name.split(' '))
   share.decrement(share.ADVENTURE, 'count.' + loc_name)
   print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name)
   return True
 
 def reset(self, actor, noun, words):
-  loc_name = "_".join(self.location.name.split(' '))
+  loc_name = "_".join(actor.location.name.split(' '))
   share.delete(share.ADVENTURE, 'count.' + loc_name)
   print 'The count is reset!'
   return True
@@ -239,10 +239,10 @@ hero.add_verb(Verb(reset, 'reset'))
 def flip( self, actor, noun, words ):
   if (noun and noun != "switch") or words:
     return False
-  if self.flag('switch_on'):
-    self.unset_flag('switch_on')
+  if self.bound_to.flag('switch_on'):
+    self.bound_to.unset_flag('switch_on')
   else:
-    self.set_flag('switch_on')
+    self.bound_to.set_flag('switch_on')
   print "You flip the switch."
   return True
 
@@ -283,7 +283,7 @@ reception.add_verb(Verb(pop, 'pop'))
 def rub_key(self, actor, noun, words):
   if noun or words:
     return False
-  actor.game.output("You rub the key but only succeed in making it more tarnished.")
+  self.game.output("You rub the key but only succeed in making it more tarnished.")
   return True
 
 elev_key.add_verb(Verb(rub_key, 'rub'))

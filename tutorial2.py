@@ -22,9 +22,16 @@ sidewalk = game.new_location(
 vestibule = game.new_location(
   "Vestibule",
 """A small area at the bottom of a flight of stairs.
-There is a glass door to the west.""")
+There is a glass door to the west and door to the south.""")
+
+office = game.new_location(
+  "Office",
+"""A nicely organized office.
+There is a door to the north.""")
 
 game.new_connection("Glass Door", sidewalk, vestibule, [IN, EAST], [OUT, WEST])
+
+game.new_connection("Office Door", vestibule, office, [IN, SOUTH], [OUT, NORTH])
 
 player = game.new_player(sidewalk)
 
@@ -32,6 +39,9 @@ player = game.new_player(sidewalk)
 # description.  We will create the key at the sidewalk
 
 key = sidewalk.new_object("key", "a small tarnished key")
+
+# we can make the key something you have to have to get into the Office
+office.make_requirement(key)
 
 # The builtin commands "take", "drop" and "i" or "inventory" will allow the player to
 # take the key, drop the key or check if what is in their inventory.
