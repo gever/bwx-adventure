@@ -239,10 +239,10 @@ hero.add_verb(Verb("reset", reset))
 def flip( self, actor, noun, words ):
   if (noun and noun != "switch") or words:
     return False
-  if self.flag('switch_on'):
-    self.unset_flag('switch_on')
+  if self.bound_to.flag('switch_on'):
+    self.bound_to.unset_flag('switch_on')
   else:
-    self.set_flag('switch_on')
+    self.bound_to.set_flag('switch_on')
   print "You flip the switch."
   return True
 

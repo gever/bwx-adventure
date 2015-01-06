@@ -144,9 +144,7 @@ class Base(object):
 
   def add_verb(self, v):
     self.verbs[' '.join(v.name.split())] = v
-    v.set_game(self.game)
-    if isinstance(v, Verb):
-      v.set_target(self)
+    v.bind_to(self)
     return v
 
   def get_verb( self, verb ):
@@ -176,10 +174,11 @@ class BaseVerb(Base):
   def __init__(self, name, function):
     Base.__init__(self, name)
     self.function = function 
-    self.game = None
+    self.bound_to = None
     
-  def set_game(self, game):
-    self.game = game
+  def bind_to(self, obj):
+    self.bound_to = obj
+    self.game = self.bound_to.game
     
   def act(self, actor, noun, words):
     result = True
@@ -219,16 +218,9 @@ class SayOnSelf(SayOnNoun):
 
 # Verb is used for passing in an unbound global function to the constructor
 class Verb(BaseVerb):
-  def __init__(self, name, function):
-    BaseVerb.__init__(self, name, function)
-    self.target = None
-
-  def set_target(self, target):
-    self.target = target
-
   # explicitly pass in self to the unbound function
   def act(self, actor, noun, words):
-    return self.function(self.target, actor, noun, words)
+    return self.function(self, actor, noun, words)
     
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
