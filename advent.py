@@ -244,6 +244,34 @@ def list_prefix(a, b):  # is a a prefix of b
     return False
   return list_prefix(a[1:], b[1:])
 
+
+def get_noun(words, things):
+  if words[0] in articles:
+    if len(words) > 1:
+      done = False
+      for t in things:
+        n = t.name.split()
+        if list_prefix(n, words[1:]):
+          noun = t.name
+          words = words[len(n)+1:]
+          done = True
+          break
+      if not done:
+        noun = words[1]
+        words = words[2:]
+  else:
+    done = False
+    for t in things:
+      n = t.name.split()
+      if list_prefix(n, words):
+        noun = t.name
+        words = words[len(n):]
+        done = True
+        break
+    if not done:
+      noun = words[0]
+      words = words[1:]
+  return (noun, words)
     
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
@@ -417,86 +445,23 @@ class Game(Base):
       # handle 'tell XXX ... "
       target_name = ""
       if words[0].lower() == 'tell' and len(words) > 2:
-        if words[1] in articles:
-          # TODO: find some way to make repetative code a function
-          if len(words) > 2:
-            done = False
-            for t in actor.location.actors:
-              n = t.name.split()
-              if list_prefix(n, words[2:]):
-                noun = t.name
-                words = words[len(n)+2:]
-                done = True
-                break
-            if not done:
-              target_name = words[2]
-              words = words[3:]
-        else:
-          done = False
-          for t in actor.location.actors:
-            n = t.name.split()
-            if list_prefix(n, words[1:]):
-              noun = t.name
-              words = words[len(n)+1:]
-              done = True
-              break
-          if not done:
-            target_name = words[1]
-            words = words[2:]
-
-      # extract the verb which must be one word at the start of the command
-      verb = words[0]
-      words = words[1:]
+        (target_name, words) = get_noun(words[1:], actor.location.actors)
 
       things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
 
-      # extract the noun, skipping an optional article
+      # extract the VERB
+      verb = words[0]
+      words = words[1:]
+
+      # extract the OBJECT
       noun = None
       if words:
-        if words[0] in articles:
-          words = words[1:]
+        (noun, words) = get_noun(words, things)
 
-      if words:
-        done = False
-        for t in things:
-          n = t.name.split()
-          if list_prefix(n, words):
-            noun = t.name
-            words = words[len(n):]
-            done = True
-            break
-        if not done: # assume that the next word is the noun
-          noun = words[0]
-          words = words[1:]
-
-      # find indirect objects in phrase of the form VERB OBJECT PREPOSITION INDIRECT
+      # extract INDIRECT (object) in phrase of the form VERB OBJECT PREPOSITION INDIRECT
       indirect = None
       if len(words) > 1 and words[0].lower() in prepositions:
-        if words[1] in articles:
-          if len(words) > 2:
-            done = False
-            for t in things:
-              n = t.name.split()
-              if list_prefix(n, words[2:]):
-                indirect = t.name
-                words = words[len(n)+2:]
-                done = True
-                break
-            if not done:
-              indirect = words[2]
-              words = words[3:]
-        else:
-          done = False
-          for t in things:
-            n = t.name.split()
-            if list_prefix(n, words[1:]):
-              indirect = t.name
-              words = words[len(n)+1:]
-              done = True
-              break
-          if not done:
-            indirect = words[1]
-            words = words[2:]
+        (indirect, words) = get_noun(words[1:], things)
 
       # first check phrases
       done = False
@@ -512,7 +477,7 @@ class Game(Base):
       if done:
         continue
 
-      # if we have an explicit target of the verb, do that.
+      # if we have an explicit target of the VERB, do that.
       # e.g. "tell cat eat foo" -> cat.eat(cat, 'food', [])
       if target_name:
         done = False
@@ -529,7 +494,7 @@ class Game(Base):
         self.output("Huh? %s %s?" % (target_name, verb), FEEDBACK)
         continue
 
-      # if we have an indirect object, try it's handle first
+      # if we have an INDIRECT object, try it's handle first
       # e.g. "hit cat with hammer" -> hammer.hit(actor, 'cat', [])
       if indirect:
         # try inventory and room contents
@@ -554,7 +519,7 @@ class Game(Base):
         if done:
           continue
 
-      # if we have a noun, try it's handler next
+      # if we have a NOUN, try it's handler next
       if noun:
         done = False
         for thing in things:
@@ -576,7 +541,7 @@ class Game(Base):
         if done:
           continue
 
-      # location specific verb
+      # location specific VERB
       v = actor.location.get_verb(verb)
       if v:
         if v.act(actor, noun, words):
@@ -588,7 +553,7 @@ class Game(Base):
           actor.act_go1(actor, verb, None)
           continue
 
-      # general actor verb
+      # general actor VERB
       v = actor.get_verb(verb)
       if v:
         if v.act(actor, noun, words):
