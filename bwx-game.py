@@ -113,7 +113,7 @@ elevator.make_requirement(elev_key)
 elevator.make_requirement(pebble)
 
 # Add a verb applicable at this location.
-sidewalk.add_verb(Say('knock', 'The door makes a hollow sound.'))
+sidewalk.add_verb(Say('The door makes a hollow sound.', 'knock'))
 
 # "scream" is an example of a custom verb defined by a Python
 # function. "def" defines a function in Python.
@@ -122,7 +122,7 @@ def scream( self, actor, noun, words ):
   print "You hear a scream '%s'." % ' '.join(all_words)
   return True
 
-sidewalk.add_verb(Verb('scream', scream))
+sidewalk.add_verb(Verb(scream, 'scream'))
 
 # Add an animal to roam around.  Animals act autonomously (on their own).
 cat = Animal("cat")
@@ -130,12 +130,12 @@ cat.set_location(sidewalk)
 
 # custom verbs available when the cat is present.
 # say_on_self triggers when the cat is the noun: e.g. "pet cat"
-cat.add_verb(SayOnSelf("pet", "The cat purrs."))
-cat.add_verb(SayOnSelf("eat", "Don't do that, PETA will get you!"));
-cat.add_verb(SayOnSelf("kill", "The cat escapes and bites you. Ouch!"));
+cat.add_verb(SayOnSelf("The cat purrs.", "pet"))
+cat.add_verb(SayOnSelf("Don't do that, PETA will get you!", "eat"));
+cat.add_verb(SayOnSelf("The cat escapes and bites you. Ouch!", "kill"));
 
 # say_on_noun triggers when you tell the cat to do something: e.g. "tell cat lick yourself"
-cat.add_verb(SayOnNoun("lick", "yourself", "The cat beings to groom itself."));
+cat.add_verb(SayOnNoun("The cat beings to groom itself.", "yourself", "lick"))
 
 # Add a robot.  Robots can take commands to perform actions.
 robby = Robot("Robby")
@@ -166,7 +166,7 @@ def throw(self, actor, noun, words):
      print 'You hurt your arm.'
      return False
 
-hero.add_verb(Verb("throw", throw))
+hero.add_verb(Verb(throw, 'throw'))
 
 
 # The code starting here is for saving games and data that can be shared.
@@ -199,7 +199,7 @@ def scribble(self, actor, noun, words):
   share.put(share.ADVENTURE, 'crumb.' + self.location.name, noun.strip())
   return True
 
-hero.add_verb(Verb("scribble", scribble))
+hero.add_verb(Verb(scribble, 'scribble'))
 
 # custom verb to see things that have been scribbled
 def peek(self, actor, noun, words):
@@ -210,7 +210,7 @@ def peek(self, actor, noun, words):
   print 'Someone scribbled "%s" here.' % v
   return True
 
-hero.add_verb(Verb("peek", peek))
+hero.add_verb(Verb(peek, 'peek'))
 
 # custom verb to count
 def more(self, actor, noun, words):
@@ -231,9 +231,9 @@ def reset(self, actor, noun, words):
   print 'The count is reset!'
   return True
 
-hero.add_verb(Verb("more", more))
-hero.add_verb(Verb("fewer", fewer))
-hero.add_verb(Verb("reset", reset))
+hero.add_verb(Verb(more, 'more'))
+hero.add_verb(Verb(fewer, 'fewer'))
+hero.add_verb(Verb(reset, 'reset'))
 
 # custom verb to change state of a location
 def flip( self, actor, noun, words ):
@@ -246,7 +246,7 @@ def flip( self, actor, noun, words ):
   print "You flip the switch."
   return True
 
-vestibule.add_verb(Verb("flip", flip))
+vestibule.add_verb(Verb(flip, 'flip'))
 
 # custom verb to push and pop messages
 # self is the location since that is where the verb was added
@@ -263,7 +263,7 @@ def push(self, actor, noun, words ):
   print "You left a message on the stack of messages."
   return True
 
-reception.add_verb(Verb("push", push))
+reception.add_verb(Verb(push, 'push'))
 
 def pop(self, actor, noun, words):
   if (noun and noun != "message") or words:
@@ -276,7 +276,7 @@ def pop(self, actor, noun, words):
   print "You pull the top message from the stack and read '%s'." % " ".join(words)
   return True
 
-reception.add_verb(Verb("pop", pop))
+reception.add_verb(Verb(pop, 'pop'))
 
 
 # custom verb on an object
@@ -286,7 +286,7 @@ def rub_key(self, actor, noun, words):
   actor.game.output("You rub the key but only succeed in making it more tarnished.")
   return True
 
-elev_key.add_verb(Verb("rub", rub_key))
+elev_key.add_verb(Verb(rub_key, 'rub'))
 
 # high score example.  When the adventurer's score changes use zadd to add/update the score.
 share.delete(share.ADVENTURE, 'highscore')
@@ -314,9 +314,9 @@ def scores(self, actor, noun, words):
       print "  %s %s" % (x[0], x[1])
   return True
 
-reception.add_verb(Verb("top", top))
-reception.add_verb(Verb("scores", scores))
-reception.add_verb(Verb("read", scores))
+reception.add_verb(Verb(top, 'top'))
+reception.add_verb(Verb(scores, 'scores'))
+reception.add_verb(Verb(scores, 'read'))
 
 # Now that we have created our game and everything in it, we can start the game!
 

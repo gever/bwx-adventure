@@ -39,7 +39,7 @@ key = sidewalk.new_object("key", "a small tarnished key")
 # Let's add a special phrase.  We can attach this phrase to any object, location or actor,
 # and the phrase will trigger only if that object or actor is present or at the given location.
 
-key.add_phrase("rub key", game.say("You rub the key, but fail to shine it."))
+key.add_phrase("rub key", Say("You rub the key, but fail to shine it."))
 
 # This uses the special function game.say, but you can define your own functions.
 # Let's create a coin and flip it, resulting in heads or tails:

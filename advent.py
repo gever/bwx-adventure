@@ -157,6 +157,8 @@ class Base(object):
       return None
 
   def add_phrase(self, phrase, f, requirements = []):
+    if isinstance(f, BaseVerb):
+      f.game = self.game
     self.phrases[' '.join(phrase.split())] = (f, set(requirements))
 
   def get_phrase(self, phrase, things_present):
@@ -173,7 +175,7 @@ class Base(object):
     self.game.output(text, message_type)
 
 class BaseVerb(Base):
-  def __init__(self, name, function):
+  def __init__(self, function, name):
     Base.__init__(self, name)
     self.function = function 
     self.game = None
@@ -194,8 +196,8 @@ class BaseVerb(Base):
     return result
 
 class Say(BaseVerb):
-  def __init__(self, name, string):
-    BaseVerb.__init__(self, name, None)
+  def __init__(self, string, name = ""):
+    BaseVerb.__init__(self, None, name)
     self.string = string
 
   def act(self, actor, noun, words):
@@ -203,7 +205,7 @@ class Say(BaseVerb):
     return True
 
 class SayOnNoun(Say):    
-  def __init__(self, name, noun, string):
+  def __init__(self, string, noun, name = ""):
     Say.__init__(self, name, string)
     self.noun = noun
 
@@ -214,13 +216,13 @@ class SayOnNoun(Say):
     return True
 
 class SayOnSelf(SayOnNoun):
-  def __init__(self, name, string):
+  def __init__(self, string, name = ""):
     SayOnNoun.__init__(self, name, None, string)
 
 # Verb is used for passing in an unbound global function to the constructor
 class Verb(BaseVerb):
-  def __init__(self, name, function):
-    BaseVerb.__init__(self, name, function)
+  def __init__(self, function, name = ""):
+    BaseVerb.__init__(self, function, name)
     self.target = None
 
   def set_target(self, target):
@@ -423,7 +425,7 @@ class Game(Base):
       for thing in things:
         f = thing.get_phrase(command, things)
         if f:
-          if isinstance(f, Verb):
+          if isinstance(f, BaseVerb):
             if f.act(actor, noun, words):
               done = True
           else:
@@ -551,6 +553,7 @@ class Location(Base):
     self.requirements = {}
 
   def add_object(self, obj):
+    obj.game = self.game
     self.contents[obj.name] = obj
     return obj
 
@@ -652,16 +655,16 @@ class Actor(Base):
     self.player = False
     self.isare = "is"
     # associate each of the known actions with functions
-    self.add_verb(BaseVerb('take', self.act_take1))
-    self.add_verb(BaseVerb('get', self.act_take1))
-    self.add_verb(BaseVerb('drop', self.act_drop1))
-    self.add_verb(BaseVerb('inventory', self.act_inventory))
-    self.add_verb(BaseVerb('i', self.act_inventory))
-    self.add_verb(BaseVerb('look', self.act_look))
-    self.add_verb(BaseVerb('l', self.act_look))
-    self.add_verb(BaseVerb('go', self.act_go1))
-    self.add_verb(BaseVerb('verbs', self.act_list_verbs))
-    self.add_verb(BaseVerb('commands', self.act_list_verbs))
+    self.add_verb(BaseVerb(self.act_take1, 'take'))
+    self.add_verb(BaseVerb(self.act_take1, 'get'))
+    self.add_verb(BaseVerb(self.act_drop1, 'drop'))
+    self.add_verb(BaseVerb(self.act_inventory, 'inventory'))
+    self.add_verb(BaseVerb(self.act_inventory, 'i'))
+    self.add_verb(BaseVerb(self.act_look, 'look'))
+    self.add_verb(BaseVerb(self.act_look, 'l'))
+    self.add_verb(BaseVerb(self.act_go1, 'go'))
+    self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
+    self.add_verb(BaseVerb(self.act_list_verbs, 'commands'))
 
   # describe ourselves
   def describe( self, observer ):
@@ -703,7 +706,7 @@ class Actor(Base):
       return False
 
   def act_look( self, actor, noun, words ):
-    print self.location.describe( actor, True )
+    self.output(self.location.describe(actor, True))
     return True
 
   # list the things we're carrying
@@ -821,12 +824,12 @@ class Robot(Actor):
     self.scripts = {}
     self.current_script = None
     self.script_think_time = 0
-    self.add_verb(BaseVerb('record', self.act_start_recording))
-    self.add_verb(BaseVerb('run', self.act_run_script))
-    self.add_verb(BaseVerb('print', self.act_print_script))
-    self.add_verb(BaseVerb('save', self.act_save_file))
-    self.add_verb(BaseVerb('load', self.act_load_file))
-    self.add_verb(BaseVerb('think', self.set_think_time))
+    self.add_verb(BaseVerb(self.act_start_recording, 'record'))
+    self.add_verb(BaseVerb(self.act_run_script, 'run'))
+    self.add_verb(BaseVerb(self.act_print_script, 'print'))
+    self.add_verb(BaseVerb(self.act_save_file, 'save'))
+    self.add_verb(BaseVerb(self.act_load_file, 'load'))
+    self.add_verb(BaseVerb(self.set_think_time, 'think'))
 
   def parse_script_name(self, noun):
     if not noun:
@@ -961,9 +964,9 @@ class Pet(Robot, Animal):
     #super(Pet, self ).__init__( name )
     Robot.__init__(self, name)
     self.leader = None
-    self.add_verb(BaseVerb('heel', self.act_follow))
-    self.add_verb(BaseVerb('follow', self.act_follow))
-    self.add_verb(BaseVerb('stay', self.act_stay))
+    self.add_verb(BaseVerb(self.act_follow, 'heel'))
+    self.add_verb(BaseVerb(self.act_follow, 'follow'))
+    self.add_verb(BaseVerb(self.act_stay, 'stay'))
 
   def act_follow(self, actor, words=None):
     self.leader = self.player
