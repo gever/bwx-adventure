@@ -64,7 +64,7 @@ vestibule = game.new_location(
 """A small area at the bottom of a flight of stairs.
 There is a glass door to the west.""")
 
-# Again, make sure to end with """ and to close the parenthesis ) and use a comma between
+# Again, make sure to end with """ and to close the parenthesis) and use a comma between
 # the short and long description.
 
 # Now we need to connect the two locations together.  Again, we are going to create

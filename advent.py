@@ -37,7 +37,7 @@ SOUTH_EAST = 16
 NOT_DIRECTION = -1
 
 # map direction names to direction numbers
-def define_direction( number, name ):
+def define_direction(number, name):
   # check to see if we are trying to redefine an existing direction
   if name in directions:
     print name, "is already defined as,", directions[name]
@@ -46,33 +46,33 @@ def define_direction( number, name ):
     direction_name[number] = name
 
 # define player words used to describe known directions
-define_direction( NORTH, "north" )
-define_direction( NORTH, "n" )
-define_direction( SOUTH, "south" )
-define_direction( SOUTH, "s" )
-define_direction( EAST, "east" )
-define_direction( EAST, "e" )
-define_direction( WEST, "west" )
-define_direction( WEST, "w" )
-define_direction( UP, "up" )
-define_direction( UP, "u" )
-define_direction( DOWN, "down" )
-define_direction( DOWN, "d" )
-define_direction( RIGHT, "right" )
-define_direction( LEFT, "left" )
-define_direction( IN, "in" )
-define_direction( OUT, "out" )
-define_direction( FORWARD, "forward" )
-define_direction( FORWARD, "fd" )
-define_direction( FORWARD, "fwd" )
-define_direction( FORWARD, "f" )
-define_direction( BACK, "back" )
-define_direction( BACK, "bk" )
-define_direction( BACK, "b" )
-define_direction( NORTH_WEST, "nw" )
-define_direction( NORTH_EAST, "ne" )
-define_direction( SOUTH_WEST, "sw" )
-define_direction( SOUTH_EAST, "se" )
+define_direction(NORTH, "north")
+define_direction(NORTH, "n")
+define_direction(SOUTH, "south")
+define_direction(SOUTH, "s")
+define_direction(EAST, "east")
+define_direction(EAST, "e")
+define_direction(WEST, "west")
+define_direction(WEST, "w")
+define_direction(UP, "up")
+define_direction(UP, "u")
+define_direction(DOWN, "down")
+define_direction(DOWN, "d")
+define_direction(RIGHT, "right")
+define_direction(LEFT, "left")
+define_direction(IN, "in")
+define_direction(OUT, "out")
+define_direction(FORWARD, "forward")
+define_direction(FORWARD, "fd")
+define_direction(FORWARD, "fwd")
+define_direction(FORWARD, "f")
+define_direction(BACK, "back")
+define_direction(BACK, "bk")
+define_direction(BACK, "b")
+define_direction(NORTH_WEST, "nw")
+define_direction(NORTH_EAST, "ne")
+define_direction(SOUTH_WEST, "sw")
+define_direction(SOUTH_EAST, "se")
 
 
 articles = ['a', 'an', 'the']
@@ -89,7 +89,7 @@ prepositions = ['aboard', 'about', 'above', 'across', 'after', 'against', 'along
 # a global list of these somewhere?  For now we'll just assume
 # anything starting with upper case is proper.
 # Do not add an article to plural nouns.
-def add_article ( name ):
+def add_article (name):
   # simple plural test
   if len(name) > 1 and name[len(name)-1] == 's' and name[len(name)-2] != 's':
     return name
@@ -114,7 +114,7 @@ def normalize_input(text):
   return ' '.join(rest)
 
 
-def proper_list_from_dict( d ):
+def proper_list_from_dict(d):
   names = d.keys()
   buf = []
   name_count = len(names)
@@ -154,7 +154,7 @@ class Base(object):
     v.bind_to(self)
     return v
 
-  def get_verb( self, verb ):
+  def get_verb(self, verb):
     c = ' '.join(verb.split())
     if c in self.verbs:
        return self.verbs[c]
@@ -262,29 +262,29 @@ class Game(Base):
     self.name = name
 
   # add a bidirectional connection between points A and B
-  def add_connection( self, connection ):
+  def add_connection(self, connection):
     connection.game = self
     if isinstance(connection.way_ab, (list, tuple)):
       for way in connection.way_ab:
-        connection.point_a.add_exit( connection, way )
+        connection.point_a.add_exit(connection, way)
     else:
-      connection.point_a.add_exit( connection, connection.way_ab )
+      connection.point_a.add_exit(connection, connection.way_ab)
 
     # this is messy, need a better way to do this
-    reverse_connection = Connection( connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
+    reverse_connection = Connection(connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
     reverse_connection.game = self
     if isinstance(connection.way_ba, (list, tuple)):
       for way in connection.way_ba:
-        connection.point_b.add_exit( reverse_connection, way )
+        connection.point_b.add_exit(reverse_connection, way)
     else:
-      connection.point_b.add_exit( reverse_connection, connection.way_ba )
+      connection.point_b.add_exit(reverse_connection, connection.way_ba)
     return connection
 
   def new_connection(self, *args):
     return self.add_connection(Connection(*args))
 
   # add another location to the game
-  def add_location(self,  location ):
+  def add_location(self,  location):
     location.game = self
     self.locations[location.name] = location
     return location
@@ -353,7 +353,7 @@ class Game(Base):
     while True:
       # if the actor moved, describe the room
       if actor.check_if_moved():
-        self.output("        --=( %s %s in the %s )=--        " % (
+        self.output("        --=(%s %s in the %s)=--        " % (
           actor.name.capitalize(), actor.isare, actor.location.name), TITLE)
 
         # cache this as we need to know it for the query to entering_location()
@@ -361,9 +361,9 @@ class Game(Base):
 
         where = actor.location.describe(actor)
         if where:
-          self.output( "" )
-          self.output( where )
-          self.output( "" )
+          self.output("")
+          self.output(where)
+          self.output("")
 
       # See if the animals want to do anything
       for animal in self.animals.items():
@@ -389,7 +389,7 @@ class Game(Base):
          try:
             actor = self.robots[robot_name]
          except KeyError:
-            self.output( "I don't know anybot named %s" % robot_name, FEEDBACK)
+            self.output("I don't know anybot named %s" % robot_name, FEEDBACK)
             continue
       else:
          actor = self.player
@@ -513,42 +513,42 @@ class Game(Base):
         continue
 
       # if we have an explicit target of the verb, do that.
-      # e.g. "tell cat eat foo" -> cat.eat( cat, 'food', [] )
+      # e.g. "tell cat eat foo" -> cat.eat(cat, 'food', [])
       if target_name:
         done = False
         for a in actor.location.actors:
           if a.name != target_name:
             continue
-          v = a.get_verb( verb )
+          v = a.get_verb(verb)
           if v:
-            if v.act( a, noun, words ):
+            if v.act(a, noun, words):
               done = True
               break
         if done:
           continue
-        self.output( "Huh? %s %s?" % (target_name, verb), FEEDBACK)
+        self.output("Huh? %s %s?" % (target_name, verb), FEEDBACK)
         continue
 
       # if we have an indirect object, try it's handle first
-      # e.g. "hit cat with hammer" -> hammer.hit( actor, 'cat', [] )
+      # e.g. "hit cat with hammer" -> hammer.hit(actor, 'cat', [])
       if indirect:
         # try inventory and room contents
         done = False
         things = actor.inventory.values() + actor.location.contents.values()
         for thing in things:
           if indirect == thing.name:
-            v = thing.get_verb( verb )
+            v = thing.get_verb(verb)
             if v:
-              if v.act( actor, noun, words ):
+              if v.act(actor, noun, words):
                 done = True
                 break
         if done:
           continue
         for a in actor.location.actors:
           if indirect == a.name:
-            v = a.get_verb( verb )
+            v = a.get_verb(verb)
             if v:
-              if v.act( a, noun, words ):
+              if v.act(a, noun, words):
                 done = True
                 break
         if done:
@@ -559,18 +559,18 @@ class Game(Base):
         done = False
         for thing in things:
           if noun == thing.name:
-            v = thing.get_verb( verb )
+            v = thing.get_verb(verb)
             if v:
-              if v.act( actor, None, words ):
+              if v.act(actor, None, words):
                 done = True
                 break
         if done:
           continue
         for a in actor.location.actors:
           if noun == a.name:
-            v = a.get_verb( verb )
+            v = a.get_verb(verb)
             if v:
-              if v.act( a, None, words ):
+              if v.act(a, None, words):
                 done = True
                 break
         if done:
@@ -585,17 +585,17 @@ class Game(Base):
       # handle directional moves of the actor
       if not noun:
         if verb in directions:
-          actor.act_go1( actor, verb, None )
+          actor.act_go1(actor, verb, None)
           continue
 
       # general actor verb
-      v = actor.get_verb( verb )
+      v = actor.get_verb(verb)
       if v:
-        if v.act( actor, noun, words ):
+        if v.act(actor, noun, words):
           continue
 
       # not understood
-      self.output( "Huh?", FEEDBACK )
+      self.output("Huh?", FEEDBACK)
 
 
 class Object(Base):
@@ -603,12 +603,12 @@ class Object(Base):
   # description: full description
   # fixed: is it stuck or can it be taken
 
-  def __init__( self, name, desc, fixed=False ):
+  def __init__(self, name, desc, fixed=False):
     Base.__init__(self, name)
     self.description = desc
     self.fixed = fixed
 
-  def describe( self, observer ):
+  def describe(self, observer):
     return self.name
 
 
@@ -621,7 +621,7 @@ class Location(Base):
   # first_time: is it the first time here?
   # actors: other actors in the location
 
-  def __init__( self, name, description):
+  def __init__(self, name, description):
     Base.__init__(self, name)
     self.description = description
     self.contents = {}
@@ -636,7 +636,7 @@ class Location(Base):
     obj.game = self.game
     return obj
 
-  def new_object(self, name, desc, fixed=False ):
+  def new_object(self, name, desc, fixed=False):
     return self.add_object(Object(name, desc, fixed))
 
   def description_str(self, d):
@@ -651,7 +651,7 @@ class Location(Base):
       else:
         return self.description_str(d(self))
 
-  def describe( self, observer, force=False ):
+  def describe(self, observer, force=False):
     desc = ""   # start with a blank string
 
     # add the description
@@ -675,10 +675,10 @@ class Location(Base):
 
     return desc
 
-  def add_exit( self, con, way ):
+  def add_exit(self, con, way):
     self.exits[ way ] = con
 
-  def go( self, way ):
+  def go(self, way):
     if way in self.exits:
       c = self.exits[ way ]
 
@@ -686,17 +686,17 @@ class Location(Base):
       if len(c.point_b.requirements) > 0:
         # check to see if the requirements are in the inventory
         if set(c.point_b.requirements).issubset(set(self.game.player.inventory)):
-          self.output( "You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
+          self.output("You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
           return c.point_b
 
-        self.output( "It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements), FEEDBACK)
+        self.output("It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements), FEEDBACK)
         return None
       else:
         return c.point_b
     else:
       return None
 
-  def debug( self ):
+  def debug(self):
     for key in self.exits:
       print "exit: %s" % key
 
@@ -711,7 +711,7 @@ class Connection(Base):
   # point_a
   # point_b
 
-  def __init__( self, name, pa, pb, way_ab, way_ba):
+  def __init__(self, name, pa, pb, way_ab, way_ba):
     Base.__init__(self, name)
     self.point_a = pa
     self.point_b = pb
@@ -726,7 +726,7 @@ class Actor(Base):
   # moved
   # verbs
 
-  def __init__( self, name):
+  def __init__(self, name):
     Base.__init__(self, name)
     self.location = None
     self.inventory = {}
@@ -746,18 +746,18 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_list_verbs, 'commands'))
 
   # describe ourselves
-  def describe( self, observer ):
+  def describe(self, observer):
     return self.name
 
   # establish where we are "now"
-  def set_location( self, loc ):
+  def set_location(self, loc):
     self.game = loc.game # XXX this is a hack do this better
     if not self.player and self.location:
-      self.location.actors.remove( self )
+      self.location.actors.remove(self)
     self.location = loc
     self.moved = True
     if not self.player:
-      self.location.actors.add( self )
+      self.location.actors.add(self)
 
   # move a thing from the current location to our inventory
   def act_take1(self, actor, noun, words):
@@ -781,87 +781,87 @@ class Actor(Base):
       self.location.contents[noun] = t
       return True
     else:
-      self.output( "%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun)), FEEDBACK)
+      self.output("%s %s not carrying %s." % (self.cap_name, self.isare, add_article(noun)), FEEDBACK)
       return False
 
-  def act_look( self, actor, noun, words ):
+  def act_look(self, actor, noun, words):
     self.output(self.location.describe(actor, True))
     return True
 
   # list the things we're carrying
-  def act_inventory( self, actor, noun, words ):
+  def act_inventory(self, actor, noun, words):
     msg = '%s %s carrying ' % (self.cap_name, self.isare)
     if self.inventory.keys():
-      msg += proper_list_from_dict( self.inventory )
+      msg += proper_list_from_dict(self.inventory)
     else:
       msg += 'nothing'
     msg += '.'
-    self.output( msg, FEEDBACK)
+    self.output(msg, FEEDBACK)
     return True
 
   # check/clear moved status
-  def check_if_moved( self ):
+  def check_if_moved(self):
     status = self.moved
     self.moved = False
     return status
 
   # try to go in a given direction
-  def act_go1( self, actor, noun, words ):
+  def act_go1(self, actor, noun, words):
     if not noun in directions:
-      self.output( "Don't know how to go '%s'." % noun, FEEDBACK )
+      self.output("Don't know how to go '%s'." % noun, FEEDBACK)
       return False
-    loc = self.location.go( directions[noun] )
+    loc = self.location.go(directions[noun])
     if loc == None:
-      self.output( "Bonk! %s can't seem to go that way." % self.name, FEEDBACK)
+      self.output("Bonk! %s can't seem to go that way." % self.name, FEEDBACK)
       return False
     else:
       # update where we are
-      self.set_location( loc )
+      self.set_location(loc)
       return True
 
-  def act_list_verbs( self, actor, noun, words ):
-    self.output( textwrap.fill(" ".join(sorted(self.verbs.keys()))), FEEDBACK )
+  def act_list_verbs(self, actor, noun, words):
+    self.output(textwrap.fill(" ".join(sorted(self.verbs.keys()))), FEEDBACK)
     return True
 
   # support for scriptable actors, override these to implement
-  def get_next_script_line( self ):
+  def get_next_script_line(self):
     return None
 
-  def set_next_script_line( self, line ):
+  def set_next_script_line(self, line):
     return True
 
 # Scripts are sequences of instructions for Robots to execute
 class Script(Base):
-  def __init__( self, name ):
+  def __init__(self, name):
     Base.__init__(self, name)
     self.lines = list()
     self.current_line = -1
     self.recording = False
     self.running = False
 
-  def start_recording( self ):
+  def start_recording(self):
     assert not self.running
     assert not self.recording
     self.recording = True
 
-  def stop_recording( self ):
+  def stop_recording(self):
     assert self.recording
     assert not self.running
     self.recording = False
 
-  def start_running( self ):
+  def start_running(self):
     assert not self.running
     assert not self.recording
     self.running = True
     self.current_line = 0;
 
-  def stop_running( self ):
+  def stop_running(self):
     assert self.running
     assert not self.recording
     self.running = False
     self.current_line = -1;
 
-  def get_next_line( self ):
+  def get_next_line(self):
     line = self.lines[self.current_line]
     self.current_line += 1
     if line.strip() == "end":
@@ -869,14 +869,14 @@ class Script(Base):
       return None
     return line
 
-  def set_next_line( self, line ):
+  def set_next_line(self, line):
     self.lines.append(line)
     if line.strip() == "end":
       self.stop_recording()
       return False
     return True
 
-  def print_lines( self ):
+  def print_lines(self):
     for line in self.lines:
       print line
 
@@ -896,8 +896,8 @@ class Script(Base):
 # Robots are actors which accept commands to perform actions.
 # They can also record and run scripts.
 class Robot(Actor):
-  def __init__( self, name ):
-    #super(Robot, self ).__init__( name )
+  def __init__(self, name):
+    #super(Robot, self).__init__(name )
     Actor.__init__(self, name)
     self.name = name
     self.scripts = {}
@@ -1006,7 +1006,7 @@ class Robot(Actor):
 
 # Player derives from Robot so that we can record and run scripts as the player
 class Player(Robot):
-  def __init__( self ):
+  def __init__(self):
     # super(Player, self).__init__("you")
     Robot.__init__(self, "you")
     self.player = True
@@ -1015,8 +1015,8 @@ class Player(Robot):
 
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
-  def __init__( self, name ):
-    #super(Animal, self ).__init__( name )
+  def __init__(self, name):
+    #super(Animal, self).__init__(name )
     Actor.__init__(self, name)
     
   def act_autonomously(self, observer_loc):
@@ -1039,8 +1039,8 @@ class Animal(Actor):
 
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
 class Pet(Robot, Animal):
-  def __init__( self, name ):
-    #super(Pet, self ).__init__( name )
+  def __init__(self, name):
+    #super(Pet, self).__init__(name )
     Robot.__init__(self, name)
     self.leader = None
     self.add_verb(BaseVerb(self.act_follow, 'heel'))
@@ -1049,12 +1049,12 @@ class Pet(Robot, Animal):
 
   def act_follow(self, actor, words=None):
     self.leader = self.player
-    self.output( "%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
+    self.output("%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
     return True
 
   def act_stay(self, actor, words=None):
     if self.leader:
-      self.output( "%s obediently stops following %s" % (self.name, self.leader.name) , FEEDBACK)
+      self.output("%s obediently stops following %s" % (self.name, self.leader.name) , FEEDBACK)
     self.leader = None
     return True
 

@@ -26,7 +26,7 @@ sidewalk = Location(
 "Sidewalk",
 """There is a large glass door to the east.
 The sign says 'Come In!'
-""" )
+""")
 
 # Custom messages can contain lists of strings and functions which return strings.
 vestibule = Location(
@@ -52,13 +52,13 @@ intersection = Location("Intersection",
 north that leads to the shop. To the east is the elevator
 landing, to the west is the guest lounge, and to the
 south is the reception desk. There is nothing to do here.
-""" )
+""")
 
 elevator = Location("Elevator",
 """The elevator is turned off, but the door is open.
 The controls on the elevator do not seem to work.
 To the west is an intersection.
-""" )
+""")
 
 # "\n" makes a new line in a Python string.
 secret_lab = Location("Secret Laboratory", "This place is spooky. It's dark and \nthere are cobwebs everywhere. There must \nbe a light switch somewhere.")
@@ -103,7 +103,7 @@ elev_key = Object("key", "small tarnished brass key")
 
 sidewalk.add_object(elev_key)
 
-pebble = sidewalk.add_object(Object( "pebble", "round pebble"))
+pebble = sidewalk.add_object(Object("pebble", "round pebble"))
 sidewalk.add_object(Object("Gary the garden gnome",
   "a small figure liberated from a nearby garden."))
 
@@ -117,7 +117,7 @@ sidewalk.add_verb(Say('The door makes a hollow sound.', 'knock'))
 
 # "scream" is an example of a custom verb defined by a Python
 # function. "def" defines a function in Python.
-def scream( self, actor, noun, words ):
+def scream(self, actor, noun, words):
   all_words = [noun] + words
   print "You hear a scream '%s'." % ' '.join(all_words)
   return True
@@ -159,7 +159,7 @@ game.add_actor(fido)
 
 # add a custom actor verb (in this case for the hero)
 def throw(self, actor, noun, words):
-  if noun and actor.get_verb('drop').act(actor, noun, words ):
+  if noun and actor.get_verb('drop').act(actor, noun, words):
      print 'The %s bounces and falls to the floor' % noun
      return True
   else:
@@ -250,7 +250,7 @@ hero.add_verb(Verb(fewer, 'fewer'))
 hero.add_verb(Verb(reset, 'reset'))
 
 # custom verb to change state of a location
-def flip( self, actor, noun, words ):
+def flip(self, actor, noun, words):
   if (noun and noun != "switch") or words:
     return False
   if self.flag('switch_on'):
@@ -264,7 +264,7 @@ vestibule.add_verb(Verb(flip, 'flip'))
 
 # custom verb to push and pop messages
 # self is the location since that is where the verb was added
-def push(self, actor, noun, words ):
+def push(self, actor, noun, words):
   if not noun:
     return False
   if noun != 'message':
@@ -340,7 +340,7 @@ hero.set_location(sidewalk)
 def update():
   if (game.entering_location(reception)):
     if (game.inventory_contains([pebble])):
-      game.output( "The pebble you picked up is suddenly feeling warm to the touch!")
+      game.output("The pebble you picked up is suddenly feeling warm to the touch!")
 
 
 # Start playing.
