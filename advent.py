@@ -105,7 +105,7 @@ def add_article (name):
 
 
 def normalize_input(text):
-  superfluous = articles +  ['to', 'and']
+  superfluous = articles +  ['and']
   rest = []
   for word in text.split():
     word = word.translate(string.maketrans("",""), string.punctuation)
@@ -574,7 +574,10 @@ class Object(Base):
     self.fixed = fixed
 
   def describe(self, observer):
-    return self.name
+    if isinstance(self.description, str):
+      return self.description
+    else:
+      return self.description(self)
 
 
 # A "location" is a place in the game.
@@ -705,6 +708,7 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_inventory, 'inventory'))
     self.add_verb(BaseVerb(self.act_inventory, 'i'))
     self.add_verb(BaseVerb(self.act_look, 'look'))
+    self.add_verb(BaseVerb(self.act_examine1, 'examine'))
     self.add_verb(BaseVerb(self.act_look, 'l'))
     self.add_verb(BaseVerb(self.act_go1, 'go'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
@@ -751,6 +755,20 @@ class Actor(Base):
 
   def act_look(self, actor, noun, words):
     self.output(self.location.describe(actor, True))
+    return True
+
+  # examine a thing in our inventory or location
+  def act_examine1(self, actor, noun, words):
+    if not noun:
+      return False
+    n = None
+    if noun in self.inventory:
+      n = self.inventory[noun]
+    if noun in self.location.contents:
+      n = self.location.contents[noun]
+    if not n:
+      return False
+    self.output("You see " + n.describe(self))
     return True
 
   # list the things we're carrying

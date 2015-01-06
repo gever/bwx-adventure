@@ -262,6 +262,28 @@ def flip(self, actor, noun, words):
 
 vestibule.add_verb(Verb(flip, 'flip'))
 
+# add a custom description to an object
+def describe_candle(self):
+  if "lit" in self.vars:
+    return "a lit candle"
+  else:
+    return "an unlit candle"
+
+candle = sidewalk.new_object("candle", describe_candle)
+
+# custom verb to change state of an object
+def lite(self, actor, noun, words):
+  if (noun and noun != "candle") or words:
+    return False
+  if self.flag('lit'):
+    self.game.output("The candle is already lit.")
+  else:
+    self.set_flag('lit')
+    self.game.output("You lite the candle.")
+  return True
+
+candle.add_verb(Verb(lite, "lite"))
+
 # custom verb to push and pop messages
 # self is the location since that is where the verb was added
 def push(self, actor, noun, words):
