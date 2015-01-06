@@ -233,6 +233,17 @@ class Verb(BaseVerb):
   # explicitly pass in self to the unbound function
   def act(self, actor, noun, words):
     return self.function(self.bound_to, actor, noun, words)
+
+
+def list_prefix(a, b):  # is a a prefix of b
+  if not a:
+    return True
+  if not b:
+    return False
+  if a[0] != b[0]:
+    return False
+  return list_prefix(a[1:], b[1:])
+
     
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
@@ -403,31 +414,91 @@ class Game(Base):
       # VERB(verb), OBJECT(noun), INDIRECT_OBJECT(indirect).
       # For example: "hit zombie with hammer" = HIT(verb) ZOMBIE(noun) WITH HAMMER(indirect).
 
+      # handle 'tell XXX ... "
       target_name = ""
       if words[0].lower() == 'tell' and len(words) > 2:
-        target_name = words[1]
-        words = words[2:]
+        if words[1] in articles:
+          # TODO: find some way to make repetative code a function
+          if len(words) > 2:
+            done = False
+            for t in actor.location.actors:
+              n = t.name.split()
+              if list_prefix(n, words[2:]):
+                noun = t.name
+                words = words[len(n)+2:]
+                done = True
+                break
+            if not done:
+              target_name = words[2]
+              words = words[3:]
+        else:
+          done = False
+          for t in actor.location.actors:
+            n = t.name.split()
+            if list_prefix(n, words[1:]):
+              noun = t.name
+              words = words[len(n)+1:]
+              done = True
+              break
+          if not done:
+            target_name = words[1]
+            words = words[2:]
 
+      # extract the verb which must be one word at the start of the command
       verb = words[0]
       words = words[1:]
 
+      things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
+
+      # extract the noun, skipping an optional article
       noun = None
       if words:
-        noun = words[0]
-        words = words[1:]
+        if words[0] in articles:
+          words = words[1:]
 
+      if words:
+        done = False
+        for t in things:
+          n = t.name.split()
+          if list_prefix(n, words):
+            noun = t.name
+            words = words[len(n):]
+            done = True
+            break
+        if not done: # assume that the next word is the noun
+          noun = words[0]
+          words = words[1:]
+
+      # find indirect objects in phrase of the form VERB OBJECT PREPOSITION INDIRECT
       indirect = None
       if len(words) > 1 and words[0].lower() in prepositions:
         if words[1] in articles:
           if len(words) > 2:
-            indirect = words[2]
-            words = words[3:]
+            done = False
+            for t in things:
+              n = t.name.split()
+              if list_prefix(n, words[2:]):
+                indirect = t.name
+                words = words[len(n)+2:]
+                done = True
+                break
+            if not done:
+              indirect = words[2]
+              words = words[3:]
         else:
-          indirect = words[1]
-          words = words[2:]
+          done = False
+          for t in things:
+            n = t.name.split()
+            if list_prefix(n, words[1:]):
+              indirect = t.name
+              words = words[len(n)+1:]
+              done = True
+              break
+          if not done:
+            indirect = words[1]
+            words = words[2:]
 
       # first check phrases
-      things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
       done = False
       for thing in things:
         f = thing.get_phrase(command, things)
