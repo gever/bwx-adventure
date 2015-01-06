@@ -168,6 +168,16 @@ def throw(self, actor, noun, words):
 
 hero.add_verb(Verb(throw, 'throw'))
 
+# add a custom object verb
+def useless_hit_with_object(self, actor, noun, words):
+  if not noun or noun == self.name:
+    self.game.output("Hitting the " + self.name + " was ineffective.")
+  else:
+    self.game.output("The " + self.name + " bounces off the " + noun + " with no visible effect.")
+  return True
+
+pebble.add_verb(Verb(useless_hit_with_object, "hit"))
+
 
 # The code starting here is for saving games and data that can be shared.
 # Don't worry if this doesn't make sense yet.

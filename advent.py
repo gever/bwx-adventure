@@ -76,6 +76,13 @@ define_direction( SOUTH_EAST, "se" )
 
 
 articles = ['a', 'an', 'the']
+# some prepositions to recognize indirect objects in prepositional phrases
+prepositions = ['aboard', 'about', 'above', 'across', 'after', 'against', 'along'
+    'amoung', 'around', 'at', 'atop', 'before', 'behind', 'below', 'beneath',
+    'beside', 'besides', 'between', 'beyond', 'by', 'for', 'from', 'in', 'including'
+    'inside', 'into', 'on', 'onto', 'outside', 'over', 'past', 'than' 'through', 'to',
+    'toward', 'under', 'underneath',  'onto', 'upon', 'with', 'within']
+
 
 # changes "lock" to "a lock", "apple" to "an apple", etc.
 # note that no article should be added to proper names; store
@@ -222,14 +229,10 @@ class SayOnSelf(SayOnNoun):
 class Verb(BaseVerb):
   def __init__(self, function, name = ""):
     BaseVerb.__init__(self, function, name)
-    self.target = None
-
-  def set_target(self, target):
-    self.target = target
 
   # explicitly pass in self to the unbound function
   def act(self, actor, noun, words):
-    return self.function(self, actor, noun, words)
+    return self.function(self.bound_to, actor, noun, words)
     
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
@@ -414,9 +417,14 @@ class Game(Base):
         words = words[1:]
 
       indirect = None
-      if len(words) > 1 and words[0].lower() == 'with':
-        indirect = words[0]
-        words = words[2:]
+      if len(words) > 1 and words[0].lower() in prepositions:
+        if words[1] in articles:
+          if len(words) > 2:
+            indirect = words[2]
+            words = words[3:]
+        else:
+          indirect = words[1]
+          words = words[2:]
 
       # first check phrases
       things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
