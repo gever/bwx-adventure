@@ -50,8 +50,8 @@ hero = game.new_player(sidewalk)
 
 # add a new hero verb (allows player to say "throw pebble")
 def throw(self, actor, noun, words):
-  if len(words) > 1 and self.act('drop', words[1]):
-     print 'The %s bounces and falls to the floor' % words[1]
+  if noun and self.get_verb('drop').act(actor, noun, words):
+     print 'The %s bounces and falls to the floor' % noun
      return True
   else:
      print 'You hurt your arm.'
