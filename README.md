@@ -16,65 +16,49 @@ Contributions are welcome! Open an issue or a pull request.
 from advent import *
 
 # setup the game you are going to build on...
-my_game = Game()
-
-# create your world, then we can stick stuff in it
-my_world = World()
+game = Game()
 
 # create some locations
-sidewalk = Location(
+sidewalk = game.new_location(
 "Sidewalk", """
 There is a large glass door to the east.
 The sign says 'Come In!'
-""" )
+""")
 
-vestibule = Location(
+vestibule = game.new_location(
 "Vestibule", """
 A small area at the bottom of a flight of stairs.
 Up the stars you see the reception desk.
-""" )
-
-# let's add the locations to your world
-my_world.add_location(sidewalk)
-my_world.add_location(vestibule)
+""")
 
 # make connections between those locations
-big_door = Connection("Big Door", sidewalk, vestibule, [IN, EAST], [WEST, OUT])
-
-# now add the connections to the world too
-my_world.add_connection(big_door)
+big_door = game.new_connection("Big Door", sidewalk, vestibule, [IN, EAST], [WEST, OUT])
 
 # create some things to put in your world. You need a name and
-elev_key = Thing( "key", "small tarnished brass key" )
-pebble = sidewalk.put( Thing( "pebble", "round pebble" ) )
-sidewalk.put( elev_key )
-sidewalk.put( pebble )
+pebble = sidewalk.new_object("pebble", "round pebble")
+elev_key = sidewalk.new_object("key", "small tarnished brass key")
 
 # simple verb applicable at this location
-sidewalk.add_verb( 'knock', my_game.say('The door makes a hollow sound.') )
+sidewalk.add_verb(Say('The door makes a hollow sound.', 'knock'))
 
 # Add an animal to roam around.  Animals act autonomously
-cat = Animal(my_world, "cat")
-cat.set_location(sidewalk)
-cat.add_verb("pet", my_game.say("The cat purrs.") )
+cat = sidewalk.add_actor(Animal("cat"))
+cat.add_verb(Say("The cat purrs.", "pet"))
 
-# make the player
-hero = Hero(my_world)
+# make the player starting on the sidewalk
+hero = game.new_player(sidewalk)
 
 # add a new hero verb (allows player to say "throw pebble")
-def throw( self, actor, words ):
-  if len(words) > 1 and self.act('drop', words[1] ):
+def throw(self, actor, noun, words):
+  if len(words) > 1 and self.act('drop', words[1]):
      print 'The %s bounces and falls to the floor' % words[1]
      return True
   else:
      print 'You hurt your arm.'
      return False
 
-hero.add_verb( "throw", throw )
-
-# start on the sidewalk
-hero.set_location( sidewalk )
+hero.add_verb(Verb(throw, "throw"))
 
 # start playing (hey, there's a key here!)
-my_game.run(hero)
+game.run()
 ```

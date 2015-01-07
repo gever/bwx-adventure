@@ -614,6 +614,10 @@ class Location(Base):
     obj.game = self.game
     return obj
 
+  def add_actor(self, actor):
+    actor.set_location(self)
+    return actor
+
   def new_object(self, name, desc, fixed=False):
     return self.add_object(Object(name, desc, fixed))
 
