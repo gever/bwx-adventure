@@ -271,18 +271,30 @@ def describe_candle(self):
 
 candle = sidewalk.new_object("candle", describe_candle)
 
-# custom verb to change state of an object
-def lite(self, actor, noun, words):
+# custom verbs to change state of an object
+def light(self, actor, noun, words):
   if (noun and noun != "candle") or words:
     return False
   if self.flag('lit'):
     self.game.output("The candle is already lit.")
   else:
     self.set_flag('lit')
-    self.game.output("You lite the candle.")
+    self.game.output("You light the candle.")
   return True
 
-candle.add_verb(Verb(lite, "lite"))
+candle.add_verb(Verb(light, "light"))
+
+def blow_out(self, actor, noun, words):
+  if (noun and noun != "candle") or words:
+    return False
+  if not self.flag('lit'):
+    self.game.output("The candle is not lit.")
+  else:
+    self.unset_flag('lit')
+    self.game.output("You blow out the candle.")
+  return True
+
+candle.add_verb(Verb(blow_out, "blow out"))
 
 # custom verb to push and pop messages
 # self is the location since that is where the verb was added
