@@ -212,7 +212,7 @@ class Say(BaseVerb):
 
 class SayOnNoun(Say):    
   def __init__(self, string, noun, name = ""):
-    Say.__init__(self, name, string)
+    Say.__init__(self, string, name)
     self.noun = noun
 
   def act(self, actor, noun, words):
@@ -223,7 +223,7 @@ class SayOnNoun(Say):
 
 class SayOnSelf(SayOnNoun):
   def __init__(self, string, name = ""):
-    SayOnNoun.__init__(self, name, None, string)
+    SayOnNoun.__init__(self, string, None, name)
 
 # Verb is used for passing in an unbound global function to the constructor
 class Verb(BaseVerb):
@@ -448,10 +448,20 @@ class Game(Base):
         (target_name, words) = get_noun(words[1:], actor.location.actors)
 
       things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
+      potential_verbs = []
+      for t in things:
+        potential_verbs += t.verbs.keys()
 
       # extract the VERB
-      verb = words[0]
-      words = words[1:]
+      verb = None
+      for v in potential_verbs:
+        vv = v.split()
+        if list_prefix(vv, words):
+          verb = v
+          words = words[len(vv):]
+      if not verb:
+        verb = words[0]
+        words = words[1:]
 
       # extract the OBJECT
       noun = None
@@ -709,6 +719,7 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_inventory, 'i'))
     self.add_verb(BaseVerb(self.act_look, 'look'))
     self.add_verb(BaseVerb(self.act_examine1, 'examine'))
+    self.add_verb(BaseVerb(self.act_examine1, 'look at'))
     self.add_verb(BaseVerb(self.act_look, 'l'))
     self.add_verb(BaseVerb(self.act_go1, 'go'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
@@ -803,7 +814,21 @@ class Actor(Base):
       return True
 
   def act_list_verbs(self, actor, noun, words):
-    self.output(textwrap.fill(" ".join(sorted(self.verbs.keys()))), FEEDBACK)
+    things = (actor.inventory.values() + actor.location.contents.values() +
+       list(actor.location.actors) + [actor.location] + [actor])
+    result = set()
+    for t in things:
+      for v in t.verbs.keys():
+        if len(v.split()) > 1:
+          result.add('"' + v + '"')
+        else:
+          result.add(v);
+      for v in t.phrases.keys():
+        if len(v.split()) > 1:
+          result.add('"' + v + '"')
+        else:
+          result.add(v);
+    self.output(textwrap.fill(" ".join(sorted(result))), FEEDBACK)
     return True
 
   # support for scriptable actors, override these to implement
