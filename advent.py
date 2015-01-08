@@ -880,9 +880,14 @@ class Script(Base):
     self.current_line = -1;
 
   def get_next_line(self):
-    line = self.lines[self.current_line]
-    self.current_line += 1
-    if line.strip() == "end":
+    while True:
+      line = self.lines[self.current_line].strip()
+      self.current_line += 1
+      # support comments and/or blank lines within the script
+      line = string.split(line, "#")[0]
+      if line != "":
+        break 
+    if line == "end":
       self.stop_running()
       return None
     return line
