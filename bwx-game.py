@@ -187,8 +187,8 @@ hero.add_verb(Say("Such violence is appalling.", "hit"))
 # Don't worry if this doesn't make sense yet.
 
 # Create unique player and session names for non-logged/saved sessions.
-player = 'player' + str(time.clock)
-session = 'session' + str(time.clock)
+player = 'player' + str(time.time())
+session = 'session' + str(time.time())
 
 # Create shared data.
 # NOTE: you must either set the server with share.set_host(...) or place the host information

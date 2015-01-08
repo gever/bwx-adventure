@@ -108,7 +108,7 @@ def normalize_input(text):
   superfluous = articles +  ['and']
   rest = []
   for word in text.split():
-    word = word.translate(string.maketrans("",""), string.punctuation)
+    word = "".join(l for l in word if l not in string.punctuation)
     if word not in superfluous:
       rest.append(word)
   return ' '.join(rest)
@@ -272,6 +272,10 @@ def get_noun(words, things):
       noun = words[0]
       words = words[1:]
   return (noun, words)
+
+class FakeArgs:
+  def __init__(self):
+    self.execute = None
     
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
@@ -283,6 +287,7 @@ class Game(Base):
     self.locations = {}
     self.robots = {}
     self.animals = {}
+    self.args = FakeArgs()
     self.argparser = argparse.ArgumentParser(description='Process command line arguments.')
     self.argparser.add_argument('-e', '--execute');  # script to execute
 
