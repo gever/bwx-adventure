@@ -850,9 +850,12 @@ class Actor(Base):
 
 # Scripts are sequences of instructions for Robots to execute
 class Script(Base):
-  def __init__(self, name):
+  def __init__(self, name, lines=None):
     Base.__init__(self, name)
     self.lines = list()
+    if lines != None:
+      for line in string.split(lines, "\n"):
+        self.lines.append(line.strip())
     self.current_line = -1
     self.recording = False
     self.running = False
@@ -990,6 +993,9 @@ class Robot(Actor):
     self.scripts[script_name].load_file()
     return True
 
+  def add_script(self, script):
+    self.scripts[script.name] = script    
+  
   def set_think_time(self, actor, noun, words):
     if noun:
       t = float(noun)
