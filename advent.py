@@ -459,6 +459,7 @@ class Game(Base):
 
       # extract the VERB
       verb = None
+      potential_verbs.sort(key=lambda key : -len(key))
       for v in potential_verbs:
         vv = v.split()
         if list_prefix(vv, words):
