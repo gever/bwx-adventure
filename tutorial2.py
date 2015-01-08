@@ -102,6 +102,34 @@ player.add_phrase("flip coin", flip_coin, [coin])
 # had, for example, a cauldron and a potion you might have the phrase "add potion to cauldron"
 # which would require both the cauldron and the potion to trigger.
 
+# Lets add a script to the game that we can use to test all the code we added above:
+
+test_script = Script("test",
+"""
+go in
+go s
+go out
+take key
+go in
+go s
+n
+out
+flip coin
+take coin
+flip coin
+drop key
+drop coin
+end
+""")
+
+# Then add the script to a player, or a robot
+# with code like the following:
+player.add_script(test_script)
+
+# Now you can run the script from within the game
+# by typing "run test"
+
+
 # Let's run the game.  See if you can get heads!
 
 game.run()
