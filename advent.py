@@ -973,9 +973,19 @@ class Robot(Actor):
                                                               script_name)
       return True
 
-    print "----------------------8<-------------------------"
+    print "----------------------8<-------------------------\n"
+    print "# Paste the following into your game code in order"
+    print "# to be able to run this script in the game:"
+    print "%s_script = Script(\"%s\"," % (script_name, script_name)
+    print "\"\"\""
     self.scripts[script_name].print_lines()
-    print "---------------------->8-------------------------"
+    print "\"\"\")"
+    print "\n# Then add the script to a player, or a robot"
+    print "# with code like the following:"
+    print "player.add_script(%s_script)" % script_name
+    print "\n# Now you can run the script from within the game"
+    print "# by typing \"run %s\"" % script_name
+    print "\n---------------------->8-------------------------"
     return True
 
   def act_save_file(self, actor, noun, words):
