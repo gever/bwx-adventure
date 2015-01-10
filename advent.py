@@ -105,7 +105,7 @@ def add_article (name):
 
 
 def normalize_input(text):
-  superfluous = articles +  ['and']
+  superfluous = articles +  ['and', 'to']
   rest = []
   for word in text.split():
     word = "".join(l for l in word if l not in string.punctuation)
