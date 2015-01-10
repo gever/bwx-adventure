@@ -376,6 +376,48 @@ def update():
     if (game.inventory_contains([pebble])):
       game.output("The pebble you picked up is suddenly feeling warm to the touch!")
 
+# Create a test script to exercise the features we coded above:
+test_script = Script("test",
+"""
+look
+tell Fido to follow me
+take candle pebble key
+go in
+pet cat
+flip switch
+look
+flip switch
+light candle
+blow out candle
+throw pebble
+take pebble
+look
+go up
+s
+n
+drop key
+e
+take key
+e
+w
+look
+w
+n
+s
+d
+out
+knock
+scream foo
+look
+end
+""")
 
+# Then add the script to a player, or a robot
+# with code like the following:
+hero.add_script(test_script)
+
+# Now you can run this script from within the game as the hero
+# by typing "run test"
+      
 # Start playing.
 game.run(update)
