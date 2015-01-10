@@ -386,8 +386,7 @@ class Game(Base):
     while True:
       # if the actor moved, describe the room
       if actor.check_if_moved():
-        self.output("        --=(%s %s in the %s)=--        " % (
-          actor.name.capitalize(), actor.isare, actor.location.name), TITLE)
+        self.output(actor.location.title(actor), TITLE)
 
         # cache this as we need to know it for the query to entering_location()
         self.fresh_location = actor.location.first_time
@@ -613,6 +612,10 @@ class Location(Base):
     self.first_time = True
     self.actors = set()
     self.requirements = {}
+
+  def title(self, actor):
+    return "        --=(%s %s in the %s)=--        " % (
+      actor.name.capitalize(), actor.isare, self.name)
 
   def add_object(self, obj):
     obj.game = self.game
