@@ -1086,12 +1086,17 @@ class Pet(Robot, Animal):
     self.add_verb(BaseVerb(self.act_follow, 'follow'))
     self.add_verb(BaseVerb(self.act_stay, 'stay'))
 
-  def act_follow(self, actor, words=None):
-    self.leader = self.player
+  def act_follow(self, actor, noun, words=None):
+    if noun == None or noun == "" or noun == "me":
+      self.leader = self.game.player
+    elif noun in self.game.robots:
+      self.leader = self.game.robots[noun]
+    elif noun in self.game.animals:
+      self.leader = self.game.animals[noun]
     self.output("%s obediently begins following %s" % (self.name, self.leader.name) , FEEDBACK)
     return True
 
-  def act_stay(self, actor, words=None):
+  def act_stay(self, actor, noun, words=None):
     if self.leader:
       self.output("%s obediently stops following %s" % (self.name, self.leader.name) , FEEDBACK)
     self.leader = None
