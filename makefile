@@ -15,3 +15,9 @@ all: bwx-game.py3 tutorial1.py3 tutorial2.py3
 
 clean:
 	rm *.py3
+
+test: smoketest
+
+smoketest: all
+	echo "run test" | python3 ./tutorial2.py3
+	echo "run test" | python3 ./bwx-game.py3
