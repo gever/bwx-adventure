@@ -22,6 +22,8 @@ game.argparser.add_argument('-f', '--foo')
 # and a description of any doorways or connections to the room, like this:
 # variable_name = Location('The Name", "The description")
 # The triple quotes (""") below are a way to make multi-line strings in Python.
+# The final argument is which word to use in the location title in place of "in"
+# in the phrase "You are in the..."
 sidewalk = Location(
 "Sidewalk",
 """There is a large glass door to the east.
