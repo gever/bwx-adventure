@@ -604,9 +604,10 @@ class Location(Base):
   # first_time: is it the first time here?
   # actors: other actors in the location
 
-  def __init__(self, name, description):
+  def __init__(self, name, description, inonat="in"):
     Base.__init__(self, name)
     self.description = description
+    self.inonat = inonat
     self.contents = {}
     self.exits = {}
     self.first_time = True
@@ -614,8 +615,8 @@ class Location(Base):
     self.requirements = {}
 
   def title(self, actor):
-    return "        --=(%s %s in the %s)=--        " % (
-      actor.name.capitalize(), actor.isare, self.name)
+    return "        --=(%s %s %s the %s)=--        " % (
+      actor.name.capitalize(), actor.isare, self.inonat, self.name)
 
   def add_object(self, obj):
     obj.game = self.game

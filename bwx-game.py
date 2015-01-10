@@ -26,7 +26,7 @@ sidewalk = Location(
 "Sidewalk",
 """There is a large glass door to the east.
 The sign says 'Come In!'
-""")
+""", "on")
 
 # Custom messages can contain lists of strings and functions which return strings.
 vestibule = Location(
@@ -52,7 +52,7 @@ intersection = Location("Intersection",
 north that leads to the shop. To the east is the elevator
 landing, to the west is the guest lounge, and to the
 south is the reception desk. There is nothing to do here.
-""")
+""", "at")
 
 elevator = Location("Elevator",
 """The elevator is turned off, but the door is open.
