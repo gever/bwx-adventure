@@ -858,7 +858,7 @@ class Script(Base):
     Base.__init__(self, name)
     self.lines = list()
     if lines != None:
-      for line in string.split(lines, "\n"):
+      for line in lines.splitlines():
         self.lines.append(line.strip())
     self.current_line = -1
     self.recording = False
@@ -891,7 +891,7 @@ class Script(Base):
       line = self.lines[self.current_line].strip()
       self.current_line += 1
       # support comments and/or blank lines within the script
-      line = string.split(line, "#")[0]
+      line = line.split("#")[0]
       if line != "":
         break 
     if line == "end":
