@@ -7,7 +7,6 @@
 # import urllib.request as urllib2
 import urllib2
 
-import argparse
 import random
 import string
 import textwrap
@@ -44,7 +43,6 @@ def define_direction(number, name):
   directions[name] = number
   if not number in direction_name or (len(direction_name[number]) < len(name)):
     direction_name[number] = name
-
 # define player words used to describe known directions
 define_direction(NORTH, "north")
 define_direction(NORTH, "n")
@@ -273,10 +271,30 @@ def get_noun(words, things):
       words = words[1:]
   return (noun, words)
 
-class FakeArgs:
+
+# A class to hold utility methods useful during game development, but
+# not needed for normal game play.  Import the advent_devtools module
+# and call DevTools(game) to get the full version of the tools.
+class DevToolsBase(object):
   def __init__(self):
-    self.execute = None
+    self.game = None
+
+  def get_script(self):
+    return None
     
+  def set_game(self, game):
+    self.game = game
+    
+  def start(self):
+    return
+
+global _devtools
+_devtools = DevToolsBase()
+  
+def register_devtools(devtools):
+  global _devtools
+  _devtools = devtools
+      
 # The Game: container for hero, locations, robots, animals etc.
 class Game(Base):
   def __init__(self, name="bwx-adventure"):
@@ -287,9 +305,9 @@ class Game(Base):
     self.locations = {}
     self.robots = {}
     self.animals = {}
-    self.args = FakeArgs()
-    self.argparser = argparse.ArgumentParser(description='Process command line arguments.')
-    self.argparser.add_argument('-e', '--execute');  # script to execute
+    global _devtools
+    self.devtools = _devtools
+    self.devtools.set_game(self)
 
   def set_name(self, name):
     self.name = name
@@ -371,17 +389,17 @@ class Game(Base):
     return lambda game: game.output(s)
 
   def run(self , update_func = False):
-    # parse the args now that all modules have had a chance to add arg handlers
-    self.args = self.argparser.parse_args()
-
+    self.devtools.start()
+        
     # reset this every loop so we don't trigger things more than once
     self.fresh_location = False
 
     actor = self.player
 
-    if self.args.execute != None:
-      actor.act_load_file(actor, self.args.execute, None)
-      actor.act_run_script(actor, self.args.execute, None)
+    script_name = self.devtools.get_script()
+    if script_name != None:
+      actor.act_load_file(actor, script_name, None)
+      actor.act_run_script(actor, script_name, None)
     
     while True:
       # if the actor moved, describe the room

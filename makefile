@@ -2,8 +2,8 @@
 all: bwx-game.py3 tutorial1.py3 tutorial2.py3
 
 %.py3: %.py
-	grep -v argparse advent.py > $@
-	grep -v argparse $< >> $@
+	cat advent.py > $@
+	grep -v advent_devtools $< >> $@
 	2to3 --no-diffs -w -n $@
 	perl -i -p -e "s/\Qfrom advent \E/# from advent /" $@
 	perl -i -p -e "s/\Qnet_f.read()\E/net_f.read().decode('utf-8')/" $@

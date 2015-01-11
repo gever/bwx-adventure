@@ -6,17 +6,12 @@ from advent import *
 from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Player, Verb, Say, SayOnNoun, SayOnSelf
 from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 
+# comment this line out to skip the devtools for environments like trinket
+import advent_devtools
+
 # Set up the game you are going to build on.
 # my_game is a top-level container for everything in the game.
 game = Game("Brightworks Adventure")
-
-# Add any arguments you want the user to be able to pass in on the command line when
-# running your game.  This example will set the value of game.args.foo to whatever
-# value is passed in with any of these versions of the command:
-#     bwx-game.py -f value
-#     bwx-game.py --foo value
-#     bwx-game.py --foo=value
-game.argparser.add_argument('-f', '--foo')
 
 # Create some interesting locations. Locations need a name
 # and a description of any doorways or connections to the room, like this:
