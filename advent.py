@@ -876,7 +876,7 @@ class Script(Base):
     Base.__init__(self, name)
     self.lines = list()
     if lines != None:
-      for line in lines.splitlines():
+      for line in lines.split("\n"):
         self.lines.append(line.strip())
     self.current_line = -1
     self.recording = False
