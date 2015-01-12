@@ -409,7 +409,10 @@ class Game(Base):
     script_name = self.devtools.get_script()
     if script_name != None:
       actor.act_load_file(actor, script_name, None)
-      actor.act_run_script(actor, script_name, None)
+      if self.flag('check'):
+        actor.act_check_script(actor, script_name, None)
+      else:
+        actor.act_run_script(actor, script_name, None)
     
     while True:
       # if the actor moved, describe the room
