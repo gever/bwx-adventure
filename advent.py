@@ -419,7 +419,7 @@ class Game(Base):
         # cache this as we need to know it for the query to entering_location()
         self.fresh_location = actor.location.first_time
 
-        where = actor.location.describe(actor)
+        where = actor.location.describe(actor, self.flag('verbose'))
         if where:
           self.output("")
           self.output(where)
@@ -1052,6 +1052,16 @@ class Robot(Actor):
     self.add_verb(BaseVerb(self.act_save_file, 'save'))
     self.add_verb(BaseVerb(self.act_load_file, 'load'))
     self.add_verb(BaseVerb(self.set_think_time, 'think'))
+    self.add_verb(BaseVerb(self.toggle_verbosity, 'verbose'))
+
+  def toggle_verbosity(self, actor, noun, words):
+    if self.game.flag('verbose'):
+      self.game.unset_flag('verbose')
+      self.game.output("minimal verbosity")
+    else:
+      self.game.set_flag('verbose')
+      self.game.output("maximum verbosity")
+    return True
 
   def parse_script_name(self, noun):
     if not noun:
@@ -1062,6 +1072,7 @@ class Robot(Actor):
 
   def act_start_recording(self, actor, noun, words):
     script_name = self.parse_script_name(noun)
+    self.game.set_flag('verbose')
     self.game.devtools.debug_output("start recording %s" % script_name, 2)
     script = Script(script_name)
     self.scripts[script_name] = script
@@ -1087,6 +1098,7 @@ class Robot(Actor):
 
   def act_check_script(self, actor, noun, words):
     if self.act_run_script(actor, noun, words):
+      self.game.set_flag('verbose')
       self.current_script.start_checking()
       self.game.devtools.debug_output("start checking", 2)
       return True
@@ -1182,7 +1194,6 @@ class Player(Robot):
     Robot.__init__(self, "you")
     self.player = True
     self.isare = "are"
-
 
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
