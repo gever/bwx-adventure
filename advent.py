@@ -374,8 +374,13 @@ class Game(Base):
   def if_var(self, v, value, s_true, s_false, location = None):
     return lambda loc: (s_false, s_true)[v in (location or loc).vars and (location or loc).vars[v] == value] 
 
-  # overload this for HTTP output
   def output(self, text, message_type = 0):
+    if message_type != DEBUG:
+      self.current_actor.set_next_script_response(text)
+    self.print_output(text, message_type)
+
+  # overload this for HTTP output
+  def print_output(self, text, message_type = 0):
     print_output(text, message_type)
 
   # checks to see if the inventory in the items list is in the user's inventory
@@ -429,7 +434,7 @@ class Game(Base):
         update_func() # call the update function
 
       # check if we're currently running a script
-      user_input = actor.get_next_script_line();
+      user_input = actor.get_next_script_command();
       if user_input == None:
         # get input from the user
         try:
@@ -460,7 +465,7 @@ class Game(Base):
         break
 
       # give the input to the actor in case it's recording a script
-      if not actor.set_next_script_line(command):
+      if not actor.set_next_script_command(command):
         continue
 
       words = command.split()
@@ -871,50 +876,94 @@ class Actor(Base):
     return True
 
   # support for scriptable actors, override these to implement
-  def get_next_script_line(self):
+  def get_next_script_command(self):
     return None
 
-  def set_next_script_line(self, line):
+  def set_next_script_command(self, line):
     return True
 
+  def set_next_script_response(self, response):
+    return True
+  
 # Scripts are sequences of instructions for Robots to execute
 class Script(Base):
   def __init__(self, name, lines=None):
     Base.__init__(self, name)
-    self.lines = list()
-    if lines != None:
-      for line in lines.split("\n"):
-        self.lines.append(line.strip())
-    self.current_line = -1
+    self.commands = list()
+    self.responses = list()
+    self.current_response = None
+    self.check_responses = False
+    self.current_command = -1
     self.recording = False
     self.running = False
+    self.parse_lines(lines)
 
+  def parse_lines(self, lines):
+    if lines != None:
+      self.start_recording()
+      for line in lines.split("\n"):
+        if line.startswith("> "):
+          # save the new command, and any accumulated response from previous
+          self.set_next_command(line.strip("> \n"))
+        elif self.current_response != None:
+          # accumulate response lines until the next command
+          self.current_response += line + "\n"
+        else:
+          self.current_response = line + "\n"
+      # if we didn't manage to get "end" go ahead and stop things brute force
+      if self.recording:
+        self.stop_recording()
+    
   def start_recording(self):
     assert not self.running
     assert not self.recording
+    self.current_response = None
+    self.responses = list()
+    self.commands = list()
     self.recording = True
 
   def stop_recording(self):
     assert self.recording
     assert not self.running
+    self.current_response = None
     self.recording = False
 
   def start_running(self):
     assert not self.running
     assert not self.recording
+    self.current_response = None
+    self.check_responses = False
     self.running = True
-    self.current_line = 0;
+    self.current_command = 0;
+
+  def start_checking(self):
+    assert self.running
+    assert not self.recording
+    print "check_responses on"
+    self.check_responses = True
+    self.current_response = ""
 
   def stop_running(self):
     assert self.running
     assert not self.recording
+    self.current_response = None
+    self.check_responses = False
     self.running = False
-    self.current_line = -1;
+    self.current_command = -1;
 
-  def get_next_line(self):
+  def get_next_command(self):
+    # if we're running a checker, examine the current response vs what's expected
+    if self.current_command >= 1:
+      self.check_response_match(self.current_response,
+                                self.responses[self.current_command - 1])
+      self.current_response = ""
+
+    if not self.commands:
+      return None
+      
     while True:
-      line = self.lines[self.current_line].strip()
-      self.current_line += 1
+      line = self.commands[self.current_command].strip()
+      self.current_command += 1
       # support comments and/or blank lines within the script
       line = line.split("#")[0]
       if line != "":
@@ -924,27 +973,65 @@ class Script(Base):
       return None
     return line
 
-  def set_next_line(self, line):
-    self.lines.append(line)
-    if line.strip() == "end":
+  def check_response_match(self, response, expected_response):
+    if self.check_responses:
+      if response != expected_response:
+        print "response mismatch:\n>>>\n%s\n===\n%s\n<<<\n" % (response,
+                                                         expected_response)
+      else:
+        print "response match:\n%s\n===\n%s\n" % (response,
+                                                      expected_response)
+      
+  
+  def set_next_command(self, command):
+    if not self.recording:
+      return True
+    
+    # save the accumulated response from the previous command
+    if self.current_response != None:
+      # append the response, trimming the final newline that preceded this command
+      self.responses.append(self.current_response[:-1])
+    self.current_response = ""
+
+    # save the current command
+    self.commands.append(command)
+    if command.strip() == "end":
       self.stop_recording()
       return False
+    self.current_command += 1
+      
     return True
 
-  def print_lines(self):
-    for line in self.lines:
-      print line
+  def set_next_response(self, response):
+    if not self.recording and not self.running:
+      return
+    if self.current_response != None:
+      self.current_response += response + "\n"
+
+  def print_script(self):
+    i = 0
+    for command in self.commands:
+      print "> " + command
+      if command == "end":
+        break
+      print self.responses[i]
+      i = i + 1
 
   def save_file(self):
     f = open(self.name + ".script", "w")
-    for line in self.lines:
-      f.write(line + '\n')
+    i = 0
+    for command in self.commands:
+      f.write('> ' + command + '\n')
+      if command != "end":
+        response_lines = self.responses[i].split('\n')
+        for line in response_lines:
+          f.write(line + '\n')
+      i = i + 1
     f.close()
 
   def load_file(self):
     f = open(self.name + ".script", "r")
-    for line in f:
-      self.lines.append(line.strip())
+    self.parse_lines(f.read())
     f.close()
 
 
@@ -960,6 +1047,7 @@ class Robot(Actor):
     self.script_think_time = 0
     self.add_verb(BaseVerb(self.act_start_recording, 'record'))
     self.add_verb(BaseVerb(self.act_run_script, 'run'))
+    self.add_verb(BaseVerb(self.act_check_script, 'check'))
     self.add_verb(BaseVerb(self.act_print_script, 'print'))
     self.add_verb(BaseVerb(self.act_save_file, 'save'))
     self.add_verb(BaseVerb(self.act_load_file, 'load'))
@@ -974,6 +1062,7 @@ class Robot(Actor):
 
   def act_start_recording(self, actor, noun, words):
     script_name = self.parse_script_name(noun)
+    self.game.devtools.debug_output("start recording %s" % script_name, 2)
     script = Script(script_name)
     self.scripts[script_name] = script
     script.start_recording()
@@ -989,12 +1078,20 @@ class Robot(Actor):
                                                             script_name)
 
       return True;
-
+    
+    self.game.devtools.debug_output("start running %s" % script_name, 2)
     script = self.scripts[script_name]
     self.current_script = script
     script.start_running()
     return True
 
+  def act_check_script(self, actor, noun, words):
+    if self.act_run_script(actor, noun, words):
+      self.current_script.start_checking()
+      self.game.devtools.debug_output("start checking", 2)
+      return True
+    return False
+  
   def act_print_script(self, actor, noun, words):
     script_name = self.parse_script_name(noun)
     if not script_name in self.scripts:
@@ -1007,7 +1104,7 @@ class Robot(Actor):
     print "# to be able to run this script in the game:"
     print "%s_script = Script(\"%s\"," % (script_name, script_name)
     print "\"\"\""
-    self.scripts[script_name].print_lines()
+    self.scripts[script_name].print_script()
     print "\"\"\")"
     print "\n# Then add the script to a player, or a robot"
     print "# with code like the following:"
@@ -1045,10 +1142,10 @@ class Robot(Actor):
     print "\"think\" requires a number of seconds (0.0000-60.0000) as an argument"
     return True
 
-  def get_next_script_line(self):
+  def get_next_script_command(self):
     if not self.current_script or not self.current_script.running:
       return None
-    line = self.current_script.get_next_line()
+    line = self.current_script.get_next_command()
     if not line:
       print "%s %s done running script \"%s\"." % (self.name,
                                                    self.isare,
@@ -1061,14 +1158,20 @@ class Robot(Actor):
     print "> %s" % line
     return line
 
-  def set_next_script_line(self, line):
-    if not self.current_script or not self.current_script.recording:
+  def set_next_script_command(self, command):
+    if not self.current_script:
       return True
-    if not self.current_script.set_next_line(line):
+    if not self.current_script.set_next_command(command):
       print "%s finished recording script \"%s\"." % (self.name,
                                                       self.current_script.name)
       self.current_script = None
       return False
+    return True
+
+  def set_next_script_response(self, response):
+    if not self.current_script:
+      return True
+    self.current_script.set_next_response(response)
     return True
 
 
