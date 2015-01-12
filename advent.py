@@ -285,6 +285,9 @@ class DevToolsBase(object):
   def set_game(self, game):
     self.game = game
     
+  def debug_output(self, text, level):
+    return
+
   def start(self):
     return
 
@@ -302,6 +305,7 @@ class Game(Base):
     self.objects = {}
     self.fresh_location = False
     self.player = None
+    self.current_actor = None
     self.locations = {}
     self.robots = {}
     self.animals = {}
@@ -389,13 +393,14 @@ class Game(Base):
     return lambda game: game.output(s)
 
   def run(self , update_func = False):
-    self.devtools.start()
-        
     # reset this every loop so we don't trigger things more than once
     self.fresh_location = False
 
     actor = self.player
+    self.current_actor = actor
 
+    self.devtools.start()
+        
     script_name = self.devtools.get_script()
     if script_name != None:
       actor.act_load_file(actor, script_name, None)
@@ -444,7 +449,9 @@ class Game(Base):
       else:
          actor = self.player
          command = user_input
-         
+
+      self.current_actor = actor
+                  
       # now we're done with punctuation and other superfluous words like articles
       command = normalize_input(command)
 
@@ -1309,6 +1316,7 @@ FEEDBACK = 0
 TITLE = 1
 DESCRIPTION = 2
 CONTENTS = 3
+DEBUG = 4
 
 
 # this handles printing things to output, it also styles them
@@ -1331,6 +1339,9 @@ def style_text(text, message_type):
 
   if (message_type == CONTENTS):
     text = Colors.FG.green + text + Colors.reset
+
+  if (message_type == DEBUG):
+    text = Colors.FG.black + Colors.BG.orange + text + Colors.reset
 
   return text
 
