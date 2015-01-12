@@ -1341,7 +1341,7 @@ def style_text(text, message_type):
     text = Colors.FG.green + text + Colors.reset
 
   if (message_type == DEBUG):
-    text = Colors.FG.black + Colors.BG.orange + text + Colors.reset
+    text = Colors.bold + Colors.FG.black + Colors.BG.orange + "\n" + text + Colors.reset
 
   return text
 
