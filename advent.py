@@ -607,6 +607,8 @@ class Game(Base):
       # not understood
       self.output("Huh?", FEEDBACK)
 
+    print "\ngoodbye!\n"
+
 
 class Object(Base):
   # name: short name of this thing
