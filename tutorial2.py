@@ -106,20 +106,20 @@ player.add_phrase("flip coin", flip_coin, [coin])
 
 test_script = Script("test",
 """
-go in
-go s
-go out
-take key
-go in
-go s
-n
-out
-flip coin
-take coin
-flip coin
-drop key
-drop coin
-end
+> go in
+> go s
+> go out
+> take key
+> go in
+> go s
+> n
+> out
+> flip coin
+> take coin
+> flip coin
+> drop key
+> drop coin
+> end
 """)
 
 # Then add the script to a player, or a robot

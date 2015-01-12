@@ -376,37 +376,37 @@ def update():
 # Create a test script to exercise the features we coded above:
 test_script = Script("test",
 """
-look
-tell Fido to follow me
-take candle pebble key
-go in
-pet cat
-flip switch
-look
-flip switch
-light candle
-blow out candle
-throw pebble
-take pebble
-look
-go up
-s
-n
-drop key
-e
-take key
-e
-w
-look
-w
-n
-s
-d
-out
-knock
-scream foo
-look
-end
+> look
+> tell Fido to follow me
+> take candle pebble key
+> go in
+> pet cat
+> flip switch
+> look
+> flip switch
+> light candle
+> blow out candle
+> throw pebble
+> take pebble
+> look
+> go up
+> s
+> n
+> drop key
+> e
+> take key
+> e
+> w
+> look
+> w
+> n
+> s
+> d
+> out
+> knock
+> scream foo
+> look
+> end
 """)
 
 # Then add the script to a player, or a robot
