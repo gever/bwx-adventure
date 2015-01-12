@@ -4,6 +4,7 @@
 
 from advent import DevToolsBase, register_devtools, DEBUG
 import argparse
+import random
 
 class DevTools(DevToolsBase):
   def __init__(self):
@@ -13,7 +14,8 @@ class DevTools(DevToolsBase):
     self.argparser = argparse.ArgumentParser(description='Process command line arguments.')
     self.argparser.add_argument('-e', '--execute');  # script to execute
     self.argparser.add_argument('-d', '--debug_level');  # debugging output level
-
+    self.argparser.add_argument('-r', '--random', action='store_true'); # force random seed
+        
   def get_script(self):
     return self.args.execute
       
@@ -27,6 +29,11 @@ class DevTools(DevToolsBase):
     self.args = self.argparser.parse_args()
     if self.args.debug_level:
       self.debug_level = int(self.args.debug_level)
+    seed=12345 # fixed seed is useful to get reproducible test runs
+    if self.args.random:
+      seed = None
+    random.seed(seed)
+          
     self.debug_output("advent_devtools enabled:\n" +
                       "\tdebug output level: %d\n" % self.debug_level +
                       "\texecuting script: %s" % self.args.execute,
