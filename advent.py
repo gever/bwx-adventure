@@ -510,11 +510,10 @@ class Game(Base):
     self.devtools.start()
 
   def init_scripts(self):
-    print "init_scripts()"
     actor = self.current_actor
     script_name = self.var('script_name')
     if script_name != None:
-      print "script_name: " + script_name
+      self.devtools.debug_output("script_name: " + script_name, 3)
       actor.act_load_file(actor, script_name, None)
       if self.flag('check'):
         actor.act_check_script(actor, script_name, None)
@@ -523,7 +522,7 @@ class Game(Base):
 
     recording_name = self.var('start_recording')
     if recording_name != None:
-      print "recording_name: " + recording_name
+      self.devtools.debug_output("recording_name: " + recording_name, 3)
       actor.act_start_recording(actor, recording_name, None)
           
   def run_room(self):
