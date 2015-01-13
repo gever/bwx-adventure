@@ -16,11 +16,9 @@ class DevTools(DevToolsBase):
     self.argparser.add_argument('-d', '--debug_level')  # debugging output level
     self.argparser.add_argument('-e', '--execute')  # script to execute
     self.argparser.add_argument('-f', '--fail_on_mismatch', action='store_true')
+    self.argparser.add_argument('-s', '--start_recording') # script to record
     self.argparser.add_argument('-r', '--random', action='store_true') # force random seed
         
-  def get_script(self):
-    return self.args.execute
-
   def debug_output(self, text, level):
     if self.debug_level >= level:
       self.game.output(text, DEBUG)
@@ -38,11 +36,17 @@ class DevTools(DevToolsBase):
       seed = None
     random.seed(seed)
 
+    if self.args.execute:
+      self.game.set_var('script_name', self.args.execute)
+      
     if self.args.check:
       self.game.set_flag('check')
 
     if self.args.fail_on_mismatch:
       self.game.set_flag('fail_on_mismatch')
+
+    if self.args.start_recording:
+      self.game.set_var('start_recording', self.args.start_recording)
           
     self.debug_output("advent_devtools enabled:\n" +
                       "\tdebug output level: %d\n" % self.debug_level +

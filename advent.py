@@ -343,9 +343,6 @@ class DevToolsBase(object):
   def __init__(self):
     self.game = None
 
-  def get_script(self):
-    return None
-    
   def set_game(self, game):
     self.game = game
     
@@ -512,14 +509,23 @@ class Game(Base):
     self.current_actor = self.player
     self.devtools.start()
 
-    script_name = self.devtools.get_script()
+  def init_scripts(self):
+    print "init_scripts()"
+    actor = self.current_actor
+    script_name = self.var('script_name')
     if script_name != None:
+      print "script_name: " + script_name
       actor.act_load_file(actor, script_name, None)
       if self.flag('check'):
         actor.act_check_script(actor, script_name, None)
       else:
         actor.act_run_script(actor, script_name, None)
 
+    recording_name = self.var('start_recording')
+    if recording_name != None:
+      print "recording_name: " + recording_name
+      actor.act_start_recording(actor, recording_name, None)
+          
   def run_room(self):
     actor = self.current_actor
     # if the actor moved, describe the room
@@ -535,13 +541,14 @@ class Game(Base):
         self.output(where)
         self.output("")
 
-  def run_step(self, cmd = None):
-    self.http_text = ""
-    actor = self.current_actor
-
     # See if the animals want to do anything
     for animal in self.animals.items():
       animal[1].act_autonomously(actor.location)
+
+
+  def run_step(self, cmd = None):
+    self.http_text = ""
+    actor = self.current_actor
 
     # has the developer supplied an update function?
     if self.update_func:
@@ -706,6 +713,8 @@ class Game(Base):
 
   def run(self , update_func = None):
     self.run_init(update_func)
+    self.run_room() # just set the stage before we do any scripting
+    self.init_scripts() # now we can set up scripts
     while True:
       self.run_room()
       if not self.run_step():
@@ -1128,8 +1137,6 @@ class Script(Base):
     return True
 
   def set_next_response(self, response):
-    if not self.recording and not self.running:
-      return
     if self.current_response != None:
       # strip out color changing chars which may be in there
       control_chars = False
