@@ -1098,8 +1098,18 @@ class Script(Base):
     if not self.recording and not self.running:
       return
     if self.current_response != None:
-      self.current_response += response + "\n"
-
+      # strip out color changing chars which may be in there
+      control_chars = False
+      for c in response:
+        if c == '\33':
+          control_chars = True
+        if control_chars:
+          if c == 'm':
+            control_chars = False
+          continue
+        self.current_response += c
+      self.current_response += "\n"
+      
   def print_script(self):
     i = 0
     for command in self.commands:
