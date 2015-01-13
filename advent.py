@@ -979,8 +979,9 @@ class Actor(Base):
   
 # Scripts are sequences of instructions for Robots to execute
 class Script(Base):
-  def __init__(self, name, lines=None):
+  def __init__(self, name, lines=None, game=None):
     Base.__init__(self, name)
+    self.game = game
     self.commands = list()
     self.responses = list()
     self.current_response = None
@@ -1067,12 +1068,17 @@ class Script(Base):
 
   def check_response_match(self, response, expected_response):
     if self.check_responses:
+      match = "match"
+      level = 2
       if response != expected_response:
-        print "response mismatch:\n>>>\n%s\n===\n%s\n<<<\n" % (response,
-                                                         expected_response)
-      else:
-        print "response match:\n%s\n===\n%s\n" % (response,
-                                                      expected_response)
+        match = "mismatch"
+        level = 0 
+
+      self.game.devtools.debug_output(
+        "response %s:\n>>>\n%s\n===\n%s\n<<<\n" % (match,
+                                                   response,
+                                                   expected_response),
+        level)
       
   
   def set_next_command(self, command):
@@ -1176,7 +1182,7 @@ class Robot(Actor):
     script_name = self.parse_script_name(noun)
     self.game.set_flag('verbose')
     self.game.devtools.debug_output("start recording %s" % script_name, 2)
-    script = Script(script_name)
+    script = Script(script_name, None, self.game)
     self.scripts[script_name] = script
     script.start_recording()
     self.current_script = script
@@ -1232,18 +1238,19 @@ class Robot(Actor):
     script_name = self.parse_script_name(noun)
     if not script_name in self.scripts:
       print "%s can't find script \"%s\" in its memory." % (self.name,
-                                                              script_name)
+                                                            script_name)
       return True
     self.scripts[script_name].save_file()
     return True
 
   def act_load_file(self, actor, noun, words):
     script_name = self.parse_script_name(noun)
-    self.scripts[script_name] = Script(script_name)
+    self.scripts[script_name] = Script(script_name, None, self.game)
     self.scripts[script_name].load_file()
     return True
 
   def add_script(self, script):
+    script.game = self.game
     self.scripts[script.name] = script    
   
   def set_think_time(self, actor, noun, words):
