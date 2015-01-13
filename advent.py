@@ -198,6 +198,19 @@ class Base(object):
     if f in self.vars:
       del self.vars[f]
 
+  def var(self, var):
+    if var in self.vars:
+      return self.vars[var]
+    else:
+      return None
+
+  def set_var(self, var, val):
+    self.vars[var] = val
+
+  def unset_var(self, var):
+    if var in self.vars:
+      del self.vars[var]
+
   def add_verb(self, v):
     self.verbs[' '.join(v.name.split())] = v
     v.bind_to(self)
