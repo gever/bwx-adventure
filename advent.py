@@ -986,9 +986,13 @@ class Script(Base):
     self.responses = list()
     self.current_response = None
     self.check_responses = False
+    self.mismatched_responses = -1
     self.current_command = -1
     self.recording = False
     self.running = False
+    self.start_time = None
+    self.finish_time = None
+    self.response_errors = 0
     self.parse_lines(lines)
 
   def parse_lines(self, lines):
@@ -1027,7 +1031,9 @@ class Script(Base):
     self.current_response = None
     self.check_responses = False
     self.running = True
-    self.current_command = 0;
+    self.current_command = 0
+    self.mismatched_responses = 0
+    self.start_time = time.time()
 
   def start_checking(self):
     assert self.running
@@ -1039,10 +1045,15 @@ class Script(Base):
   def stop_running(self):
     assert self.running
     assert not self.recording
+    self.stop_time = time.time()
+    self.game.devtools.debug_output(
+      "script \"%s\":\n\tcommands: %d\n\tmismatched responses: %d\n\truntime: %f %s\n" % (
+        self.name, self.current_command, self.mismatched_responses,
+        (self.stop_time - self.start_time) * 1000, "milliseconds"), 0)
     self.current_response = None
     self.check_responses = False
     self.running = False
-    self.current_command = -1;
+    self.current_command = -1
 
   def get_next_command(self):
     # if we're running a checker, examine the current response vs what's expected
@@ -1072,7 +1083,8 @@ class Script(Base):
       level = 2
       if response != expected_response:
         match = "mismatch"
-        level = 0 
+        level = 0
+        self.mismatched_responses += 1
 
       self.game.devtools.debug_output(
         "response %s:\n>>>\n%s\n===\n%s\n<<<\n" % (match,
