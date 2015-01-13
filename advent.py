@@ -1054,6 +1054,8 @@ class Script(Base):
     self.check_responses = False
     self.running = False
     self.current_command = -1
+    if self.mismatched_responses != 0:
+      assert(not self.game.flag('fail_on_mismatch'))
 
   def get_next_command(self):
     # if we're running a checker, examine the current response vs what's expected

@@ -13,8 +13,9 @@ class DevTools(DevToolsBase):
     self.debug_level = 0
     self.argparser = argparse.ArgumentParser(description='Process command line arguments.')
     self.argparser.add_argument('-c', '--check', action='store_true');  # check responses
-    self.argparser.add_argument('-e', '--execute');  # script to execute
     self.argparser.add_argument('-d', '--debug_level');  # debugging output level
+    self.argparser.add_argument('-e', '--execute');  # script to execute
+    self.argparser.add_argument('-f', '--fail_on_mismatch', action='store_true')
     self.argparser.add_argument('-r', '--random', action='store_true'); # force random seed
         
   def get_script(self):
@@ -39,6 +40,9 @@ class DevTools(DevToolsBase):
 
     if self.args.check:
       self.game.set_flag('check')
+
+    if self.args.fail_on_mismatch:
+      self.game.set_flag('fail_on_mismatch')
           
     self.debug_output("advent_devtools enabled:\n" +
                       "\tdebug output level: %d\n" % self.debug_level +
