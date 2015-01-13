@@ -1,4 +1,4 @@
-#
+# 
 # adventure module
 #
 # vim: et sw=2 ts=2 sts=2
@@ -38,8 +38,7 @@ NOT_DIRECTION = -1
 # map direction names to direction numbers
 def define_direction(number, name):
   # check to see if we are trying to redefine an existing direction
-  if name in directions:
-    print name, "is already defined as,", directions[name]
+  assert not name in directions
   directions[name] = number
   if not number in direction_name or (len(direction_name[number]) < len(name)):
     direction_name[number] = name
@@ -72,6 +71,58 @@ define_direction(NORTH_EAST, "ne")
 define_direction(SOUTH_WEST, "sw")
 define_direction(SOUTH_EAST, "se")
 
+# registered games
+registered_games = {}
+
+FEEDBACK = 0
+TITLE = 1
+DESCRIPTION = 2
+CONTENTS = 3
+DEBUG = 4
+
+class Colors:
+  '''
+  Colors class:
+  reset all colors with colors.reset
+  two subclasses fg for foreground and bg for background.
+  use as colors.subclass.colorname.
+  i.e. colors.fg.red or colors.bg.green
+  also, the generic bold, disable, underline, reverse, strikethrough,
+  and invisible work with the main class
+  i.e. colors.bold
+  '''
+  reset='\033[0m'
+  bold='\033[01m'
+  disable='\033[02m'
+  underline='\033[04m'
+  reverse='\033[07m'
+  strikethrough='\033[09m'
+  invisible='\033[08m'
+  class FG:
+    black='\033[30m'
+    red='\033[31m'
+    green='\033[32m'
+    orange='\033[33m'
+    blue='\033[34m'
+    purple='\033[35m'
+    cyan='\033[36m'
+    lightgrey='\033[37m'
+    darkgrey='\033[90m'
+    lightred='\033[91m'
+    lightgreen='\033[92m'
+    yellow='\033[93m'
+    lightblue='\033[94m'
+    pink='\033[95m'
+    lightcyan='\033[96m'
+  class BG:
+    black='\033[40m'
+    red='\033[41m'
+    green='\033[42m'
+    orange='\033[43m'
+    blue='\033[44m'
+    purple='\033[45m'
+    cyan='\033[46m'
+    lightgrey='\033[47m'
 
 articles = ['a', 'an', 'the']
 # some prepositions to recognize indirect objects in prepositional phrases
@@ -312,6 +363,8 @@ class Game(Base):
     global _devtools
     self.devtools = _devtools
     self.devtools.set_game(self)
+    self.http_output = False
+    self.http_text = ""
 
   def set_name(self, name):
     self.name = name
@@ -379,9 +432,41 @@ class Game(Base):
       self.current_actor.set_next_script_response(text)
     self.print_output(text, message_type)
 
+  def style_text(self, text, message_type):
+    if False: # trinket.io
+      return text
+
+    if self.http_output:
+      if (message_type == FEEDBACK):
+        text = "<font color='red'>" + text + '</font>'
+      if (message_type == TITLE):
+        text = "<font color='blue'>" + text + '</font>'
+      if (message_type == DESCRIPTION):
+        pass
+      if (message_type == CONTENTS):
+        text = "<font color='green'>" + text + '</font>'
+      if (message_type == DEBUG):
+        text = "<font color='orange'>" + text + '</font>'
+      return text
+
+    if (message_type == FEEDBACK):
+      text = Colors.FG.pink + text + Colors.reset
+    if (message_type == TITLE):
+      text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + Colors.reset
+    if (message_type == DESCRIPTION):
+      text = Colors.reset + text
+    if (message_type == CONTENTS):
+      text = Colors.FG.green + text + Colors.reset
+    if (message_type == DEBUG):
+      text = Colors.bold + Colors.FG.black + Colors.BG.orange + "\n" + text + Colors.reset
+    return text
+
   # overload this for HTTP output
   def print_output(self, text, message_type = 0):
-    print_output(text, message_type)
+    if self.http_output:
+      self.http_text += self.style_text(text, message_type) + "\n"
+    else:
+      print self.style_text(text, message_type)
 
   # checks to see if the inventory in the items list is in the user's inventory
   def inventory_contains(self, items):
@@ -397,15 +482,23 @@ class Game(Base):
   def say(self, s):
     return lambda game: game.output(s)
 
-  def run(self , update_func = False):
+  @staticmethod
+  def register(name, fn):
+    global registered_games
+    registered_games[name] = fn
+
+  @staticmethod
+  def get_registered_games():
+    global registered_games
+    return registered_games
+
+  def run_init(self, update_func = None):
     # reset this every loop so we don't trigger things more than once
     self.fresh_location = False
-
-    actor = self.player
-    self.current_actor = actor
-
+    self.update_func = update_func
+    self.current_actor = self.player
     self.devtools.start()
-        
+
     script_name = self.devtools.get_script()
     if script_name != None:
       actor.act_load_file(actor, script_name, None)
@@ -413,204 +506,198 @@ class Game(Base):
         actor.act_check_script(actor, script_name, None)
       else:
         actor.act_run_script(actor, script_name, None)
-    
-    while True:
-      # if the actor moved, describe the room
-      if actor.check_if_moved():
-        self.output(actor.location.title(actor), TITLE)
 
-        # cache this as we need to know it for the query to entering_location()
-        self.fresh_location = actor.location.first_time
+  def run_room(self):
+    actor = self.current_actor
+    # if the actor moved, describe the room
+    if actor.check_if_moved():
+      self.output(actor.location.title(actor), TITLE)
 
-        where = actor.location.describe(actor, self.flag('verbose'))
-        if where:
-          self.output("")
-          self.output(where)
-          self.output("")
+      # cache this as we need to know it for the query to entering_location()
+      self.fresh_location = actor.location.first_time
 
-      # See if the animals want to do anything
-      for animal in self.animals.items():
-        animal[1].act_autonomously(actor.location)
+      where = actor.location.describe(actor, self.flag('verbose'))
+      if where:
+        self.output("")
+        self.output(where)
+        self.output("")
 
-      # has the developer supplied an update function?
-      if (update_func):
-        update_func() # call the update function
+  def run_step(self, cmd = None):
+    self.http_text = ""
+    actor = self.current_actor
 
-      # check if we're currently running a script
-      user_input = actor.get_next_script_command();
-      if user_input == None:
+    # See if the animals want to do anything
+    for animal in self.animals.items():
+      animal[1].act_autonomously(actor.location)
+
+    # has the developer supplied an update function?
+    if self.update_func:
+      self.update_func() # call the update function
+
+    # check if we're currently running a script
+    user_input = actor.get_next_script_command();
+    if user_input == None:
+      if cmd != None:
+        user_input = cmd
+      else:
         # get input from the user
         try:
           self.output("")  # add a blank line
           user_input = raw_input("> ")
         except EOFError:
-          break
+          return False
 
-      # see if the command is for a robot
-      if ':' in user_input:
-         robot_name, command = user_input.split(':')
-         try:
-            actor = self.robots[robot_name]
-         except KeyError:
-            self.output("I don't know anybot named %s" % robot_name, FEEDBACK)
-            continue
-      else:
-         actor = self.player
-         command = user_input
+    # see if the command is for a robot
+    if ':' in user_input:
+       robot_name, command = user_input.split(':')
+       try:
+          actor = self.robots[robot_name]
+       except KeyError:
+          self.output("I don't know anybot named %s" % robot_name, FEEDBACK)
+          return True
+    else:
+       actor = self.player
+       command = user_input
 
-      self.current_actor = actor
-                  
-      # now we're done with punctuation and other superfluous words like articles
-      command = normalize_input(command)
+    self.current_actor = actor
+                
+    # now we're done with punctuation and other superfluous words like articles
+    command = normalize_input(command)
 
-      # see if we want to quit
-      if command == 'q' or command == 'quit':
-        break
+    # see if we want to quit
+    if command == 'q' or command == 'quit':
+      return False
 
-      # give the input to the actor in case it's recording a script
-      if not actor.set_next_script_command(command):
-        continue
+    # give the input to the actor in case it's recording a script
+    if not actor.set_next_script_command(command):
+      return True
 
-      words = command.split()
-      if not words:
-        continue
+    words = command.split()
+    if not words:
+      return True
 
-      # following the Infocom convention commands are decomposed into
-      # VERB(verb), OBJECT(noun), INDIRECT_OBJECT(indirect).
-      # For example: "hit zombie with hammer" = HIT(verb) ZOMBIE(noun) WITH HAMMER(indirect).
+    # following the Infocom convention commands are decomposed into
+    # VERB(verb), OBJECT(noun), INDIRECT_OBJECT(indirect).
+    # For example: "hit zombie with hammer" = HIT(verb) ZOMBIE(noun) WITH HAMMER(indirect).
 
-      # handle 'tell XXX ... "
-      target_name = ""
-      if words[0].lower() == 'tell' and len(words) > 2:
-        (target_name, words) = get_noun(words[1:], actor.location.actors)
+    # handle 'tell XXX ... "
+    target_name = ""
+    if words[0].lower() == 'tell' and len(words) > 2:
+      (target_name, words) = get_noun(words[1:], actor.location.actors)
 
-      things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
-      potential_verbs = []
-      for t in things:
-        potential_verbs += t.verbs.keys()
+    things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
+    potential_verbs = []
+    for t in things:
+      potential_verbs += t.verbs.keys()
 
-      # extract the VERB
-      verb = None
-      potential_verbs.sort(key=lambda key : -len(key))
-      for v in potential_verbs:
-        vv = v.split()
-        if list_prefix(vv, words):
-          verb = v
-          words = words[len(vv):]
-      if not verb:
-        verb = words[0]
-        words = words[1:]
+    # extract the VERB
+    verb = None
+    potential_verbs.sort(key=lambda key : -len(key))
+    for v in potential_verbs:
+      vv = v.split()
+      if list_prefix(vv, words):
+        verb = v
+        words = words[len(vv):]
+    if not verb:
+      verb = words[0]
+      words = words[1:]
 
-      # extract the OBJECT
-      noun = None
-      if words:
-        (noun, words) = get_noun(words, things)
+    # extract the OBJECT
+    noun = None
+    if words:
+      (noun, words) = get_noun(words, things)
 
-      # extract INDIRECT (object) in phrase of the form VERB OBJECT PREPOSITION INDIRECT
-      indirect = None
-      if len(words) > 1 and words[0].lower() in prepositions:
-        (indirect, words) = get_noun(words[1:], things)
+    # extract INDIRECT (object) in phrase of the form VERB OBJECT PREPOSITION INDIRECT
+    indirect = None
+    if len(words) > 1 and words[0].lower() in prepositions:
+      (indirect, words) = get_noun(words[1:], things)
 
-      # first check phrases
-      done = False
+    # first check phrases
+    for thing in things:
+      f = thing.get_phrase(command, things)
+      if f:
+        if isinstance(f, BaseVerb):
+          if f.act(actor, noun, words):
+            return True
+        else:
+          f(self)
+          return True
+
+    # if we have an explicit target of the VERB, do that.
+    # e.g. "tell cat eat foo" -> cat.eat(cat, 'food', [])
+    if target_name:
+      for a in actor.location.actors:
+        if a.name != target_name:
+          continue
+        v = a.get_verb(verb)
+        if v:
+          if v.act(a, noun, words):
+            return True
+      self.output("Huh? %s %s?" % (target_name, verb), FEEDBACK)
+      return True
+
+    # if we have an INDIRECT object, try it's handle first
+    # e.g. "hit cat with hammer" -> hammer.hit(actor, 'cat', [])
+    if indirect:
+      # try inventory and room contents
+      things = actor.inventory.values() + actor.location.contents.values()
       for thing in things:
-        f = thing.get_phrase(command, things)
-        if f:
-          if isinstance(f, BaseVerb):
-            if f.act(actor, noun, words):
-              done = True
-          else:
-            f(self)
-            done = True
-      if done:
-        continue
-
-      # if we have an explicit target of the VERB, do that.
-      # e.g. "tell cat eat foo" -> cat.eat(cat, 'food', [])
-      if target_name:
-        done = False
-        for a in actor.location.actors:
-          if a.name != target_name:
-            continue
+        if indirect == thing.name:
+          v = thing.get_verb(verb)
+          if v:
+            if v.act(actor, noun, words):
+              return True
+      for a in actor.location.actors:
+        if indirect == a.name:
           v = a.get_verb(verb)
           if v:
             if v.act(a, noun, words):
-              done = True
-              break
-        if done:
-          continue
-        self.output("Huh? %s %s?" % (target_name, verb), FEEDBACK)
-        continue
+              return True
 
-      # if we have an INDIRECT object, try it's handle first
-      # e.g. "hit cat with hammer" -> hammer.hit(actor, 'cat', [])
-      if indirect:
-        # try inventory and room contents
-        done = False
-        things = actor.inventory.values() + actor.location.contents.values()
-        for thing in things:
-          if indirect == thing.name:
-            v = thing.get_verb(verb)
-            if v:
-              if v.act(actor, noun, words):
-                done = True
-                break
-        if done:
-          continue
-        for a in actor.location.actors:
-          if indirect == a.name:
-            v = a.get_verb(verb)
-            if v:
-              if v.act(a, noun, words):
-                done = True
-                break
-        if done:
-          continue
+    # if we have a NOUN, try it's handler next
+    if noun:
+      for thing in things:
+        if noun == thing.name:
+          v = thing.get_verb(verb)
+          if v:
+            if v.act(actor, None, words):
+              return True
+      for a in actor.location.actors:
+        if noun == a.name:
+          v = a.get_verb(verb)
+          if v:
+            if v.act(a, None, words):
+              return True
 
-      # if we have a NOUN, try it's handler next
-      if noun:
-        done = False
-        for thing in things:
-          if noun == thing.name:
-            v = thing.get_verb(verb)
-            if v:
-              if v.act(actor, None, words):
-                done = True
-                break
-        if done:
-          continue
-        for a in actor.location.actors:
-          if noun == a.name:
-            v = a.get_verb(verb)
-            if v:
-              if v.act(a, None, words):
-                done = True
-                break
-        if done:
-          continue
+    # location specific VERB
+    v = actor.location.get_verb(verb)
+    if v:
+      if v.act(actor, noun, words):
+        return True
 
-      # location specific VERB
-      v = actor.location.get_verb(verb)
-      if v:
-        if v.act(actor, noun, words):
-          continue
+    # handle directional moves of the actor
+    if not noun:
+      if verb in directions:
+        actor.act_go1(actor, verb, None)
+        return True
 
-      # handle directional moves of the actor
-      if not noun:
-        if verb in directions:
-          actor.act_go1(actor, verb, None)
-          continue
+    # general actor VERB
+    v = actor.get_verb(verb)
+    if v:
+      if v.act(actor, noun, words):
+        return True
 
-      # general actor VERB
-      v = actor.get_verb(verb)
-      if v:
-        if v.act(actor, noun, words):
-          continue
+    # not understood
+    self.output("Huh?", FEEDBACK)
+    return True
 
-      # not understood
-      self.output("Huh?", FEEDBACK)
-
-    print "\ngoodbye!\n"
+  def run(self , update_func = None):
+    self.run_init(update_func)
+    while True:
+      self.run_room()
+      if not self.run_step():
+        break
+    self.output("\ngoodbye!\n", FEEDBACK)
 
 
 class Object(Base):
@@ -674,7 +761,7 @@ class Location(Base):
       return desc
     else:
       if isinstance(d, str):
-        return style_text(d,  DESCRIPTION)
+        return self.game.style_text(d,  DESCRIPTION)
       else:
         return self.description_str(d(self))
 
@@ -691,14 +778,14 @@ class Location(Base):
       contents_description = proper_list_from_dict(self.contents)
       # is it just one thing?
       if len(self.contents) == 1:
-        desc += style_text("\nThere is %s here." % contents_description, CONTENTS)
+        desc += self.game.style_text("\nThere is %s here." % contents_description, CONTENTS)
       else:
-        desc += style_text("\nThere are a few things here: %s." % contents_description, CONTENTS)
+        desc += self.game.style_text("\nThere are a few things here: %s." % contents_description, CONTENTS)
 
     if self.actors:
       for a in self.actors:
         if a != observer:
-          desc += style_text("\n" + add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
+          desc += self.game.style_text("\n" + add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
 
     return desc
 
@@ -1431,80 +1518,3 @@ class Share(object):
     return self._do(domain, "ZREM", key, value)
 
 
-FEEDBACK = 0
-TITLE = 1
-DESCRIPTION = 2
-CONTENTS = 3
-DEBUG = 4
-
-
-# this handles printing things to output, it also styles them
-def print_output(text, message_type = 0):
-  print style_text(text, message_type)
-
-# this makes the text look nice in the terminal... WITH COLORS!
-def style_text(text, message_type):
-  if False: # trinket.io
-    return text
-
-  if (message_type == FEEDBACK):
-    text = Colors.FG.pink + text + Colors.reset
-
-  if (message_type == TITLE):
-    text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + Colors.reset
-
-  if (message_type == DESCRIPTION):
-    text = Colors.reset + text
-
-  if (message_type == CONTENTS):
-    text = Colors.FG.green + text + Colors.reset
-
-  if (message_type == DEBUG):
-    text = Colors.bold + Colors.FG.black + Colors.BG.orange + "\n" + text + Colors.reset
-
-  return text
-
-
-class Colors:
-  '''
-  Colors class:
-  reset all colors with colors.reset
-  two subclasses fg for foreground and bg for background.
-  use as colors.subclass.colorname.
-  i.e. colors.fg.red or colors.bg.green
-  also, the generic bold, disable, underline, reverse, strikethrough,
-  and invisible work with the main class
-  i.e. colors.bold
-  '''
-  reset='\033[0m'
-  bold='\033[01m'
-  disable='\033[02m'
-  underline='\033[04m'
-  reverse='\033[07m'
-  strikethrough='\033[09m'
-  invisible='\033[08m'
-  class FG:
-    black='\033[30m'
-    red='\033[31m'
-    green='\033[32m'
-    orange='\033[33m'
-    blue='\033[34m'
-    purple='\033[35m'
-    cyan='\033[36m'
-    lightgrey='\033[37m'
-    darkgrey='\033[90m'
-    lightred='\033[91m'
-    lightgreen='\033[92m'
-    yellow='\033[93m'
-    lightblue='\033[94m'
-    pink='\033[95m'
-    lightcyan='\033[96m'
-  class BG:
-    black='\033[40m'
-    red='\033[41m'
-    green='\033[42m'
-    orange='\033[43m'
-    blue='\033[44m'
-    purple='\033[45m'
-    cyan='\033[46m'
-    lightgrey='\033[47m'
