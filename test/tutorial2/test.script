@@ -1,0 +1,72 @@
+> flip coin
+The coin is on the ground!
+
+> take coin
+You take the coin.
+
+> flip coin
+The coin shows tails.
+
+> flip coin
+The coin shows tails.
+
+> flip coin
+The coin shows heads.
+
+> flip coin
+The coin shows tails.
+
+> flip coin
+The coin shows tails.
+
+> flip coin
+The coin shows tails.
+
+> flip coin
+The coin shows heads.
+
+> flip coin
+The coin shows tails.
+
+> flip coin
+The coin shows tails.
+
+> take key
+You take the key.
+
+> rub key
+You rub the key, but fail to shine it.
+
+> go in
+        --=(You are in the Vestibule)=--        
+
+A small area at the bottom of a flight of stairs.
+There is a glass door to the west and door to the south.
+
+
+> go out
+        --=(You are in the Sidewalk)=--        
+
+There is a large glass door to the east. The sign says 'Come In!'
+
+
+> drop key
+
+> drop coin
+
+> look
+There is a large glass door to the east. The sign says 'Come In!'
+There are a few things here: a coin and a key.
+
+> take coin
+You take the coin.
+
+> inventory
+You are carrying a coin.
+
+> flip coin
+The coin shows tails.
+
+> drop coin
+
+> end
