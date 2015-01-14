@@ -34,7 +34,8 @@ There is a door to the north.""")
 
 game.new_connection("Glass Door", sidewalk, vestibule, [IN, EAST], [OUT, WEST])
 
-game.new_connection("Office Door", vestibule, office, [IN, SOUTH], [OUT, NORTH])
+office_door = game.new_connection("Office Door", vestibule, office,
+                                  [IN, SOUTH], [OUT, NORTH])
 
 player = game.new_player(sidewalk)
 
@@ -43,8 +44,20 @@ player = game.new_player(sidewalk)
 
 key = sidewalk.new_object("key", "a small tarnished key")
 
-# we can make the key something you have to have to get into the Office
-office.make_requirement(key)
+# we can make the key something you have to have to go in the front door to the vestibule
+# a simple one line way to do this is to simply require an object for a location:
+vestibule.make_requirement(key)
+
+# and we can make getting into the office a little more involved, and require that
+# the player have an object and figure out how to use it to get through a connection
+hairpin = vestibule.new_object('hairpin',
+                               'a hairpin with the varnish scratched off the ends')
+office_door.set_flag('locked')
+def pick_lock(game, thing):
+  game.output("you slip the hairpin into the lock and skillfully pick it open")
+  thing.unset_flag('locked')
+office_door.add_phrase('pick lock', pick_lock, [hairpin])
+
 
 # The builtin commands "take", "drop" and "i" or "inventory" will allow the player to
 # take the key, drop the key or check if what is in their inventory.
@@ -110,10 +123,11 @@ player.add_phrase("flip coin", flip_coin, [coin])
 test_script = Script("test",
 """
 > go in
-> go s
-> go out
 > take key
 > go in
+> s
+> take hairpin
+> pick lock
 > go s
 > n
 > out

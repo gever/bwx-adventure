@@ -834,6 +834,8 @@ class Location(Base):
         self.output("It's locked! You will need %s." % \
                     proper_list_from_dict(c.point_b.requirements), FEEDBACK)
         return None
+      elif c.flag('locked'):
+        self.output("It's locked!")
         return None
       else:
         return c.point_b
