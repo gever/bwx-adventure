@@ -2,7 +2,7 @@
 all: bwx-game.py3 tutorial1.py3 tutorial2.py3
 
 %.py3: %.py advent.py
-	cat advent.py > $@
+	grep -v "@staticmethod" advent.py > $@
 	grep -v advent_devtools $< >> $@
 	2to3 --no-diffs -w -n $@
 	perl -i -p -e "s/\Qfrom advent \E/# from advent /" $@
