@@ -644,7 +644,7 @@ class Game(Base):
           if f.act(actor, noun, words):
             return True
         else:
-          f(self)
+          f(self, thing)
           return True
 
     # if we have an explicit target of the VERB, do that.

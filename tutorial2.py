@@ -61,7 +61,7 @@ coin = sidewalk.new_object("coin", "a small coin");
 
 # Functions in python are defined with 'def':
 
-def flip_coin(game):
+def flip_coin(game, thing):
   if random.random() > 0.5:
     game.output("The coin shows heads.");
   else:
@@ -81,7 +81,7 @@ def flip_coin(game):
 # Normally we would change the above definition, but because this is a tutorial, we will just
 # repeat it here with the corrected version (python will just overwrite the old version).
 
-def flip_coin(game):
+def flip_coin(game, thing):
   if not "coin" in game.player.inventory:
     game.output("The coin is on the ground!")
     return
