@@ -604,7 +604,12 @@ class Game(Base):
     if words[0].lower() == 'tell' and len(words) > 2:
       (target_name, words) = get_noun(words[1:], actor.location.actors)
 
-    things = actor.inventory.values() + actor.location.contents.values() + list(actor.location.actors) + [actor.location] + [actor]
+    things = actor.inventory.values() + \
+      actor.location.contents.values() + \
+      actor.location.exits.values() + \
+      list(actor.location.actors) + \
+      [actor.location] + \
+      [actor]
     potential_verbs = []
     for t in things:
       potential_verbs += t.verbs.keys()
