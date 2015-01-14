@@ -12,64 +12,89 @@ import string
 import textwrap
 import time
 
-# A "direction" is all the ways you can describe going some way
-directions = {}
-direction_name = {}
+# "directions" are all the ways you can describe going some way; 
+# they are code-visible names for directions for adventure authors
+direction_names = ["NORTH","SOUTH","EAST","WEST","UP","DOWN","RIGHT","LEFT",
+                   "IN","OUT","FORWARD","BACK",
+                   "NORTHWEST","NORTHEAST","SOUTHWEST","SOUTHEAST"]
+direction_list  = [ NORTH,  SOUTH,  EAST,  WEST,  UP,  DOWN,  RIGHT,  LEFT,
+                    IN,  OUT,  FORWARD,  BACK,
+                    NORTHWEST,  NORTHEAST,  SOUTHWEST,  SOUTHEAST] = \
+                    range(len(direction_names))
+NOT_DIRECTION = None
 
-# These are code-visible canonical names for directions for adventure authors
-NORTH = 1
-SOUTH = 2
-EAST = 3
-WEST = 4
-UP = 5
-DOWN = 6
-RIGHT = 7
-LEFT = 8
-IN = 9
-OUT = 10
-FORWARD = 11
-BACK = 12
-NORTH_WEST = 13
-NORTH_EAST = 14
-SOUTH_WEST = 15
-SOUTH_EAST = 16
-NOT_DIRECTION = -1
+# some old names, for backwards compatibility
+(NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST) = \
+             (NORTHWEST, NORTHEAST, SOUTHWEST, SOUTHEAST)
 
-# map direction names to direction numbers
-def define_direction(number, name):
-  # check to see if we are trying to redefine an existing direction
-  assert not name in directions
-  directions[name] = number
-  if not number in direction_name or (len(direction_name[number]) < len(name)):
-    direction_name[number] = name
-# define player words used to describe known directions
-define_direction(NORTH, "north")
-define_direction(NORTH, "n")
-define_direction(SOUTH, "south")
-define_direction(SOUTH, "s")
-define_direction(EAST, "east")
-define_direction(EAST, "e")
-define_direction(WEST, "west")
-define_direction(WEST, "w")
-define_direction(UP, "up")
-define_direction(UP, "u")
-define_direction(DOWN, "down")
-define_direction(DOWN, "d")
-define_direction(RIGHT, "right")
-define_direction(LEFT, "left")
-define_direction(IN, "in")
-define_direction(OUT, "out")
-define_direction(FORWARD, "forward")
-define_direction(FORWARD, "fd")
-define_direction(FORWARD, "fwd")
-define_direction(FORWARD, "f")
-define_direction(BACK, "back")
-define_direction(BACK, "bk")
-define_direction(BACK, "b")
-define_direction(NORTH_WEST, "nw")
-define_direction(NORTH_EAST, "ne")
-define_direction(SOUTH_WEST, "sw")
-define_direction(SOUTH_EAST, "se")
+directions = dir_by_name = dict(zip(direction_names, direction_list))
+
+
+def define_direction (number, name):
+    if name in dir_by_name:
+        exit("%s is already defined as %d" % (name, dir_by_name[name]))
+    dir_by_name[name] = number
+
+def lookup_dir (name):
+    return dir_by_name.get(name, NOT_DIRECTION)
+
+# add lower-case versions of all names in direction_names
+for name in direction_names:
+    define_direction(dir_by_name[name], name.lower())
+
+# add common aliases:
+# maybe the alias mechanism should be a more general
+# (text-based?) mechanism that works for any command?!!!
+common_aliases = [
+    (NORTH, "n"),
+    (SOUTH, "s"),
+    (EAST, "e"),
+    (WEST, "w"),
+    (UP, "u"),
+    (DOWN, "d"),
+    (FORWARD, "fd"),
+    (FORWARD, "fwd"),
+    (FORWARD, "f"),
+    (BACK, "bk"),
+    (BACK, "b"),
+    (NORTHWEST,"nw"),
+    (NORTHEAST,"ne"),
+    (SOUTHWEST,"sw"),
+    (SOUTHEAST, "se")
+]
+
+for (k,v) in common_aliases:
+    define_direction(k,v)
+
+# define the pairs of opposite directions
+opposite_by_dir = {}
+
+def define_opposite_dirs (d1, d2):
+  for dir in (d1, d2):
+    opposite = opposite_by_dir.get(dir)
+    if opposite is not None:
+      exit("opposite for %s is already defined as %s" % (dir, opposite))
+  opposite_by_dir[d1] = d2
+  opposite_by_dir[d2] = d1
+
+opposites = [(NORTH, SOUTH),
+             (EAST, WEST),
+             (UP, DOWN),
+             (LEFT, RIGHT), 
+             (IN, OUT),
+             (FORWARD, BACK),
+             (NORTHWEST, SOUTHEAST),
+             (NORTHEAST, SOUTHWEST)]
+
+for (d1,d2) in opposites:
+  define_opposite_dirs(d1,d2)
+
+def opposite_direction (dir):
+  return opposite_by_dir[dir]
+
+print "direction_names = %s" % direction_names
+print "direction_list = %s" % direction_list
+print "dir_by_name = %s" % dir_by_name
 
 # registered games
 registered_games = {}
@@ -127,20 +152,20 @@ class Colors:
 articles = ['a', 'an', 'the']
 # some prepositions to recognize indirect objects in prepositional phrases
 prepositions = ['aboard', 'about', 'above', 'across', 'after', 'against', 'along'
-    'amoung', 'around', 'at', 'atop', 'before', 'behind', 'below', 'beneath',
+    'among', 'around', 'at', 'atop', 'before', 'behind', 'below', 'beneath',
     'beside', 'besides', 'between', 'beyond', 'by', 'for', 'from', 'in', 'including'
     'inside', 'into', 'on', 'onto', 'outside', 'over', 'past', 'than' 'through', 'to',
     'toward', 'under', 'underneath',  'onto', 'upon', 'with', 'within']
 
 
 # changes "lock" to "a lock", "apple" to "an apple", etc.
-# note that no article should be added to proper names; store
-# a global list of these somewhere?  For now we'll just assume
+# note that no article should be added to proper names;
+# For now we'll just assume
 # anything starting with upper case is proper.
 # Do not add an article to plural nouns.
 def add_article (name):
   # simple plural test
-  if len(name) > 1 and name[len(name)-1] == 's' and name[len(name)-2] != 's':
+  if len(name) > 1 and name[-1] == 's' and name[-2] != 's':
     return name
   consonants = "bcdfghjklmnpqrstvwxyz"
   vowels = "aeiou"
@@ -857,8 +882,10 @@ class Connection(Base):
   # point_a
   # point_b
 
-  def __init__(self, name, pa, pb, way_ab, way_ba):
+  def __init__(self, name, pa, pb, way_ab, way_ba=None):
     Base.__init__(self, name)
+    if way_ba is None:
+      way_ba = [opposite_direction(way) for way in way_ab]
     self.point_a = pa
     self.point_b = pb
     self.way_ab = way_ab
@@ -1360,16 +1387,16 @@ class Animal(Actor):
   def random_move(self, observer_loc):
     if random.random() > 0.2:  # only move 1 in 5 times
       return
-    exit = random.choice(self.location.exits.items())
+    (exitDir, exitConn) = random.choice(self.location.exits.items())
     if self.location == observer_loc:
       self.output("%s leaves the %s via the %s." % (add_article(self.name).capitalize(),
                                                observer_loc.name,
-                                               exit[1].name), FEEDBACK)
-    self.act_go1(self, direction_name[exit[0]], None)
+                                               exitConn.name), FEEDBACK)
+    self.act_go1(self, direction_names[exitDir], None)
     if self.location == observer_loc:
       self.output("%s enters the %s via the %s." % (add_article(self.name).capitalize(),
                                                observer_loc.name,
-                                               exit[1].name), FEEDBACK)
+                                               exitConn.name), FEEDBACK)
 
 
 # A pet is an actor with free will (Animal) that you can also command to do things (Robot)
