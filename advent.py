@@ -826,10 +826,14 @@ class Location(Base):
       if len(c.point_b.requirements) > 0:
         # check to see if the requirements are in the inventory
         if set(c.point_b.requirements).issubset(set(self.game.player.inventory)):
-          self.output("You use the %s, the %s unlocks" % (proper_list_from_dict(c.point_b.requirements), c.point_b.name), FEEDBACK)
+          self.output("You use the %s, the %s unlocks" % \
+                      (proper_list_from_dict(c.point_b.requirements),
+                       c.point_b.name), FEEDBACK)
           return c.point_b
 
-        self.output("It's locked! You will need %s." % proper_list_from_dict(c.point_b.requirements), FEEDBACK)
+        self.output("It's locked! You will need %s." % \
+                    proper_list_from_dict(c.point_b.requirements), FEEDBACK)
+        return None
         return None
       else:
         return c.point_b
