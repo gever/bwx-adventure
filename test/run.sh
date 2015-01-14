@@ -1,8 +1,6 @@
 #!/bin/sh
 
-SUBDIRS="tutorial2 bwx-game"
-
-for world in $SUBDIRS
+for world in `find . -type d \( ! -iname "." \)`
 do
     echo "testing world: $world"
     for test in `cd $world && ls *.script`
