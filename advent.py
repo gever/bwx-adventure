@@ -851,28 +851,35 @@ class Location(Base):
     self.exits[ way ] = con
 
   def go(self, way):
-    if way in self.exits:
-      c = self.exits[ way ]
+    if not way in self.exits:
+      return None
+    
+    c = self.exits[ way ]
 
-      # check if there are any requirements for this room
-      if len(c.point_b.requirements) > 0:
-        # check to see if the requirements are in the inventory
-        if set(c.point_b.requirements).issubset(set(self.game.player.inventory)):
-          self.output("You use the %s, the %s unlocks" % \
-                      (proper_list_from_dict(c.point_b.requirements),
-                       c.point_b.name), FEEDBACK)
-          return c.point_b
+    # first check if the connection is locked
+    if c.flag('locked'):
+      self.output("It's locked!")
+      return None
 
-        self.output("It's locked! You will need %s." % \
-                    proper_list_from_dict(c.point_b.requirements), FEEDBACK)
-        return None
-      elif c.flag('locked'):
+    # check if the room is locked        
+    if c.point_b.flag('locked'):
+      # then check if there are any implicit requirements for this room
+      if len(c.point_b.requirements) == 0:
         self.output("It's locked!")
         return None
-      else:
+      # check to see if the requirements are in the inventory
+      if set(c.point_b.requirements).issubset(set(self.game.player.inventory)):
+        self.output("You use the %s, the %s unlocks" % \
+                    (proper_list_from_dict(c.point_b.requirements),
+                      c.point_b.name), FEEDBACK)
+        c.point_b.unset_flag('locked')
         return c.point_b
-    else:
+
+      self.output("It's locked! You will need %s." % \
+                  proper_list_from_dict(c.point_b.requirements), FEEDBACK)
       return None
+    else:
+      return c.point_b
 
   def debug(self):
     for key in self.exits:
@@ -880,6 +887,7 @@ class Location(Base):
 
   def make_requirement(self, thing):
       self.requirements[thing.name] = thing
+      self.set_flag('locked')
 
 
 # A "connection" connects point A to point B. Connections are
