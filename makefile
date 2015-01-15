@@ -1,11 +1,16 @@
 
-all: bwx-game.py3 tutorial1.py3 tutorial2.py3
+all: python3 \
+	python3/advent.py \
+	python3/bwx-game.py \
+	python3/tutorial1.py \
+	python3/tutorial2.py
 
-%.py3: %.py advent.py
-	grep -v "@staticmethod" advent.py > $@
-	grep -v advent_devtools $< >> $@
+python3:
+	mkdir -p python3
+
+python3/%.py: %.py
+	grep -v -e "@staticmethod" -e advent_devtools $< >> $@
 	2to3 --no-diffs -w -n $@
-	perl -i -p -e "s/\Qfrom advent \E/# from advent /" $@
 	perl -i -p -e "s/\Qnet_f.read()\E/net_f.read().decode('utf-8')/" $@
 	perl -i -p -e "s/\Q, urllib.error\E//" $@
 	perl -i -p -e "s/\Q, urllib.parse\E//" $@
@@ -14,14 +19,14 @@ all: bwx-game.py3 tutorial1.py3 tutorial2.py3
 	perl -i -p -e "s/\Qtextwrap.fill\E/(lambda x: x)/" $@
 
 clean:
-	rm *.py3
+	rm -rf python3
 
 test: smoke_test functional_test
 
 smoke_test: all
-	echo "run test" | python3 ./tutorial2.py3
+	echo "run test" | python3 ./python3/tutorial2.py
 	echo "run test" | python ./tutorial2.py
-	echo "run test" | python3 ./bwx-game.py3
+	echo "run test" | python3 ./python3/bwx-game.py
 	echo "run test" | python ./bwx-game.py
 
 functional_test: all
