@@ -426,6 +426,16 @@ class Game(Base):
   def new_connection(self, *args):
     return self.add_connection(Connection(*args))
 
+  def connect(self, place_a, place_b, way_ab, way_ba=None):
+    """An easier-to use version of new_connection. It generates a
+    connection name automatically from the two location names and also
+    allows the second direction argument to be omitted.  If the second
+    direction is omitted, it defaults to the opposite of the first
+    direction."""
+    name = place_a.name + "_to_" + place_b.name
+    return self.new_connection(name, place_a, place_b, way_ab, way_ba)
+
+
   # add another location to the game
   def add_location(self,  location):
     location.game = self
@@ -884,8 +894,11 @@ class Connection(Base):
 
   def __init__(self, name, pa, pb, way_ab, way_ba=None):
     Base.__init__(self, name)
+    # way_ba defaults to the opposite of way_ab
     if way_ba is None:
-      way_ba = [opposite_direction(way) for way in way_ab]
+        way_ba = ([opposite_direction(way) for way in way_ab]
+                  if isinstance(way_ab, (list, tuple))
+                  else opposite_direction(way_ab))
     self.point_a = pa
     self.point_b = pb
     self.way_ab = way_ab

@@ -80,17 +80,19 @@ game.new_location(
 # You can have more than one way of using a connection by combining them in a list.
 # In Python, [] brackets make a list.
 # example: new_connection = Connection("The Connection Name", location_a, location_b, [direction_a, other_direction_a], [direction_b, other_direction_b])
-big_door = Connection("Big Door", sidewalk, vestibule, [IN, EAST], [WEST, OUT])
-stairs = Connection("Stairs", vestibule, reception, UP, DOWN)
-steps_to_reception = Connection("A Few Steps", reception, intersection, NORTH, SOUTH)
+big_door = Connection("Big Door", sidewalk, vestibule, [IN, WEST], [OUT, EAST])
+# You can omit the 2nd direction and it will just be the opposite of the 1st
+stairs = Connection("Stairs", vestibule, reception, UP)
+steps_to_reception = Connection("A Few Steps", reception, intersection, NORTH)
 
 # Now add the connections to the game too.
 game.add_connection(big_door)
 game.add_connection(stairs)
 game.add_connection(steps_to_reception)
 
-# You can also add a connection with a single convenience function:
-game.new_connection("A Few Steps", intersection, elevator, EAST, WEST)
+# You can also create and add a connection with a single convenience function that allows
+# you to omit the name of the connection.  This is the preferred way to add connections:
+game.connect(intersection, elevator, EAST)
 
 # Create some objects to put in your game. You need a name and
 # a description for the object you are making.
