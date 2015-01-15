@@ -8,5 +8,9 @@ do
 	test=${test%.*}
 	echo "\trunning test: $test"
 	echo | python ../$world.py -c -f -e ./$world/$test
+	if [ $? != 0 ]
+	then
+	    exit 1
+	fi
     done
 done
