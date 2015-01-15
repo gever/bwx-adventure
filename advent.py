@@ -92,9 +92,6 @@ for (d1,d2) in opposites:
 def opposite_direction (dir):
   return opposite_by_dir[dir]
 
-print "direction_names = %s" % direction_names
-print "direction_list = %s" % direction_list
-print "dir_by_name = %s" % dir_by_name
 
 # registered games
 registered_games = {}
