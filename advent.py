@@ -1399,9 +1399,10 @@ class Animal(Actor):
       return
     (exitDir, exitConn) = random.choice(self.location.exits.items())
     if self.location == observer_loc:
-      self.output("%s leaves the %s via the %s." % (add_article(self.name).capitalize(),
-                                               observer_loc.name,
-                                               exitConn.name), FEEDBACK)
+      self.output("%s leaves the %s, heading %s." % \
+                  (add_article(self.name).capitalize(),
+                   observer_loc.name,
+                   direction_names[exitDir].lower()), FEEDBACK)
     self.act_go1(self, direction_names[exitDir], None)
     if self.location == observer_loc:
       self.output("%s enters the %s via the %s." % (add_article(self.name).capitalize(),

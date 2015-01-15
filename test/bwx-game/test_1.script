@@ -10,7 +10,7 @@ There are a few things here: Gary the garden gnome, a candle, a pebble, and a ke
 A cat is here.
 Fido is here.
 Robby is here.
-A cat leaves the Sidewalk via the Big Door.
+A cat leaves the Sidewalk, heading in.
 
 > take candle pebble key
 You take the candle.
@@ -28,7 +28,7 @@ A cat is here.
 
 > pet cat
 The cat purrs.
-A cat leaves the Vestibule via the Big Door.
+A cat leaves the Vestibule, heading east.
 
 > flip switch
 
@@ -53,7 +53,7 @@ You light the candle.
 
 > blow out candle
 You blow out the candle.
-A cat leaves the Vestibule via the Stairs.
+A cat leaves the Vestibule, heading up.
 
 > throw pebble
 
@@ -82,7 +82,7 @@ The pebble you picked up is suddenly feeling warm to the touch!
 
 > pet cat
 The cat purrs.
-A cat leaves the Reception Desk via the Stairs.
+A cat leaves the Reception Desk, heading down.
 The pebble you picked up is suddenly feeling warm to the touch!
 
 > n

@@ -56,7 +56,7 @@ A small area at the bottom of a flight of stairs.
 There is a glass door to the west and door to the south.
 A bat is here.
 
-A bat leaves the Vestibule via the Office Door.
+A bat leaves the Vestibule, heading south.
 
 > tell cat bark
 The cat barks and coughs and something splats on the floor.
