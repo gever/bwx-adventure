@@ -798,7 +798,6 @@ class Location(Base):
       actor.name.capitalize(), actor.isare, self.inonat, self.name)
 
   def add_object(self, obj):
-    obj.game = self.game
     self.contents[obj.name] = obj
     obj.game = self.game
     return obj
