@@ -11,7 +11,7 @@ python3:
 	mkdir -p python3
 
 python3/%.py: %.py
-	grep -v -e "@staticmethod" -e advent_devtools $< >> $@
+	grep -v -e "@staticmethod" -e advent_devtools $< > $@
 	2to3 --no-diffs -w -n $@
 	perl -i -p -e "s/\Qnet_f.read()\E/net_f.read().decode('utf-8')/" $@
 	perl -i -p -e "s/\Q, urllib.error\E//" $@
