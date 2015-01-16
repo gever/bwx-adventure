@@ -1,6 +1,4 @@
-bwx-game.py3
-tutorial1.py3
-tutorial2.py3
+python3
 
 # ignore compiled Python files and emacs backup files
 *.pyc
