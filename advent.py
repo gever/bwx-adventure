@@ -164,6 +164,9 @@ def add_article (name):
   # simple plural test
   if len(name) > 1 and name[-1] == 's' and name[-2] != 's':
     return name
+  # check if there is already an article on the string
+  if name.split()[0] in articles:
+    return name
   consonants = "bcdfghjklmnpqrstvwxyz"
   vowels = "aeiou"
   if name and (name[0] in vowels):
