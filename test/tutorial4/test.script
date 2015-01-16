@@ -14,16 +14,16 @@ There are a few things here: a plate and a glass.
 
 
 > examine plate
-You see plate of green eggs and ham.
+You see plate of green eggs and ham
 
 > examine glass
 You see a glass of water, half full
 
 > drink plate
-you can't drink the plate.
+You can't drink the plate.
 
 > eat plate
-You eat the plate of green eggs and ham..
+You eat the plate of green eggs and ham.
 You like them!
 
 > eat plate
@@ -31,7 +31,7 @@ The plate is empty
 
 > drink glass
 You drink the a glass of water, half full.
-You feel refreshed, and strangely optimistic
+You feel refreshed, and strangely optimistic.
 
 > examine glass
 You see an empty glass
