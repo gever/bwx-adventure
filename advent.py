@@ -773,7 +773,33 @@ class Object(Base):
     else:
       return self.description(self)
 
+class Consumable(Object):
+  def __init__(self, name, desc, verb):
+    Object.__init__(self, name, desc)
+    self.verb = verb
+    verb.bind_to(self)
+    self.consume_term = "consume"
 
+  def consume(self, actor, noun, words):
+    if self.flag('consumed'):
+      self.output("The %s is empty" % self.name)
+      return False
+    self.output("You %s the %s." % (self.consume_term, self.description))
+    self.verb.act(actor, noun, words)
+    self.set_flag('consumed')
+    self.description = "an empty " + self.name
+    return True
+    
+class Food(Consumable):
+  def __init__(self, name, desc, verb):
+    Consumable.__init__(self, name, desc, verb)
+    self.consume_term = "eat"
+    
+class Drink(Consumable):
+  def __init__(self, name, desc, verb):
+    Consumable.__init__(self, name, desc, verb)
+    self.consume_term = "drink"
+    
 # A "location" is a place in the game.
 class Location(Base):
   # name: short name of this location
@@ -933,6 +959,8 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_examine1, 'look at'))
     self.add_verb(BaseVerb(self.act_look, 'l'))
     self.add_verb(BaseVerb(self.act_go1, 'go'))
+    self.add_verb(BaseVerb(self.act_eat, 'eat'))
+    self.add_verb(BaseVerb(self.act_drink, 'drink'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'commands'))
 
@@ -1023,6 +1051,38 @@ class Actor(Base):
       # update where we are
       self.set_location(loc)
       return True
+
+  # eat something
+  def act_eat(self, actor, noun, words):
+    if not noun:
+      return False
+    if not noun in actor.location.contents:
+      return False
+    
+    t = self.location.contents[noun]
+    if isinstance(t, Food):
+      self.inventory[noun] = t
+      t.consume(actor, noun, words)
+    else:
+      self.output("%s can't eat the %s." % (actor.name, noun))
+
+    return True
+
+  # drink something
+  def act_drink(self, actor, noun, words):
+    if not noun:
+      return False
+    if not noun in actor.location.contents:
+      return False
+    
+    t = self.location.contents[noun]
+    if isinstance(t, Drink):
+      self.inventory[noun] = t
+      t.consume(actor, noun, words)
+    else:
+      self.output("%s can't drink the %s." % (actor.name, noun))
+
+    return True
 
   def act_list_verbs(self, actor, noun, words):
     things = (actor.inventory.values() + actor.location.contents.values() +
