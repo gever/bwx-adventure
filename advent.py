@@ -783,12 +783,12 @@ class Consumable(Object):
     self.verb = verb
     verb.bind_to(self)
     self.consume_term = "consume"
-
+    
   def consume(self, actor, noun, words):
     if self.flag('consumed'):
       self.output("The %s is empty" % self.name)
       return False
-    self.output("You %s the %s." % (self.consume_term, self.description))
+    self.output("You %s %s." % (self.consume_term, self.description))
     self.verb.act(actor, noun, words)
     self.set_flag('consumed')
     self.description = "an empty " + self.name
