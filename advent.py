@@ -247,7 +247,7 @@ class Base(object):
 
   def add_phrase(self, phrase, f, requirements = []):
     if isinstance(f, BaseVerb):
-      f.game = self.game
+      f.bind_to(self)
     self.phrases[' '.join(phrase.split())] = (f, set(requirements))
 
   def get_phrase(self, phrase, things_present):
@@ -271,7 +271,6 @@ class BaseVerb(Base):
     
   def bind_to(self, obj):
     self.bound_to = obj
-    self.game = self.bound_to.game
     
   def act(self, actor, noun, words):
     result = True
@@ -291,7 +290,7 @@ class Say(BaseVerb):
     self.string = string
 
   def act(self, actor, noun, words):
-    self.game.output(self.string, FEEDBACK)
+    self.bound_to.game.output(self.string, FEEDBACK)
     return True
 
 class SayOnNoun(Say):    
@@ -302,7 +301,7 @@ class SayOnNoun(Say):
   def act(self, actor, noun, words):
     if self.noun != noun:
       return False
-    self.game.output(self.string, FEEDBACK)
+    self.bound_to.game.output(self.string, FEEDBACK)
     return True
 
 class SayOnSelf(SayOnNoun):
