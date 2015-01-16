@@ -860,15 +860,18 @@ class Location(Base):
       contents_description = proper_list_from_dict(self.contents)
       # is it just one thing?
       if len(self.contents) == 1:
-        desc += self.game.style_text("\nThere is %s here." % contents_description, CONTENTS)
+        desc += self.game.style_text("\nThere is %s here." % \
+                                     contents_description, CONTENTS)
       else:
-        desc += self.game.style_text("\nThere are a few things here: %s." % contents_description, CONTENTS)
+        desc += self.game.style_text("\nThere are a few things here: %s." % \
+                                     contents_description, CONTENTS)
 
     if self.actors:
       for k in sorted(self.actors.keys()):
         a = self.actors[k]
         if a != observer:
-          desc += self.game.style_text("\n" + add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
+          desc += self.game.style_text("\n" + add_article(a.describe(a)).capitalize() + \
+                                       " " + a.isare + " here.", CONTENTS)
 
     return desc
 
