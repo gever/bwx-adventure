@@ -803,9 +803,46 @@ class Drink(Consumable):
   def __init__(self, name, desc, verb):
     Consumable.__init__(self, name, desc, verb)
     self.consume_term = "drink"
+
+class Lockable(Base):
+  def __init__(self, name):
+    Base.__init__(self, name)
+    self.requirements = {}
+  
+  def make_requirement(self, thing):
+    self.requirements[thing.name] = thing
+    self.lock()
+      
+  def lock(self):
+    self.set_flag('locked')
+
+  def unlock(self):
+    self.unset_flag('locked')
+
+  def try_unlock(self):          
+    if not self.flag('locked'):
+      return True
     
+    # check if there are any implicit requirements for this object
+    if len(self.requirements) == 0:
+      self.output("It's locked!")
+      return False
+
+    # check to see if the requirements are in the inventory
+    if set(self.requirements).issubset(set(self.game.player.inventory)):
+      self.output("You use the %s, the %s unlocks" % \
+                  (proper_list_from_dict(self.requirements),
+                  self.name), FEEDBACK)
+      self.unlock()
+      return True
+
+    self.output("It's locked! You will need %s." % \
+                proper_list_from_dict(self.requirements), FEEDBACK)
+    return False
+
+        
 # A "location" is a place in the game.
-class Location(Base):
+class Location(Lockable):
   # name: short name of this location
   # description: full description
   # contents: things that are in a location
@@ -814,14 +851,13 @@ class Location(Base):
   # actors: other actors in the location
 
   def __init__(self, name, description, inonat="in"):
-    Base.__init__(self, name)
+    Lockable.__init__(self, name)
     self.description = description
     self.inonat = inonat
     self.contents = {}
     self.exits = {}
     self.first_time = True
     self.actors = {}
-    self.requirements = {}
 
   def title(self, actor):
     return "        --=(%s %s %s the %s)=--        " % (
@@ -889,29 +925,14 @@ class Location(Base):
     c = self.exits[ way ]
 
     # first check if the connection is locked
-    if c.flag('locked'):
-      self.output("It's locked!")
+    if not c.try_unlock():
       return None
 
-    # check if the room is locked        
-    if c.point_b.flag('locked'):
-      # then check if there are any implicit requirements for this room
-      if len(c.point_b.requirements) == 0:
-        self.output("It's locked!")
-        return None
-      # check to see if the requirements are in the inventory
-      if set(c.point_b.requirements).issubset(set(self.game.player.inventory)):
-        self.output("You use the %s, the %s unlocks" % \
-                    (proper_list_from_dict(c.point_b.requirements),
-                      c.point_b.name), FEEDBACK)
-        c.point_b.unset_flag('locked')
-        return c.point_b
-
-      self.output("It's locked! You will need %s." % \
-                  proper_list_from_dict(c.point_b.requirements), FEEDBACK)
+    # check if the room on the other side is locked        
+    if not c.point_b.try_unlock():
       return None
-    else:
-      return c.point_b
+
+    return c.point_b
 
   def debug(self):
     for key in self.exits:
@@ -924,13 +945,13 @@ class Location(Base):
 
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
-class Connection(Base):
+class Connection(Lockable):
   # name
   # point_a
   # point_b
 
   def __init__(self, name, pa, pb, way_ab, way_ba=None):
-    Base.__init__(self, name)
+    Lockable.__init__(self, name)
     # way_ba defaults to the opposite of way_ab
     if way_ba is None:
         way_ba = ([opposite_direction(way) for way in way_ab]
