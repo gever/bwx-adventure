@@ -1492,7 +1492,13 @@ class Animal(Actor):
   def random_move(self, observer_loc):
     if random.random() > 0.2:  # only move 1 in 5 times
       return
-    (exitDir, exitConn) = random.choice(self.location.exits.items())
+    exits = list()
+    for (d, c) in self.location.exits.items():
+      if not c.flag('locked'):
+        exits.append((d ,c))
+    if not exits:
+      return
+    (exitDir, exitConn) = random.choice(exits)
     if self.location == observer_loc:
       self.output("%s leaves the %s, heading %s." % \
                   (add_article(self.name).capitalize(),
