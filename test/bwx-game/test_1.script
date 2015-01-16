@@ -7,9 +7,9 @@ There is a large glass door to the east.
 The sign says 'Come In!'
 
 There are a few things here: Gary the garden gnome, a candle, a pebble, and a key.
-A cat is here.
 Fido is here.
 Robby is here.
+A cat is here.
 A cat leaves the Sidewalk, heading in.
 
 > take candle pebble key
@@ -45,8 +45,8 @@ A cat enters the Vestibule via the Big Door.
 A small area at the bottom of a flight of stairs.
 There is a switch next to an unlit bulb.
 Up the stars you see the reception desk.
-A cat is here.
 Fido is here.
+A cat is here.
 
 > light candle
 You light the candle.
@@ -161,8 +161,8 @@ There is a large glass door to the east.
 The sign says 'Come In!'
 
 There is Gary the garden gnome here.
-A cat is here.
 Robby is here.
+A cat is here.
 
 
 > look
@@ -170,9 +170,9 @@ There is a large glass door to the east.
 The sign says 'Come In!'
 
 There is Gary the garden gnome here.
-A cat is here.
 Fido is here.
 Robby is here.
+A cat is here.
 
 > knock
 The door makes a hollow sound.
@@ -184,8 +184,8 @@ There is a large glass door to the east.
 The sign says 'Come In!'
 
 There is Gary the garden gnome here.
-A cat is here.
 Fido is here.
 Robby is here.
+A cat is here.
 
 > end

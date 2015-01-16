@@ -633,12 +633,12 @@ class Game(Base):
     # handle 'tell XXX ... "
     target_name = ""
     if words[0].lower() == 'tell' and len(words) > 2:
-      (target_name, words) = get_noun(words[1:], actor.location.actors)
+      (target_name, words) = get_noun(words[1:], actor.location.actors.values())
 
     things = actor.inventory.values() + \
       actor.location.contents.values() + \
       actor.location.exits.values() + \
-      list(actor.location.actors) + \
+      list(actor.location.actors.values()) + \
       [actor.location] + \
       [actor]
     potential_verbs = []
@@ -681,7 +681,7 @@ class Game(Base):
     # if we have an explicit target of the VERB, do that.
     # e.g. "tell cat eat foo" -> cat.eat(cat, 'food', [])
     if target_name:
-      for a in actor.location.actors:
+      for a in actor.location.actors.values():
         if a.name != target_name:
           continue
         v = a.get_verb(verb)
@@ -702,7 +702,7 @@ class Game(Base):
           if v:
             if v.act(actor, noun, words):
               return True
-      for a in actor.location.actors:
+      for a in actor.location.actors.values():
         if indirect == a.name:
           v = a.get_verb(verb)
           if v:
@@ -717,7 +717,7 @@ class Game(Base):
           if v:
             if v.act(actor, None, words):
               return True
-      for a in actor.location.actors:
+      for a in actor.location.actors.values():
         if noun == a.name:
           v = a.get_verb(verb)
           if v:
@@ -816,7 +816,7 @@ class Location(Base):
     self.contents = {}
     self.exits = {}
     self.first_time = True
-    self.actors = set()
+    self.actors = {}
     self.requirements = {}
 
   def title(self, actor):
@@ -865,7 +865,8 @@ class Location(Base):
         desc += self.game.style_text("\nThere are a few things here: %s." % contents_description, CONTENTS)
 
     if self.actors:
-      for a in self.actors:
+      for k in sorted(self.actors.keys()):
+        a = self.actors[k]
         if a != observer:
           desc += self.game.style_text("\n" + add_article(a.describe(a)).capitalize() + " " + a.isare + " here.", CONTENTS)
 
@@ -972,11 +973,11 @@ class Actor(Base):
   def set_location(self, loc):
     self.game = loc.game # XXX this is a hack do this better
     if not self.player and self.location:
-      self.location.actors.remove(self)
+      del self.location.actors[self.name]
     self.location = loc
     self.moved = True
     if not self.player:
-      self.location.actors.add(self)
+      self.location.actors[self.name] = self
 
   # move a thing from the current location to our inventory
   def act_take1(self, actor, noun, words):
@@ -1086,7 +1087,7 @@ class Actor(Base):
 
   def act_list_verbs(self, actor, noun, words):
     things = (actor.inventory.values() + actor.location.contents.values() +
-       list(actor.location.actors) + [actor.location] + [actor])
+       list(actor.location.actors.values()) + [actor.location] + [actor])
     result = set()
     for t in things:
       for v in t.verbs.keys():
