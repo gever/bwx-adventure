@@ -819,7 +819,7 @@ class Lockable(Base):
   def unlock(self):
     self.unset_flag('locked')
 
-  def try_unlock(self):          
+  def try_unlock(self, actor):          
     if not self.flag('locked'):
       return True
     
@@ -829,7 +829,7 @@ class Lockable(Base):
       return False
 
     # check to see if the requirements are in the inventory
-    if set(self.requirements).issubset(set(self.game.player.inventory)):
+    if set(self.requirements).issubset(set(actor.inventory)):
       self.output("You use the %s, the %s unlocks" % \
                   (proper_list_from_dict(self.requirements),
                   self.name), FEEDBACK)
@@ -918,18 +918,18 @@ class Location(Lockable):
   def add_exit(self, con, way):
     self.exits[ way ] = con
 
-  def go(self, way):
+  def go(self, actor, way):
     if not way in self.exits:
       return None
     
     c = self.exits[ way ]
 
     # first check if the connection is locked
-    if not c.try_unlock():
+    if not c.try_unlock(actor):
       return None
 
     # check if the room on the other side is locked        
-    if not c.point_b.try_unlock():
+    if not c.point_b.try_unlock(actor):
       return None
 
     return c.point_b
@@ -1072,7 +1072,7 @@ class Actor(Base):
     if not noun in directions:
       self.output("Don't know how to go '%s'." % noun, FEEDBACK)
       return False
-    loc = self.location.go(directions[noun])
+    loc = self.location.go(actor, directions[noun])
     if loc == None:
       self.output("Bonk! %s can't seem to go that way." % self.name, FEEDBACK)
       return False
