@@ -48,7 +48,7 @@ player = game.new_player(sidewalk)
 # Try using it a second time and see what happens.
 #
 office.add_object(Food("plate",
-                       "plate of green eggs and ham.",
+                       "plate of green eggs and ham",
                        Say("You like them!")))
 
 #
@@ -56,7 +56,7 @@ office.add_object(Food("plate",
 #                                               
 office.add_object(Drink("glass",
                         "a glass of water, half full",
-                        Say("You feel refreshed, and strangely optimistic")))
+                        Say("You feel refreshed, and strangely optimistic.")))
 
 
 # and let's add a test to check the code we wrote above:

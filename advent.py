@@ -1068,7 +1068,7 @@ class Actor(Base):
       self.inventory[noun] = t
       t.consume(actor, noun, words)
     else:
-      self.output("%s can't eat the %s." % (actor.name, noun))
+      self.output("%s can't eat the %s." % (actor.name.capitalize(), noun))
 
     return True
 
@@ -1084,7 +1084,7 @@ class Actor(Base):
       self.inventory[noun] = t
       t.consume(actor, noun, words)
     else:
-      self.output("%s can't drink the %s." % (actor.name, noun))
+      self.output("%s can't drink the %s." % (actor.name.capitalize(), noun))
 
     return True
 
