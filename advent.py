@@ -645,6 +645,11 @@ class Game(Base):
       list(actor.location.actors.values()) + \
       [actor.location] + \
       [actor]
+
+    for c in actor.location.contents.values():
+        if isinstance(c, Container) and c.is_open:
+          things += c.contents.values()
+      
     potential_verbs = []
     for t in things:
       potential_verbs += t.verbs.keys()
@@ -843,6 +848,73 @@ class Lockable(Base):
                 proper_list_from_dict(self.requirements), FEEDBACK)
     return False
 
+class Container(Lockable):
+  def __init__(self, name, description):
+    Lockable.__init__(self, name)
+    self.description = description
+    self.first_time = True
+    self.contents = {}
+    self.close()
+
+  def add_object(self, obj):
+    self.contents[obj.name] = obj
+    obj.game = self.game
+    return obj
+
+  def new_object(self, name, desc, fixed=False):
+    return self.add_object(Object(name, desc, fixed))
+
+  def describe(self, observer, force=False):
+    desc = ""   # start with a blank string
+
+    # add the description
+    if self.first_time or force:
+      desc += self.description
+      self.first_time = False
+    else:
+      desc += add_article(self.name)
+
+    if not self.is_open():
+      desc += " The %s is closed." % self.name
+    else:
+      desc += " The %s is open." % self.name
+      # it's open so describe the contents
+      desc += self.describe_contents()
+    return desc
+    
+  def describe_contents(self):
+    desc = ""
+    if not self.contents:
+      return desc
+    
+    # try to make a readable list of the things
+    contents_description = proper_list_from_dict(self.contents)
+    # is it just one thing?
+    if len(self.contents) == 1:
+      desc += self.game.style_text("\nThere is %s in the %s." % \
+                                   (contents_description, self.name), CONTENTS)
+    else:
+      desc += self.game.style_text("\nThere are a few things in the %s: %s." % \
+                                   (self.name, contents_description), CONTENTS)
+
+    return desc
+
+  def open(self, actor):
+    if self.is_open():
+      self.output("The %s is already open." % self.name)
+      return True
+    if not self.try_unlock(actor):
+      return False
+    self.output("The %s opens." % self.name, FEEDBACK)
+    self.output(self.describe_contents(), CONTENTS)
+    self.unset_flag('closed')
+
+  def close(self):
+    self.set_flag('closed')
+
+  def is_open(self):
+    return not self.flag('closed')
+
         
 # A "location" is a place in the game.
 class Location(Lockable):
@@ -908,7 +980,11 @@ class Location(Lockable):
       else:
         desc += self.game.style_text("\nThere are a few things here: %s." % \
                                      contents_description, CONTENTS)
-
+      for k in sorted(self.contents.keys()):
+        c = self.contents[k]
+        if isinstance(c, Container) and c.is_open():
+          desc += c.describe_contents()
+                                     
     if self.actors:
       for k in sorted(self.actors.keys()):
         a = self.actors[k]
@@ -993,6 +1069,7 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_go1, 'go'))
     self.add_verb(BaseVerb(self.act_eat, 'eat'))
     self.add_verb(BaseVerb(self.act_drink, 'drink'))
+    self.add_verb(BaseVerb(self.act_open, 'open'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'commands'))
 
@@ -1015,6 +1092,10 @@ class Actor(Base):
     if not noun:
       return False
     t = self.location.contents.pop(noun, None)
+    if not t:
+      for c in self.location.contents.values():
+        if isinstance(c, Container) and c.is_open:
+          t = c.contents.pop(noun, None)      
     if t:
       self.inventory[noun] = t
       self.output("You take the %s." % t.name)
@@ -1048,6 +1129,10 @@ class Actor(Base):
       n = self.inventory[noun]
     if noun in self.location.contents:
       n = self.location.contents[noun]
+    for c in self.location.contents.values():
+      if isinstance(c, Container) and c.is_open:
+        if noun in c.contents:
+          n = c.contents[noun]
     if not n:
       return False
     self.output("You see " + n.describe(self))
@@ -1113,6 +1198,21 @@ class Actor(Base):
       t.consume(actor, noun, words)
     else:
       self.output("%s can't drink the %s." % (actor.name.capitalize(), noun))
+
+    return True
+
+  # open a Container
+  def act_open(self, actor, noun, words):
+    if not noun:
+      return False
+    if not noun in actor.location.contents:
+      return False
+    
+    t = self.location.contents[noun]
+    if isinstance(t, Container):
+      t.open(actor)
+    else:
+      self.output("%s can't open the %s." % (actor.name.capitalize(), noun))
 
     return True
 

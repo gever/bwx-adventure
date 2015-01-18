@@ -5,7 +5,8 @@ all: python3 \
 	python3/tutorial1.py \
 	python3/tutorial2.py \
 	python3/tutorial3.py \
-	python3/tutorial4.py
+	python3/tutorial4.py \
+	python3/tutorial5.py
 
 python3:
 	mkdir -p python3
@@ -30,6 +31,10 @@ smoke_test: all
 	echo "run test" | python ./tutorial2.py
 	echo "run test" | python3 ./python3/tutorial3.py
 	echo "run test" | python ./tutorial3.py
+	echo "run test" | python3 ./python3/tutorial4.py
+	echo "run test" | python ./tutorial4.py
+	echo "run test" | python3 ./python3/tutorial5.py
+	echo "run test" | python ./tutorial5.py
 	echo "run test" | python3 ./python3/bwx-game.py
 	echo "run test" | python ./bwx-game.py
 
