@@ -1135,7 +1135,7 @@ class Actor(Base):
           n = c.contents[noun]
     if not n:
       return False
-    self.output("You see " + n.describe(self))
+    self.output("You see " + n.describe(self) + ".")
     return True
 
   # list the things we're carrying
