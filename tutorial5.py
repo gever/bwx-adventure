@@ -37,12 +37,26 @@ key = sidewalk.new_object("key", "a small tarnished key")
 
 player = game.new_player(sidewalk)
 
+#
+# Containers are objects that can hold other objects inside.
+#
 file_cabinet = office.add_object(Container("file cabinet",
                                            "a rusty old metal file cabinet"))
+
+#
+# Let's put something into the Container
+#
 file_cabinet.new_object("secret plan",
 """secret plans to convert Brightworks into a
 military academy for cyber-warfare specialists""")
 
+#
+# Containers can also be locked.  Once they are unlocked they
+# can be opened and the objects inside can be examined and taken.
+# Locking Containers works the same as locking Locations or
+# Connections.  You can use add_requirement([objects]) or can lock
+# it explicitly and unlock with a custom verb.
+#
 file_cabinet.make_requirement(key)
 
 # add our player to the game
