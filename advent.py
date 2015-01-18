@@ -1178,7 +1178,6 @@ class Actor(Base):
     
     t = self.location.contents[noun]
     if isinstance(t, Food):
-      self.inventory[noun] = t
       t.consume(actor, noun, words)
     else:
       self.output("%s can't eat the %s." % (actor.name.capitalize(), noun))
@@ -1194,7 +1193,6 @@ class Actor(Base):
     
     t = self.location.contents[noun]
     if isinstance(t, Drink):
-      self.inventory[noun] = t
       t.consume(actor, noun, words)
     else:
       self.output("%s can't drink the %s." % (actor.name.capitalize(), noun))
