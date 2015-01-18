@@ -783,30 +783,29 @@ class Object(Base):
       return self.description(self)
 
 class Consumable(Object):
-  def __init__(self, name, desc, verb):
+  def __init__(self, name, desc, verb, replacement = None):
     Object.__init__(self, name, desc)
     self.verb = verb
     verb.bind_to(self)
     self.consume_term = "consume"
+    self.replacement = replacement
     
   def consume(self, actor, noun, words):
-    if self.flag('consumed'):
-      self.output("The %s is empty" % self.name)
+    if not actor.location.replace_object(actor, self.name, self.replacement):
       return False
+    
     self.output("You %s %s." % (self.consume_term, self.description))
     self.verb.act(actor, noun, words)
-    self.set_flag('consumed')
-    self.description = "an empty " + self.name
     return True
     
 class Food(Consumable):
-  def __init__(self, name, desc, verb):
-    Consumable.__init__(self, name, desc, verb)
+  def __init__(self, name, desc, verb, replacement = None):
+    Consumable.__init__(self, name, desc, verb, replacement)
     self.consume_term = "eat"
     
 class Drink(Consumable):
-  def __init__(self, name, desc, verb):
-    Consumable.__init__(self, name, desc, verb)
+  def __init__(self, name, desc, verb, replacement = None):
+    Consumable.__init__(self, name, desc, verb, replacement)
     self.consume_term = "drink"
 
 class Lockable(Base):
@@ -994,6 +993,29 @@ class Location(Lockable):
 
     return desc
 
+  def find_object(self, actor, name):
+    if self.contents:
+      if name in self.contents.keys():
+        return self.contents
+      for c in self.contents.values():
+        if isinstance(c, Container) and c.is_open() and name in c.contents.keys():
+          return c.contents
+    if name in actor.inventory:
+      return actor.inventory
+    return None
+
+  def replace_object(self, actor, old_name, new_obj):
+    d = self.find_object(actor, old_name)
+    if d == None:
+      return None
+    if not old_name in d.keys():
+      return None
+    old_obj = d[old_name]
+    del d[old_name]
+    if new_obj:
+      d[new_obj.name] = new_obj
+    return old_obj
+    
   def add_exit(self, con, way):
     self.exits[ way ] = con
 

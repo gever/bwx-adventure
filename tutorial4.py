@@ -44,19 +44,30 @@ player = game.new_player(sidewalk)
 #   - the second argument is a description of the food
 #   - the third argument is any kind of Verb that you want to execute
 #     when the food is consumed
-# Try using the "eat" command on the plate created below.
-# Try using it a second time and see what happens.
+# Try using the "eat" command on the donut created below.
+# Try using the eat command a second time and see what happens.
 #
-office.add_object(Food("plate",
+office.add_object(Food("donut",
+                       "a chocolate covered donut with pink sprinkles",
+                       Say("yummy!")))
+
+#
+# In the example above, there was nothing left behind when the donut was eaten,
+# let's fill in an optional fourth argument to describe something that is left behind
+# after the food is eaten, in this case a plate, a greenish greasy plate:
+#
+office.add_object(Food("plate of food",
                        "a plate of green eggs and ham",
-                       Say("You like them!")))
+                       Say("You like them!"),
+                       Object("plate", "a greenish greasy plate")))
 
 #
 # Drink is another special class just like Food, but for things you can drink.
 #                                               
-office.add_object(Drink("glass",
+office.add_object(Drink("glass of water",
                         "a glass of water, half full",
-                        Say("You feel refreshed, and strangely optimistic.")))
+                        Say("You feel refreshed, and strangely optimistic."),
+                        Object("glass", "an empty glass")))
 
 
 # and let's add a test to check the code we wrote above:
@@ -64,12 +75,15 @@ test_script = Script("test",
 """
 > in
 > s
+> eat donut
+> eat donut
+> examine plate of food
+> examine glass of water
+> drink plate of food
+> eat plate of food
+> eat plate of food
 > examine plate
-> examine glass
-> drink plate
-> eat plate
-> eat plate
-> drink glass
+> drink glass of water
 > examine glass
 > drink glass
 > end
