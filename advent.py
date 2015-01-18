@@ -819,6 +819,9 @@ class Lockable(Base):
   def unlock(self):
     self.unset_flag('locked')
 
+  def is_locked(self):
+    return self.flag('locked')
+    
   def try_unlock(self, actor):          
     if not self.flag('locked'):
       return True
