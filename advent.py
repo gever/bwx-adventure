@@ -1637,10 +1637,15 @@ class Animal(Actor):
   def random_move(self, observer_loc):
     if random.random() > 0.2:  # only move 1 in 5 times
       return
+
+    # filter out any locked locations
     exits = list()
     for (d, c) in self.location.exits.items():
-      if not c.flag('locked'):
-        exits.append((d ,c))
+      if c.is_locked():
+        continue
+      if c.point_b.is_locked():
+        continue
+      exits.append((d ,c))
     if not exits:
       return
     (exitDir, exitConn) = random.choice(exits)
