@@ -47,6 +47,11 @@ bat.set_location(office)
 # SayOnSelf triggers when the bat is the noun, for example: "swat bat"
 bat.add_verb(SayOnSelf("The bat flaps frantically up out of your reach.", "swat"))
 
+# we can also restrict the movement of any actor using set_allowed_locations.
+# the following line will prevent the bat from going anywhere besides the
+# office and the vestibule:
+bat.set_allowed_locations([office, vestibule])
+
 # Now lets add a Robot.  Robots are characters in the game that only
 # act when you tell them to.  Robots can do anything the player can do.
 # You tell them to act by typing their name, a colon, and the command

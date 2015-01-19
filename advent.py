@@ -826,7 +826,13 @@ class Lockable(Base):
   def is_locked(self):
     return self.flag('locked')
     
-  def try_unlock(self, actor):          
+  def try_unlock(self, actor):
+    # first see if the actor is whitelisted
+    if isinstance(self, Location) and actor.allowed_locs:
+      if not self in actor.allowed_locs:
+        return False
+
+    # now check if we're locked
     if not self.flag('locked'):
       return True
     
@@ -1074,6 +1080,7 @@ class Actor(Base):
   def __init__(self, name):
     Base.__init__(self, name)
     self.location = None
+    self.allowed_locs = None
     self.inventory = {}
     self.cap_name = name.capitalize()
     self.player = False
@@ -1108,6 +1115,10 @@ class Actor(Base):
     self.moved = True
     if not self.player:
       self.location.actors[self.name] = self
+
+  # confine this actor to a list of locations
+  def set_allowed_locations(self, locs):
+    self.allowed_locs = locs
 
   # move a thing from the current location to our inventory
   def act_take1(self, actor, noun, words):
@@ -1638,12 +1649,14 @@ class Animal(Actor):
     if random.random() > 0.2:  # only move 1 in 5 times
       return
 
-    # filter out any locked locations
+    # filter out any locked or forbidden locations
     exits = list()
     for (d, c) in self.location.exits.items():
       if c.is_locked():
         continue
       if c.point_b.is_locked():
+        continue
+      if self.allowed_locs and not c.point_b in self.allowed_locs:
         continue
       exits.append((d ,c))
     if not exits:

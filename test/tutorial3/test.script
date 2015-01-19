@@ -8,37 +8,39 @@ Robby is here.
 
 > take key
 You take the key.
-A bat enters the Sidewalk via the Glass Door.
-
-> swat bat
-The bat flaps frantically up out of your reach.
 
 > go in
         --=(You are in the Vestibule)=--        
 
 A small area at the bottom of a flight of stairs.
 There is a glass door to the west and door to the south.
-A cat is here.
 
+A cat enters the Vestibule via the Office Door.
 
 > tell cat follow
 cat obediently begins following you
-A bat enters the Vestibule via the Glass Door.
 
 > s
         --=(You are in the Office)=--        
 
 A nicely organized office.
 There is a door to the north.
+A bat is here.
 
+
+> swat bat
+The bat flaps frantically up out of your reach.
+A bat leaves the Office, heading out.
 
 > look
 A nicely organized office.
 There is a door to the north.
 A cat is here.
+A bat enters the Office via the Office Door.
 
 > pet cat
 The cat purrs.
+A bat leaves the Office, heading north.
 
 > tell cat bark
 The cat barks and coughs and something splats on the floor.
@@ -56,10 +58,10 @@ A small area at the bottom of a flight of stairs.
 There is a glass door to the west and door to the south.
 A bat is here.
 
-A bat leaves the Vestibule, heading south.
 
 > tell cat bark
 The cat barks and coughs and something splats on the floor.
+A bat leaves the Vestibule, heading south.
 
 > look
 A small area at the bottom of a flight of stairs.
