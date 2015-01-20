@@ -563,18 +563,19 @@ class Game(Base):
           
   def run_room(self):
     actor = self.current_actor
-    # if the actor moved, describe the room
-    if actor.check_if_moved():
-      self.output(actor.location.title(actor), TITLE)
+    if actor == self.player or actor.flag('verbose'):
+      # if the actor moved, describe the room
+      if actor.check_if_moved():
+        self.output(actor.location.title(actor), TITLE)
 
-      # cache this as we need to know it for the query to entering_location()
-      self.fresh_location = actor.location.first_time
+        # cache this as we need to know it for the query to entering_location()
+        self.fresh_location = actor.location.first_time
 
-      where = actor.location.describe(actor, self.flag('verbose'))
-      if where:
-        self.output("")
-        self.output(where)
-        self.output("")
+        where = actor.location.describe(actor, actor.flag('verbose'))
+        if where:
+          self.output("")
+          self.output(where)
+          self.output("")
 
     # See if the animals want to do anything
     for animal in self.animals.items():
@@ -1542,12 +1543,12 @@ class Robot(Actor):
     return True
 
   def toggle_verbosity(self, actor, noun, words):
-    if self.game.flag('verbose'):
-      self.game.unset_flag('verbose')
-      self.game.output("minimal verbosity")
+    if self.flag('verbose'):
+      self.unset_flag('verbose')
+      self.output("minimal verbosity")
     else:
-      self.game.set_flag('verbose')
-      self.game.output("maximum verbosity")
+      self.set_flag('verbose')
+      self.output("maximum verbosity")
     return True
 
   def parse_script_name(self, noun):
@@ -1559,7 +1560,7 @@ class Robot(Actor):
 
   def act_start_recording(self, actor, noun, words):
     script_name = self.parse_script_name(noun)
-    self.game.set_flag('verbose')
+    self.set_flag('verbose')
     self.game.devtools.debug_output("start recording %s" % script_name, 2)
     script = Script(script_name, None, self.game)
     self.scripts[script_name] = script
@@ -1585,7 +1586,7 @@ class Robot(Actor):
 
   def act_check_script(self, actor, noun, words):
     if self.act_run_script(actor, noun, words):
-      self.game.set_flag('verbose')
+      self.set_flag('verbose')
       self.current_script.start_checking()
       self.game.devtools.debug_output("start checking", 2)
       return True
@@ -1709,13 +1710,18 @@ class Animal(Actor):
     if not exits:
       return
     (exitDir, exitConn) = random.choice(exits)
-    if self.location == observer_loc:
+    quiet = True
+    if self.game.current_actor == self.game.player:
+      quiet = False
+    if self.game.current_actor.flag('verbose'):
+      quiet = False
+    if not quiet and self.location == observer_loc:
       self.output("%s leaves the %s, heading %s." % \
                   (add_article(self.name).capitalize(),
                    observer_loc.name,
                    direction_names[exitDir].lower()), FEEDBACK)
     self.act_go1(self, direction_names[exitDir], None)
-    if self.location == observer_loc:
+    if not quiet and self.location == observer_loc:
       self.output("%s enters the %s via the %s." % (add_article(self.name).capitalize(),
                                                observer_loc.name,
                                                exitConn.name), FEEDBACK)
