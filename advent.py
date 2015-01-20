@@ -285,7 +285,8 @@ class BaseVerb(Base):
     # even if some of them don't
     if words:
       for noun in words:
-        result |= self.function(actor, noun, None)
+        if self.function(actor, noun, None):
+          result = True
     return result
 
 class Say(BaseVerb):
