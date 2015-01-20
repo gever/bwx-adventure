@@ -1088,10 +1088,12 @@ class Actor(Base):
     self.cap_name = name.capitalize()
     self.player = False
     self.isare = "is"
+    self.trades = {}
     # associate each of the known actions with functions
     self.add_verb(BaseVerb(self.act_take1, 'take'))
     self.add_verb(BaseVerb(self.act_take1, 'get'))
     self.add_verb(BaseVerb(self.act_drop1, 'drop'))
+    self.add_verb(BaseVerb(self.act_give, 'give'))
     self.add_verb(BaseVerb(self.act_inventory, 'inventory'))
     self.add_verb(BaseVerb(self.act_inventory, 'i'))
     self.add_verb(BaseVerb(self.act_look, 'look'))
@@ -1123,6 +1125,50 @@ class Actor(Base):
   def set_allowed_locations(self, locs):
     self.allowed_locs = locs
 
+  # add something to our inventory
+  def add_to_inventory(self, thing):
+    self.inventory[thing.name] = thing
+    return thing
+
+  # remove something from our inventory
+  def remove_from_inventory(self, thing):
+    return self.inventory.pop(thing.name, None)
+    
+  # set up a trade
+  def add_trade(self, received_obj, returned_obj, verb):
+    verb.bind_to(self)
+    self.trades[received_obj] = (returned_obj, verb)
+
+  # receive a given object
+  def receive_item(self, giver, thing):
+    self.add_to_inventory(thing)
+    if thing in self.trades.keys():
+      (obj, verb) = self.trades[thing]
+      verb.act(giver, thing.name, None)
+      self.location.contents[obj.name] = obj
+      self.remove_from_inventory(obj)
+
+  # give something to another actor
+  def act_give(self, actor, noun, words):
+    d = actor.location.find_object(actor, noun)
+    if not d:
+      return False
+    thing = d[noun]
+
+    receiver = self
+    if words:
+      for w in words:
+        if w in self.location.actors.keys():
+          receiver = self.location.actors[w]
+          break
+
+    if not receiver:
+      return False
+
+    receiver.receive_item(actor, thing)
+    del d[thing.name]
+    return True
+      
   # move a thing from the current location to our inventory
   def act_take1(self, actor, noun, words):
     if not noun:
