@@ -1089,6 +1089,7 @@ class Actor(Base):
     self.cap_name = name.capitalize()
     self.player = False
     self.isare = "is"
+    self.verborverbs = "s"
     self.trades = {}
     # associate each of the known actions with functions
     self.add_verb(BaseVerb(self.act_take1, 'take'))
@@ -1181,10 +1182,12 @@ class Actor(Base):
           t = c.contents.pop(noun, None)      
     if t:
       self.inventory[noun] = t
-      self.output("You take the %s." % t.name)
+      self.output("%s take%s the %s." % (actor.cap_name,
+                                         actor.verborverbs,
+                                         t.name))
       return True
     else:
-      self.output("%s can't take the %s." % (self.cap_name, noun))
+      self.output("%s can't take the %s." % (actor.cap_name, noun))
       return False
 
   # move a thing from our inventory to the current location
@@ -1683,6 +1686,7 @@ class Player(Robot):
     Robot.__init__(self, "you")
     self.player = True
     self.isare = "are"
+    self.verborverbs = ""
 
 # Animals are actors which may act autonomously each turn
 class Animal(Actor):
