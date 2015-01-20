@@ -87,11 +87,11 @@ cat.add_verb(SayOnSelf("The cat purrs.", "pet"))
 cat.add_verb(SayOnNoun("The cat beings to groom itself.", "yourself", "lick"))
 
 # command the cat and have an object appear
-def cat_bark(self, noun, words):
-  self.location.add_object(Object("hairball", "gooey hairball"))
-  self.output("The cat barks and coughs and something splats on the floor.")
+def cat_bark(self, actor, noun, words):
+  actor.location.add_object(Object("hairball", "gooey hairball"))
+  actor.output("The cat barks and coughs and something splats on the floor.")
   return True
-cat.add_verb(BaseVerb(cat_bark, 'bark'))
+cat.add_verb(Verb(cat_bark, 'bark'))
 
 # custom phrases available when the cat is present.
 # for example: "hi cat"
