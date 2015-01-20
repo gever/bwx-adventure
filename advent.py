@@ -1001,6 +1001,8 @@ class Location(Lockable):
     return desc
 
   def find_object(self, actor, name):
+    if not name:
+      return None
     if self.contents:
       if name in self.contents.keys():
         return self.contents
@@ -1205,12 +1207,11 @@ class Actor(Base):
 
   # eat something
   def act_eat(self, actor, noun, words):
-    if not noun:
+    d = actor.location.find_object(actor, noun)
+    if not d:
       return False
-    if not noun in actor.location.contents:
-      return False
+    t = d[noun]
     
-    t = self.location.contents[noun]
     if isinstance(t, Food):
       t.consume(actor, noun, words)
     else:
@@ -1220,12 +1221,11 @@ class Actor(Base):
 
   # drink something
   def act_drink(self, actor, noun, words):
-    if not noun:
+    d = actor.location.find_object(actor, noun)
+    if not d:
       return False
-    if not noun in actor.location.contents:
-      return False
+    t = d[noun]
     
-    t = self.location.contents[noun]
     if isinstance(t, Drink):
       t.consume(actor, noun, words)
     else:
