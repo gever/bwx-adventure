@@ -364,7 +364,7 @@ def get_noun(words, things):
 
 # A class to hold utility methods useful during game development, but
 # not needed for normal game play.  Import the advent_devtools module
-# and call DevTools(game) to get the full version of the tools.
+# to get the full version of the tools.
 class DevToolsBase(object):
   def __init__(self):
     self.game = None
