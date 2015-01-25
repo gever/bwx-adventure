@@ -18,7 +18,7 @@ You take the pebble.
 You take the key.
 
 > go in
-        --=(You are in the Vestibule)=--        
+        --=( Vestibule )=--        
 
 A small area at the bottom of a flight of stairs.
 There is a switch next to an unlit bulb.
@@ -67,7 +67,7 @@ Up the stars you see the reception desk.
 Fido is here.
 
 > go up
-        --=(You are in the Reception Desk)=--        
+        --=( Reception Desk )=--        
 
 Behind an opening in the wall you see an unlit room.
 You see a score board and a message box with a needle for messages.
@@ -86,7 +86,7 @@ A cat leaves the Reception Desk, heading down.
 The pebble you picked up is suddenly feeling warm to the touch!
 
 > n
-        --=(You are at the Intersection)=--        
+        --=( Intersection )=--        
 
 A boring intersection. There is a passageway to the
 north that leads to the shop. To the east is the elevator
@@ -106,7 +106,7 @@ You take the key.
 
 > e
 You use the a pebble and a key, the Elevator unlocks
-        --=(You are in the Elevator)=--        
+        --=( Elevator )=--        
 
 The elevator is turned off, but the door is open.
 The controls on the elevator do not seem to work.
@@ -115,7 +115,7 @@ To the west is an intersection.
 
 
 > w
-        --=(You are at the Intersection)=--        
+        --=( Intersection )=--        
 
 A boring intersection. There is a passageway to the
 north that leads to the shop. To the east is the elevator
@@ -139,7 +139,7 @@ Bonk! you can't seem to go that way.
 Bonk! you can't seem to go that way.
 
 > s
-        --=(You are in the Reception Desk)=--        
+        --=( Reception Desk )=--        
 
 Behind an opening in the wall you see an unlit room.
 You see a score board and a message box with a needle for messages.
@@ -147,7 +147,7 @@ There is a locked sliding door to the south, and an intersection to the north.
 
 
 > d
-        --=(You are in the Vestibule)=--        
+        --=( Vestibule )=--        
 
 A small area at the bottom of a flight of stairs.
 There is a switch next to an unlit bulb.
@@ -155,7 +155,7 @@ Up the stars you see the reception desk.
 
 
 > out
-        --=(You are on the Sidewalk)=--        
+        --=( Sidewalk )=--        
 
 There is a large glass door to the east.
 The sign says 'Come In!'

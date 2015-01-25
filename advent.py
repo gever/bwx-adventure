@@ -942,8 +942,10 @@ class Location(Lockable):
     self.actors = {}
 
   def title(self, actor):
-    return "        --=(%s %s %s the %s)=--        " % (
-      actor.name.capitalize(), actor.isare, self.inonat, self.name)
+    preamble = ""
+    if (actor != self.game.player):
+      preamble = "%s %s %s the " % (actor.name.capitalize(), actor.isare, self.inonat)
+    return "        --=( %s%s )=--        " % (preamble, self.name)
 
   def add_object(self, obj):
     self.contents[obj.name] = obj
