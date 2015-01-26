@@ -1051,10 +1051,6 @@ class Location(Lockable):
     for key in self.exits:
       print "exit: %s" % key
 
-  def make_requirement(self, thing):
-      self.requirements[thing.name] = thing
-      self.set_flag('locked')
-
 
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
