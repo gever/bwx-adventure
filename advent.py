@@ -289,6 +289,19 @@ class BaseVerb(Base):
           result = True
     return result
 
+class Die(BaseVerb):
+  def __init__(self, string, name = ""):
+    BaseVerb.__init__(self, None, name)
+    self.string = string
+
+  def act(self, actor, noun, words):
+    self.bound_to.game.output("%s %s %s" % (actor.name.capitalize(),
+                                            actor.isare, self.string), FEEDBACK)
+    self.bound_to.game.output("%s %s dead." % (actor.name.capitalize(),
+                                               actor.isare), FEEDBACK)
+    actor.terminate()
+    return True
+
 class Say(BaseVerb):
   def __init__(self, string, name = ""):
     BaseVerb.__init__(self, None, name)
@@ -763,6 +776,9 @@ class Game(Base):
     self.init_scripts() # now we can set up scripts
     while True:
       self.run_room()
+      if self.player.health < 0:
+        self.output ("Better luck next time!")
+        break
       if not self.run_step():
         break
     self.output("\ngoodbye!\n", FEEDBACK)
@@ -997,9 +1013,13 @@ class Location(Lockable):
     if self.actors:
       for k in sorted(self.actors.keys()):
         a = self.actors[k]
+        if a.health < 0:
+          deadornot = "lying here dead as a doornail"
+        else:
+          deadornot = "here"
         if a != observer:
           desc += self.game.style_text("\n" + add_article(a.describe(a)).capitalize() + \
-                                       " " + a.isare + " here.", CONTENTS)
+                                       " " + a.isare + " " + deadornot + ".", CONTENTS)
 
     return desc
 
@@ -1081,6 +1101,7 @@ class Actor(Base):
 
   def __init__(self, name):
     Base.__init__(self, name)
+    self.health = 0
     self.location = None
     self.allowed_locs = None
     self.inventory = {}
@@ -1107,6 +1128,10 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'commands'))
 
+  # terminate
+  def terminate(self):
+    self.health = -1
+    
   # describe ourselves
   def describe(self, observer):
     return self.name
