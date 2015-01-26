@@ -16,7 +16,7 @@ used to render the graph in many different bitmap and vector formats
 
 def munge_name (name):
   """Remove code-unfriendly characters"""
-  return "".join(c for c in name if c not in " ,_-")
+  return "".join(c for c in name if c not in " ,_-'\"")
 
 def get_abbr (dir):
   """Abbreviate a direction. Return 'n' for NORTH, 'nw' for NORTHWEST, etc."""
@@ -38,8 +38,10 @@ def get_label (dirs):
 
 def write_as_dot (game, file_name=None):
   """
-  Call this from your game before doing game.run().
-  Then after you quit, do the following:
+  Insert this from your game before doing game.run():
+    from graphviz_writer import write_as_dot
+    write_as_dot(game, "game.dot")
+  Then after you quit the game, do the following:
       dot -Tpng game.dot > game.png
   Or if you don't have GraphViz, paste the contents of game.dot
   into a web form like this one:
@@ -54,21 +56,27 @@ def write_as_dot (game, file_name=None):
   # get node names by munging loc names (bail if any are dups)
   node_name_set = set()
   node_name_by_loc = {}
-  for (name, loc) in game.locations.items():
-    nodeName = munge_name(loc.name)
-    assert nodeName not in node_name_set, (nodeName, node_name_set)
-    node_name_by_loc[loc] = nodeName
+  for loc in game.location_list:
+    name = loc.name
+    node_name = simple_node_name = munge_name(loc.name)
+    index = 2
+    while node_name in node_name_set:
+      node_name = "%s_%d" % (simple_node_name, index)
+      index += 1
+    assert node_name not in node_name_set, (node_name, node_name_set)
+    node_name_by_loc[loc] = node_name
+    node_name_set.add(node_name)
   # write header and node defaults
   _dot("digraph game {")
   _dot("  node [shape=rect, style=rounded];")
   # write locations as nodes
   _dot("  // nodes")
-  for loc in game.locations.values():
+  for loc in game.location_list:
     _dot('  %s [label="%s"];' % (node_name_by_loc[loc], loc.name))
   # write connections as edges:
   _dot("  // edges")
   # for each location...
-  for loc in game.locations.values():
+  for loc in game.location_list:
     # store all ways to get to a given connection of this node
     dirs_by_conn = defaultdict(list) 
     for (dir,conn) in loc.exits.items():
@@ -85,3 +93,9 @@ def write_as_dot (game, file_name=None):
   # clean up, if necessary
   if file_name:
     f.close()
+
+def dump_node_name_by_loc (node_name_by_loc):
+  print "node_name_by_loc = {"
+  for (loc, node_name) in node_name_by_loc.items():
+    print '  Location("%s") : "%s"' % (loc.name, node_name)
+  print "}"

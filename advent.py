@@ -393,7 +393,7 @@ class Game(Base):
     self.fresh_location = False
     self.player = None
     self.current_actor = None
-    self.locations = {}
+    self.location_list = []
     self.robots = {}
     self.animals = {}
     global _devtools
@@ -401,6 +401,7 @@ class Game(Base):
     self.devtools.set_game(self)
     self.http_output = False
     self.http_text = ""
+    self.done = False
 
   def set_name(self, name):
     self.name = name
@@ -440,7 +441,7 @@ class Game(Base):
   # add another location to the game
   def add_location(self,  location):
     location.game = self
-    self.locations[location.name] = location
+    self.location_list.append(location)
     return location
 
   def new_location(self, *args):
@@ -762,6 +763,8 @@ class Game(Base):
     self.run_room() # just set the stage before we do any scripting
     self.init_scripts() # now we can set up scripts
     while True:
+      if self.done:
+          return
       self.run_room()
       if not self.run_step():
         break
