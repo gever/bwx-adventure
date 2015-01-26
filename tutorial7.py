@@ -31,6 +31,7 @@ game.new_connection("Office Door", vestibule, office, [IN, SOUTH], [OUT, NORTH])
 
 cat = Pet("cat")
 cat.set_location(sidewalk)
+cat.set_allowed_locations([sidewalk])
 
 player = game.new_player(sidewalk)
 
@@ -59,6 +60,9 @@ sidewalk.add_object(Drink("vial",
             
 # add our player to the game
 game.add_actor(player)
+
+# add the cat to the game
+game.add_actor(cat)
 
 # and let's add a test to check the code we wrote above:
 test_script = Script("test",
