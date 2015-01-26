@@ -596,8 +596,10 @@ class Game(Base):
           self.output("")
 
     # See if the animals want to do anything
-    for animal in self.animals.items():
-      animal[1].act_autonomously(actor.location)
+    for animal in self.animals.values():
+      # first check that it is not dead
+      if animal.health >= 0:
+        animal.act_autonomously(actor.location)
 
 
   def run_step(self, cmd = None):
