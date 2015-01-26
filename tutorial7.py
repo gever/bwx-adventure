@@ -5,11 +5,8 @@
 #
 
 from advent import *
+from advent_devtools import *
 
-
-# import random module for random numbers
-import random
-from copy import copy
 
 # We'll start out with our familiar brightworks entryway:
 
