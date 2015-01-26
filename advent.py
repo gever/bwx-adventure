@@ -812,7 +812,8 @@ class Consumable(Object):
     if not actor.location.replace_object(actor, self.name, self.replacement):
       return False
     
-    self.output("You %s %s." % (self.consume_term, self.description))
+    self.output("%s %s%s %s." % (actor.name.capitalize(), self.consume_term,
+                                 actor.verborverbs, self.description))
     self.verb.act(actor, noun, words)
     return True
     
