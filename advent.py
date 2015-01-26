@@ -429,7 +429,11 @@ class Game(Base):
       connection.point_a.add_exit(connection, connection.way_ab)
 
     # this is messy, need a better way to do this
-    reverse_connection = Connection(connection.name, connection.point_b, connection.point_a, connection.way_ba, connection.way_ab)
+    reverse_connection = Connection(connection.name,
+                                    connection.point_b,
+                                    connection.point_a,
+                                    connection.way_ba,
+                                    connection.way_ab)
     reverse_connection.game = self
     if isinstance(connection.way_ba, (list, tuple)):
       for way in connection.way_ba:
