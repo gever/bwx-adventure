@@ -7,7 +7,8 @@ all: python3 \
 	python3/tutorial3.py \
 	python3/tutorial4.py \
 	python3/tutorial5.py \
-	python3/tutorial6.py
+	python3/tutorial6.py \
+	python3/tutorial7.py
 
 python3:
 	mkdir -p python3

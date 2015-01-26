@@ -1,12 +1,12 @@
 > in
-        --=(You are in the Vestibule)=--        
+        --=( Vestibule )=--        
 
 A small area at the bottom of a flight of stairs.
 There is a glass door to the west and door to the south.
 
 
 > s
-        --=(You are in the Office)=--        
+        --=( Office )=--        
 
 A nicely organized office.
 There is a door to the north.
@@ -20,14 +20,14 @@ You see a rusty old metal file cabinet The file cabinet is closed..
 It's locked! You will need a key.
 
 > n
-        --=(You are in the Vestibule)=--        
+        --=( Vestibule )=--        
 
 A small area at the bottom of a flight of stairs.
 There is a glass door to the west and door to the south.
 
 
 > out
-        --=(You are in the Sidewalk)=--        
+        --=( Sidewalk )=--        
 
 There is a large glass door to the east. The sign says 'Come In!'
 There is a key here.
@@ -37,14 +37,14 @@ There is a key here.
 You take the key.
 
 > in
-        --=(You are in the Vestibule)=--        
+        --=( Vestibule )=--        
 
 A small area at the bottom of a flight of stairs.
 There is a glass door to the west and door to the south.
 
 
 > s
-        --=(You are in the Office)=--        
+        --=( Office )=--        
 
 A nicely organized office.
 There is a door to the north.

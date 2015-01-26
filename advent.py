@@ -289,6 +289,19 @@ class BaseVerb(Base):
           result = True
     return result
 
+class Die(BaseVerb):
+  def __init__(self, string, name = ""):
+    BaseVerb.__init__(self, None, name)
+    self.string = string
+
+  def act(self, actor, noun, words):
+    self.bound_to.game.output("%s %s %s" % (actor.name.capitalize(),
+                                            actor.isare, self.string), FEEDBACK)
+    self.bound_to.game.output("%s %s dead." % (actor.name.capitalize(),
+                                               actor.isare), FEEDBACK)
+    actor.terminate()
+    return True
+
 class Say(BaseVerb):
   def __init__(self, string, name = ""):
     BaseVerb.__init__(self, None, name)
@@ -364,7 +377,7 @@ def get_noun(words, things):
 
 # A class to hold utility methods useful during game development, but
 # not needed for normal game play.  Import the advent_devtools module
-# and call DevTools(game) to get the full version of the tools.
+# to get the full version of the tools.
 class DevToolsBase(object):
   def __init__(self):
     self.game = None
@@ -766,6 +779,9 @@ class Game(Base):
       if self.done:
           return
       self.run_room()
+      if self.player.health < 0:
+        self.output ("Better luck next time!")
+        break
       if not self.run_step():
         break
     self.output("\ngoodbye!\n", FEEDBACK)
@@ -799,7 +815,8 @@ class Consumable(Object):
     if not actor.location.replace_object(actor, self.name, self.replacement):
       return False
     
-    self.output("You %s %s." % (self.consume_term, self.description))
+    self.output("%s %s%s %s." % (actor.name.capitalize(), self.consume_term,
+                                 actor.verborverbs, self.description))
     self.verb.act(actor, noun, words)
     return True
     
@@ -945,8 +962,10 @@ class Location(Lockable):
     self.actors = {}
 
   def title(self, actor):
-    return "        --=(%s %s %s the %s)=--        " % (
-      actor.name.capitalize(), actor.isare, self.inonat, self.name)
+    preamble = ""
+    if (actor != self.game.player):
+      preamble = "%s %s %s the " % (actor.name.capitalize(), actor.isare, self.inonat)
+    return "        --=( %s%s )=--        " % (preamble, self.name)
 
   def add_object(self, obj):
     self.contents[obj.name] = obj
@@ -998,9 +1017,13 @@ class Location(Lockable):
     if self.actors:
       for k in sorted(self.actors.keys()):
         a = self.actors[k]
+        if a.health < 0:
+          deadornot = "lying here dead as a doornail"
+        else:
+          deadornot = "here"
         if a != observer:
           desc += self.game.style_text("\n" + add_article(a.describe(a)).capitalize() + \
-                                       " " + a.isare + " here.", CONTENTS)
+                                       " " + a.isare + " " + deadornot + ".", CONTENTS)
 
     return desc
 
@@ -1052,10 +1075,6 @@ class Location(Lockable):
     for key in self.exits:
       print "exit: %s" % key
 
-  def make_requirement(self, thing):
-      self.requirements[thing.name] = thing
-      self.set_flag('locked')
-
 
 # A "connection" connects point A to point B. Connections are
 # always described from the point of view of point A.
@@ -1086,6 +1105,7 @@ class Actor(Base):
 
   def __init__(self, name):
     Base.__init__(self, name)
+    self.health = 0
     self.location = None
     self.allowed_locs = None
     self.inventory = {}
@@ -1112,6 +1132,10 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'commands'))
 
+  # terminate
+  def terminate(self):
+    self.health = -1
+    
   # describe ourselves
   def describe(self, observer):
     return self.name
