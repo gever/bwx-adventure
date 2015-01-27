@@ -36,7 +36,7 @@ cat.set_allowed_locations([sidewalk])
 player = game.new_player(sidewalk)
 
 #
-# Lets put a deadly object in the office:
+# Lets put a deadly object on the sidewalk:
 # The object is a Drink and the arguments we pass to Drink() are:
 #   - name of the object "vial"
 #   - description of the object "a small vial of..."
