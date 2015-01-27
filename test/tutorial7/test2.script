@@ -1,0 +1,52 @@
+> look
+There is a large glass door to the east. The sign says 'Come In!'
+There is a vial here.
+A cat is here.
+
+> tell cat drink vial
+Cat drinks a small vial of dark sinister looking liquid.
+Cat is choking violently and collapsing onto the floor...
+Cat is dead.
+
+> look
+There is a large glass door to the east. The sign says 'Come In!'
+There is an empty vial here.
+A cat is lying here dead as a doornail.
+
+> examine vial
+Huh?
+
+> examine empty vial
+You see an empty vial with an acrid odor.
+
+> in
+        --=( Vestibule )=--        
+
+A small area at the bottom of a flight of stairs.
+There is a glass door to the west and door to the south.
+There is a shield here.
+A sleeping bear is here.
+
+
+> take shield
+You take the shield.
+
+> in
+        --=( Office )=--        
+
+A nicely organized office.
+There is a door to the north.
+There is a sword here.
+A tiny dragon is here.
+
+
+> fight dragon
+Using the shield to avoid the dragon's flames you kill it with the sword.
+
+> look
+A nicely organized office.
+There is a door to the north.
+There is a sword here.
+A tiny dragon is lying here dead as a doornail.
+
+> end
