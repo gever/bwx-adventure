@@ -1,11 +1,17 @@
 #!/user/bin/python
 # vim: et sw=2 ts=2 sts=2
 
+import sys
+sys.path.append('bwx-adventure')
+
 from advent import *
-#from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Player
-#from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
+# EH - The below is unnecessary, but might be useful in the future.
+# from advent import Game, Location, Connection, Object, Animal, Robot, Pet, Player
+# from advent import NORTH, SOUTH, EAST, WEST, UP, DOWN, RIGHT, LEFT, IN, OUT, FORWARD, BACK, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST, NOT_DIRECTION
 game = Game("The Great Willow Wind Text Adventure")
 
+
+# EH - Initial test locations.
 in_front_of_office = game.new_location(
   "In Front of Yellow Building",
     """In front of you stands a bright yellow building which appears to be \
