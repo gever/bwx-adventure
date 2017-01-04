@@ -13,9 +13,11 @@ The games in wwif were developed with python 3.5.2, which can be downloaded for 
 
 For Mac users (if you purchased your Mac after 2009), download the Mac OS X 64-bit/32-bit installer.
 
-For Windows users, you'll want to double check whether you're running a 32-bit or 64-bit system.  Instructions for how to find out what system you're using can be found in this article: https://www.pcworld.com/article/3096790/windows/why-it-matters-whether-your-windows-is-32-bit-or-64-bit.html
+For Windows users, you'll want to double check whether you're running a 32-bit or 64-bit system.  Instructions for how to find out what system you're using can be found in this article:
 
-For 64-bit Windows, download the Windows x86-64 executable installer.
+  https://www.pcworld.com/article/3096790/windows/why-it-matters-whether-your-windows-is-32-bit-or-64-bit.html
+
+For 64-bit Windows, download the Windows x86-64 executable installer.  
 For 32-bit Windows, download the Windows x86 executable installer.
 
 ## Playing the Games
