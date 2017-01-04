@@ -18,11 +18,13 @@ For Windows users, you'll want to double check whether you're running a 32-bit o
 For 64-bit Windows, download the Windows x86-64 executable installer.
 For 32-bit Windows, download the Windows x86 executable installer.
 
-## Playing the Game
+## Playing the Games
 
 Once a game has reached a playable state, it will be made available as a standalone executable (an app).
 
-## gwwta.py
+## Current Games
+
+### gwwta.py (The Great Willow Wind Text Adventure)
 
 The Great Willow Wind Text Adventure is conceived as a multi-year endeavor, in
 which successive classes of students learn and improve their python skills by
