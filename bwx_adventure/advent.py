@@ -13,9 +13,9 @@ import string
 import textwrap
 import time
 
-# Only use color if NOT in IDLE and ON mac
+# Only use color if running on Mac but not in idle.
 global _use_color_text
-if 'idlelib.__main__' not in sys.modules and sys.platform == 'darwin':
+if sys.platform == 'darwin' and 'idlelib' not in sys.modules:
   _use_color_text = True
 else:
   _use_color_text = False
