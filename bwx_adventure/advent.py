@@ -3,6 +3,7 @@
 #
 # vim: et sw=2 ts=2 sts=2
 
+import sys
 # for Python3, use:
 import urllib.request as urllib2
 # import urllib2
@@ -11,6 +12,13 @@ import random
 import string
 import textwrap
 import time
+
+# Only use color if NOT in IDLE and ON mac
+global _use_color_text
+if 'idlelib.__main__' not in sys.modules and sys.platform == 'darwin':
+  _use_color_text = True
+else:
+  _use_color_text = False
 
 # "directions" are all the ways you can describe going some way; 
 # they are code-visible names for directions for adventure authors
@@ -414,6 +422,8 @@ class Game(Base):
     self.devtools.set_game(self)
     self.http_output = False
     self.http_text = ""
+    global _use_color_text
+    self.use_color_text = _use_color_text
     self.done = False
 
   def set_name(self, name):
@@ -512,17 +522,18 @@ class Game(Base):
       if (message_type == DEBUG):
         text = "<font color='orange'>" + text + '</font>'
       return text
-
-    if (message_type == FEEDBACK):
-      text = Colors.FG.pink + text + Colors.reset
-    if (message_type == TITLE):
-      text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + Colors.reset
-    if (message_type == DESCRIPTION):
-      text = Colors.reset + text
-    if (message_type == CONTENTS):
-      text = Colors.FG.green + text + Colors.reset
-    if (message_type == DEBUG):
-      text = Colors.bold + Colors.FG.black + Colors.BG.orange + "\n" + text + Colors.reset
+  
+    if _use_color_text:
+      if (message_type == FEEDBACK):
+        text = Colors.FG.pink + text + Colors.reset
+      if (message_type == TITLE):
+        text = Colors.FG.yellow + Colors.BG.blue + "\n" + text + Colors.reset
+      if (message_type == DESCRIPTION):
+        text = Colors.reset + text
+      if (message_type == CONTENTS):
+        text = Colors.FG.green + text + Colors.reset
+      if (message_type == DEBUG):
+        text = Colors.bold + Colors.FG.black + Colors.BG.orange + "\n" + text + Colors.reset
     return text
 
   # overload this for HTTP output
