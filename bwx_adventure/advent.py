@@ -3,22 +3,15 @@
 #
 # vim: et sw=2 ts=2 sts=2
 
-import sys
 # for Python3, use:
 import urllib.request as urllib2
 # import urllib2
 
 import random
 import string
+import sys
 import textwrap
 import time
-
-# Only use color if running on Mac but not in idle.
-global _use_color_text
-if sys.platform == 'darwin' and 'idlelib' not in sys.modules:
-  _use_color_text = True
-else:
-  _use_color_text = False
 
 # "directions" are all the ways you can describe going some way; 
 # they are code-visible names for directions for adventure authors
@@ -422,8 +415,13 @@ class Game(Base):
     self.devtools.set_game(self)
     self.http_output = False
     self.http_text = ""
-    global _use_color_text
-    self.use_color_text = _use_color_text
+
+    # Generally, don't color text or background.  But, if the module is running
+    # on Mac in something other than idle, then it is OK to use color.
+    self.use_color_text = False
+    if sys.platform == 'darwin' and 'idlelib' not in sys.modules:
+      self.use_color_text = True
+
     self.done = False
 
   def set_name(self, name):
@@ -523,7 +521,7 @@ class Game(Base):
         text = "<font color='orange'>" + text + '</font>'
       return text
   
-    if _use_color_text:
+    if self.use_color_text:
       if (message_type == FEEDBACK):
         text = Colors.FG.pink + text + Colors.reset
       if (message_type == TITLE):
