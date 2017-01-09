@@ -18,6 +18,8 @@ For Windows users, you'll want to double check whether you're running a 32-bit o
 For 64-bit Windows, download the Windows x86-64 executable installer.  
 For 32-bit Windows, download the Windows x86 executable installer.
 
+*Instructions for how to code for wwif at home can be found on the wwif wiki at https://github.com/sleepinghungry/wwif/wiki/If-You-Want-to-Code-at-Home.*
+
 ## Playing the Games
 
 Once a game has reached a playable state, it will be made available as a standalone executable (an app).  You can download a game by doing the following:
@@ -30,9 +32,9 @@ Once a game has reached a playable state, it will be made available as a standal
 3. Click on the "Download" button.
 4. Once downloaded, you can double click on the game to play it.
 
-## Available Games
+### Available Games
 
-### gwwta (The Great Willow Wind Text Adventure)
+#### gwwta (The Great Willow Wind Text Adventure)
 
 The Great Willow Wind Text Adventure is conceived as a multi-year endeavor, in
 which successive classes of students learn and improve their python skills by
