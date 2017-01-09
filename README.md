@@ -35,6 +35,8 @@ To date (Jan 2017), 0 students over 0 years and 0 classes have added
   
 to the game.
 
-The current versions of the game in [dist](https://github.com/sleepinghungry/wwif/tree/master/dist) are simple demonstrations.
+Note that the current version of the game in [dist](https://github.com/sleepinghungry/wwif/tree/master/dist) is simply a test.
+
+Detailed instructions for downloading can be found in the wwif wiki at https://github.com/sleepinghungry/wwif/wiki/Finding-and-Playing-a-Game.
 
 *All games were built using the [bwx-adventure](https://github.com/gever/bwx-adventure) module.*
