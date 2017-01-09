@@ -23,10 +23,10 @@ For 32-bit Windows, download the Windows x86 executable installer.
 Once a game has reached a playable state, it will be made available as a standalone executable (an app).  You can download a game by doing the following:
 
 1. Click on the ["dist" link](https://github.com/sleepinghungry/wwif/tree/master/dist) above.  
-   "dist" is short for *distribution* and is a folder in the wwif repository that will contain games ready for distribution.
+   ("dist" is short for *distribution* and is a folder in the wwif repository that will contain games ready for distribution.)
 2. Click on the game that you want to download.  
-   Games ending in .exe will be playable on Windows 64-bit computers.  
-   Games without an ending will be playable on Mac computers.
+   (Games ending in .exe will be playable on Windows 64-bit computers.)  
+   (Games without an ending will be playable on Mac computers.)
 3. Click on the "Download" button.
 4. Once downloaded, you can double click on the game to play it.
 
