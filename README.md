@@ -9,7 +9,7 @@ other smaller student creations.
 
 The games in wwif were developed with python 3.5.2, which can be downloaded for Windows or Mac at https://www.python.org/downloads/release/python-352/
 
-Installation instructions can be found on the wwif wiki at https://github.com/sleepinghungry/wwif/wiki/If-You-Want-to-Code-at-Home.
+Detailed instructions can be found on the wwif wiki at https://github.com/sleepinghungry/wwif/wiki/If-You-Want-to-Code-at-Home.
 
 ## Coding From Home
 
@@ -17,7 +17,7 @@ Instructions for how to code for wwif at home can be found on the wwif wiki at h
 
 ## Available Games
 
-Games that are either finished, open for play testing, or available for parents to try can be found in the [dist](https://github.com/sleepinghungry/wwif/tree/master/dist) folder, which contains the following game(s):
+Games that are either finished, open for play testing, or available for parents to try can be found in the [dist](https://github.com/sleepinghungry/wwif/tree/master/dist) folder above, which contains the following game(s):
 
 #### gwwta (The Great Willow Wind Text Adventure)
 
