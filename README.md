@@ -1,11 +1,9 @@
 # wwif
 
 The Willow Wind Interactive Fiction repository was created as part of a
-nine* day workshop taught at the Willow Wind Community Learning Center in
+nine day workshop taught at the Willow Wind Community Learning Center in
 January of 2017.  It contains The Great Willow Wind Text Adventure, as well as
 other smaller student creations.
-
-###### \* Actually only six(!) days due to snow days.
 
 ## Requirements for Development
 
