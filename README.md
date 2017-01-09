@@ -32,7 +32,7 @@ Once a game has reached a playable state, it will be made available as a standal
 
 ## Available Games
 
-### gwwta(.exe) (The Great Willow Wind Text Adventure)
+### gwwta (The Great Willow Wind Text Adventure)
 
 The Great Willow Wind Text Adventure is conceived as a multi-year endeavor, in
 which successive classes of students learn and improve their python skills by
