@@ -26,6 +26,7 @@ guard = Animal("guard")
 guard.set_location(dungeon)
 guard.set_allowed_locations([dungeon])
 
+torch = Object("torch", "a recently lit torch")
 torch = corridor.new_object("torch", "a recently lit torch")
 
 key_chain = Object("key chain", "a rusty ring of old keys")
@@ -52,6 +53,7 @@ def kill_guard(game, thing):
     guard.terminate()
     guard.act_drop1(player,key_chain)
     guard.act_drop1(player,dagger)
+guard.add_phrase("kill guard", kill_guard)
  
 game.run()
 
