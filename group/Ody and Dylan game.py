@@ -16,9 +16,9 @@ dungeon = game.new_location(
 
 corridor = game.new_location(
   "Corridor",
-"""You are in long corridor, there is a large wooden door to the west.""")
+"""You are in long corridor, there is a large open wooden door to the west.""")
 
-game.new_connection("Glass Door", dungeon, vestibule, [IN, EAST], [OUT, WEST])
+cell_door = game.new_connection("Cell Door", dungeon, corridor, [IN, NORTH], [OUT, SOUTH])
 
 player = game.new_player(dungeon)
 
@@ -26,12 +26,19 @@ guard = Animal("guard")
 guard.set_location(dungeon)
 guard.set_allowed_locations([dungeon])
 
-
+torch = corridor.new_object("torch", "a recently lit torch")
 
 key_chain = Object("key chain", "a rusty ring of old keys")
+corridor.make_requirement (key_chain)
 dagger = Object("dwarven dagger", "a polished dwarven dagger")
 guard.add_to_inventory(key_chain)
-guard.add_to_inventory(dagger)                
+guard.add_to_inventory(dagger)
+
+cell_door.set_flag('locked')
+def unlock_door(game, thing):
+  game.output("you stick one of the keys on the key chain into the key hole and it clicks open")
+  thing.unset_flag('locked')
+cell_door.add_phrase('unlock door', unlock_door, [key_chain])
 
 sharp_bone = dungeon.new_object("sharp bone", "a sharp bone lies in the corner to the left of you")
 
