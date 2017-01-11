@@ -23,7 +23,9 @@ river = game.new_location(
 """You are next to a river. There is a shovel next to the river""")
 
 shovel = river.new_object("shovel", "a steel shovel")
- 
+
+dragon = Animal ("dragon")
+dragon.set_location(river) 
   
 game.new_connection("Glass Door", forest, up_tree, [UP], [DOWN])
 game.new_connection("Glass Door", forest, river, [EAST], [WEST])
