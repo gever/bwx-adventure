@@ -1,0 +1,191 @@
+> tell Fido follow me
+Fido obediently begins following you
+A cat enters the Sidewalk via the Big Door.
+
+> look
+There is a large glass door to the east.
+The sign says 'Come In!'
+
+There are a few things here: Gary the garden gnome, a candle, a pebble, and a key.
+Fido is here.
+Robby is here.
+A cat is here.
+A cat leaves the Sidewalk, heading in.
+
+> take candle pebble key
+You take the candle.
+You take the pebble.
+You take the key.
+
+> go in
+        --=( Vestibule )=--        
+
+A small area at the bottom of a flight of stairs.
+There is a switch next to an unlit bulb.
+Up the stars you see the reception desk.
+A cat is here.
+
+
+> pet cat
+The cat purrs.
+A cat leaves the Vestibule, heading east.
+
+> flip switch
+
+> look
+A small area at the bottom of a flight of stairs.
+There is a switch next to a lit bulb.
+Up the stars you see the reception desk.
+Fido is here.
+
+> flip switch
+A cat enters the Vestibule via the Big Door.
+
+> look
+A small area at the bottom of a flight of stairs.
+There is a switch next to an unlit bulb.
+Up the stars you see the reception desk.
+Fido is here.
+A cat is here.
+
+> light candle
+You light the candle.
+
+> blow out candle
+You blow out the candle.
+A cat leaves the Vestibule, heading up.
+
+> throw pebble
+
+> take pebble
+You take the pebble.
+
+> look
+A small area at the bottom of a flight of stairs.
+There is a switch next to an unlit bulb.
+Up the stars you see the reception desk.
+Fido is here.
+
+> go up
+        --=( Reception Desk )=--        
+
+Behind an opening in the wall you see an unlit room.
+You see a score board and a message box with a needle for messages.
+There is a locked sliding door to the south, and an intersection to the north.
+A cat is here.
+
+The pebble you picked up is suddenly feeling warm to the touch!
+
+> s
+Bonk! you can't seem to go that way.
+The pebble you picked up is suddenly feeling warm to the touch!
+
+> pet cat
+The cat purrs.
+A cat leaves the Reception Desk, heading down.
+The pebble you picked up is suddenly feeling warm to the touch!
+
+> n
+        --=( Intersection )=--        
+
+A boring intersection. There is a passageway to the
+north that leads to the shop. To the east is the elevator
+landing, to the west is the guest lounge, and to the
+south is the reception desk. There is nothing to do here.
+
+
+
+> drop key
+
+> e
+It's locked! You will need a pebble and a key.
+Bonk! you can't seem to go that way.
+
+> take key
+You take the key.
+
+> e
+You use the a pebble and a key, the Elevator unlocks
+        --=( Elevator )=--        
+
+The elevator is turned off, but the door is open.
+The controls on the elevator do not seem to work.
+To the west is an intersection.
+
+
+
+> w
+        --=( Intersection )=--        
+
+A boring intersection. There is a passageway to the
+north that leads to the shop. To the east is the elevator
+landing, to the west is the guest lounge, and to the
+south is the reception desk. There is nothing to do here.
+
+
+
+> look
+A boring intersection. There is a passageway to the
+north that leads to the shop. To the east is the elevator
+landing, to the west is the guest lounge, and to the
+south is the reception desk. There is nothing to do here.
+
+Fido is here.
+
+> w
+Bonk! you can't seem to go that way.
+
+> n
+Bonk! you can't seem to go that way.
+
+> s
+        --=( Reception Desk )=--        
+
+Behind an opening in the wall you see an unlit room.
+You see a score board and a message box with a needle for messages.
+There is a locked sliding door to the south, and an intersection to the north.
+
+
+> d
+        --=( Vestibule )=--        
+
+A small area at the bottom of a flight of stairs.
+There is a switch next to an unlit bulb.
+Up the stars you see the reception desk.
+
+
+> out
+        --=( Sidewalk )=--        
+
+There is a large glass door to the east.
+The sign says 'Come In!'
+
+There is Gary the garden gnome here.
+Robby is here.
+A cat is here.
+
+
+> look
+There is a large glass door to the east.
+The sign says 'Come In!'
+
+There is Gary the garden gnome here.
+Fido is here.
+Robby is here.
+A cat is here.
+
+> knock
+The door makes a hollow sound.
+
+> scream foo
+
+> look
+There is a large glass door to the east.
+The sign says 'Come In!'
+
+There is Gary the garden gnome here.
+Fido is here.
+Robby is here.
+A cat is here.
+
+> end

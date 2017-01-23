@@ -1,0 +1,92 @@
+> hi Robby
+Robby sighs metalically and says, "hello, my name is Robby.".
+
+> look
+There is a large glass door to the east. The sign says 'Come In!'
+There is a key here.
+Robby is here.
+
+> take key
+You take the key.
+
+> go in
+        --=( Vestibule )=--        
+
+A small area at the bottom of a flight of stairs.
+There is a glass door to the west and door to the south.
+
+A cat enters the Vestibule via the Office Door.
+
+> tell cat follow
+cat obediently begins following you
+
+> s
+        --=( Office )=--        
+
+A nicely organized office.
+There is a door to the north.
+A bat is here.
+
+
+> swat bat
+The bat flaps frantically up out of your reach.
+A bat leaves the Office, heading out.
+
+> look
+A nicely organized office.
+There is a door to the north.
+A cat is here.
+A bat enters the Office via the Office Door.
+
+> pet cat
+The cat purrs.
+A bat leaves the Office, heading north.
+
+> tell cat bark
+The cat barks and coughs and something splats on the floor.
+
+> look
+A nicely organized office.
+There is a door to the north.
+There is a hairball here.
+A cat is here.
+
+> n
+        --=( Vestibule )=--        
+
+A small area at the bottom of a flight of stairs.
+There is a glass door to the west and door to the south.
+A bat is here.
+
+
+> tell cat bark
+The cat barks and coughs and something splats on the floor.
+A bat leaves the Vestibule, heading south.
+
+> look
+A small area at the bottom of a flight of stairs.
+There is a glass door to the west and door to the south.
+There is a hairball here.
+A cat is here.
+
+> out
+        --=( Sidewalk )=--        
+
+There is a large glass door to the east. The sign says 'Come In!'
+Robby is here.
+
+
+> look
+There is a large glass door to the east. The sign says 'Come In!'
+Robby is here.
+A cat is here.
+
+> tell cat stay
+cat obediently stops following you
+
+> look
+There is a large glass door to the east. The sign says 'Come In!'
+Robby is here.
+A cat is here.
+
+> end
