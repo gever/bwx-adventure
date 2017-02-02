@@ -4,8 +4,8 @@
 # vim: et sw=2 ts=2 sts=2
 
 # for Python3, use:
-# import urllib.request as urllib2
-import urllib2
+import urllib.request as urllib2
+#import urllib2
 
 import random
 import string
@@ -619,7 +619,7 @@ class Game(Base):
         # get input from the user
         try:
           self.output("")  # add a blank line
-          user_input = raw_input("> ")
+          user_input = input("> ")
         except EOFError:
           return False
 
@@ -661,9 +661,9 @@ class Game(Base):
     if words[0].lower() == 'tell' and len(words) > 2:
       (target_name, words) = get_noun(words[1:], actor.location.actors.values())
 
-    things = actor.inventory.values() + \
-      actor.location.contents.values() + \
-      actor.location.exits.values() + \
+    things = list(actor.inventory.values()) + \
+      list(actor.location.contents.values()) + \
+      list(actor.location.exits.values()) + \
       list(actor.location.actors.values()) + \
       [actor.location] + \
       [actor]

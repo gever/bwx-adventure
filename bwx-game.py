@@ -118,7 +118,7 @@ sidewalk.add_verb(Say('The door makes a hollow sound.', 'knock'))
 # function. "def" defines a function in Python.
 def scream(self, actor, noun, words):
   all_words = [noun] + words
-  print "You hear a scream '%s'." % ' '.join(all_words)
+  print("You hear a scream '%s'." % ' '.join(all_words))
   return True
 
 sidewalk.add_verb(Verb(scream, 'scream'))
@@ -159,10 +159,10 @@ game.add_actor(fido)
 # add a custom actor verb (in this case for the hero)
 def throw(self, actor, noun, words):
   if noun and actor.get_verb('drop').act(actor, noun, words):
-     print 'The %s bounces and falls to the floor' % noun
+     print('The %s bounces and falls to the floor' % noun)
      return True
   else:
-     print 'You hurt your arm.'
+     print('You hurt your arm.')
      return False
 
 hero.add_verb(Verb(throw, 'throw'))
@@ -207,7 +207,7 @@ share.start()
 #   SESSION: available to the specific palyer in the specific adventure in the specific session
 def scribble(self, actor, noun, words):
   if not noun or words:
-    print "You can only scrible a single word."
+    print("You can only scrible a single word.")
     return False
   share.put(share.ADVENTURE, 'crumb.' + actor.location.name, noun.strip())
   return True
@@ -218,9 +218,9 @@ hero.add_verb(Verb(scribble, 'scribble'))
 def peek(self, actor, noun, words):
   v = share.get(share.ADVENTURE, 'crumb.' + actor.location.name)
   if not v:
-    print 'Nothing here.'
+    print('Nothing here.')
     return False
-  print 'Someone scribbled "%s" here.' % v
+  print('Someone scribbled "%s" here.' % v)
   return True
 
 hero.add_verb(Verb(peek, 'peek'))
@@ -229,19 +229,19 @@ hero.add_verb(Verb(peek, 'peek'))
 def more(self, actor, noun, words):
   loc_name = "_".join(actor.location.name.split(' '))
   share.increment(share.ADVENTURE, 'count.' + loc_name)
-  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name)
+  print('The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name))
   return True
 
 def fewer(self, actor, noun, words):
   loc_name = "_".join(actor.location.name.split(' '))
   share.decrement(share.ADVENTURE, 'count.' + loc_name)
-  print 'The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name)
+  print('The count is %s!' % share.get(share.ADVENTURE, 'count.' + loc_name))
   return True
 
 def reset(self, actor, noun, words):
   loc_name = "_".join(actor.location.name.split(' '))
   share.delete(share.ADVENTURE, 'count.' + loc_name)
-  print 'The count is reset!'
+  print('The count is reset!')
   return True
 
 hero.add_verb(Verb(more, 'more'))
@@ -256,7 +256,7 @@ def flip(self, actor, noun, words):
     self.unset_flag('switch_on')
   else:
     self.set_flag('switch_on')
-  print "You flip the switch."
+  print("You flip the switch.")
   return True
 
 vestibule.add_verb(Verb(flip, 'flip'))
@@ -307,7 +307,7 @@ def push(self, actor, noun, words):
       return False
     w = "_".join(words)
   share.push(share.ADVENTURE, 'reception_messages', w)
-  print "You left a message on the stack of messages."
+  print("You left a message on the stack of messages.")
   return True
 
 reception.add_verb(Verb(push, 'push'))
@@ -317,10 +317,10 @@ def pop(self, actor, noun, words):
     return False
   w = share.pop(share.ADVENTURE, 'reception_messages')
   if not w:
-    print "There are no messages on the stack."
+    print("There are no messages on the stack.")
     return False
   words = w.split('_')
-  print "You pull the top message from the stack and read '%s'." % " ".join(words)
+  print("You pull the top message from the stack and read '%s'." % " ".join(words))
   return True
 
 reception.add_verb(Verb(pop, 'pop'))
@@ -346,9 +346,9 @@ def top(self, actor, noun, words):
     return False
   w = share.ztop(share.ADVENTURE, 'highscore', 10)
   if w:
-    print "Top Players"
+    print("Top Players")
     for x in w:
-      print "  %s" % x
+      print("  %s" % x)
   return True
 
 def scores(self, actor, noun, words):
@@ -356,9 +356,9 @@ def scores(self, actor, noun, words):
     return False
   w = share.ztop_with_scores(share.ADVENTURE, 'highscore', 10)
   if w:
-    print "High Scores"
+    print("High Scores")
     for x in w:
-      print "  %s %s" % (x[0], x[1])
+      print("  %s %s" % (x[0], x[1]))
   return True
 
 reception.add_verb(Verb(top, 'top'))
