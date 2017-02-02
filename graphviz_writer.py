@@ -52,7 +52,7 @@ def write_as_dot (game, file_name=None):
   # define helper for printing to the .dot file
   f = open(file_name, 'w') if file_name else None
   def _dot (line):
-    print >> f, line
+    print(line, file=f)
   # get node names by munging loc names (bail if any are dups)
   node_name_set = set()
   node_name_by_loc = {}
@@ -95,7 +95,7 @@ def write_as_dot (game, file_name=None):
     f.close()
 
 def dump_node_name_by_loc (node_name_by_loc):
-  print "node_name_by_loc = {"
+  print("node_name_by_loc = {")
   for (loc, node_name) in node_name_by_loc.items():
-    print '  Location("%s") : "%s"' % (loc.name, node_name)
-  print "}"
+    print('  Location("%s") : "%s"' % (loc.name, node_name))
+  print("}")
