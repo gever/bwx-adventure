@@ -27,11 +27,11 @@ The sign says 'Come In!'
 
 # Custom messages can contain lists of strings and functions which return strings.
 vestibule = Location(
-"Vestibule", 
+"Vestibule",
 ["A small area at the bottom of a flight of stairs.\n",
   game.if_flag('switch_on', "There is a switch next to a lit bulb.\n",
     "There is a switch next to an unlit bulb.\n"),
-"Up the stars you see the reception desk."])
+"Up the stairs you see the reception desk."])
 
 # You can also create a function to provide the description.
 def reception_description(self):
@@ -417,6 +417,6 @@ hero.add_script(test_script)
 
 # Now you can run this script from within the game as the hero
 # by typing "run test"
-      
+
 # Start playing.
 game.run(update)
