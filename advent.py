@@ -1137,6 +1137,8 @@ class Actor(Base):
     self.add_verb(BaseVerb(self.act_open, 'open'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'verbs'))
     self.add_verb(BaseVerb(self.act_list_verbs, 'commands'))
+    self.add_verb(BaseVerb(self.act_list_verbs, 'help'))
+    
 
   # terminate
   def terminate(self):
