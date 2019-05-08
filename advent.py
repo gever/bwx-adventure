@@ -882,12 +882,16 @@ class Lockable(Base):
     return False
 
 class Container(Lockable):
-  def __init__(self, name, description):
+  def __init__(self, name, description, is_open=False):
     Lockable.__init__(self, name)
     self.description = description
     self.first_time = True
     self.contents = {}
-    self.close()
+
+    if is_open:
+        self.unset_flag('closed')
+    else:
+        self.close()
 
   def add_object(self, obj):
     self.contents[obj.name] = obj
